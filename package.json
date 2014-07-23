@@ -1,0 +1,30 @@
+{
+  "name": "browserify-loader",
+  "version": "0.0.0",
+  "description": "Another CommonJS Loader",
+  "main": "browserify-loader.js",
+  "scripts": {
+    "test": "node test",
+    "build": "browserify src/main.js > browserify-loader.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/island205/browserify-loader.git"
+  },
+  "keywords": [
+    "commonjs",
+    "module",
+    "loader",
+    "browserify"
+  ],
+  "author": "island205@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/island205/browserify-loader/issues"
+  },
+  "homepage": "https://github.com/island205/browserify-loader",
+  "dependencies": {
+    "uglify-js": "^2.4.15",
+    "xhr": "^1.13.0"
+  }
+}
