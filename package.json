@@ -2,7 +2,7 @@
   "name": "browserify-loader",
   "version": "0.0.0",
   "description": "Another CommonJS Loader",
-  "main": "browserify-loader.js",
+  "main": "src/main.js",
   "scripts": {
     "test": "node test",
     "build": "browserify src/main.js > browserify-loader.js"
@@ -24,6 +24,8 @@
   },
   "homepage": "https://github.com/island205/browserify-loader",
   "dependencies": {
+    "path-browserify": "0.0.0",
+    "q": "^1.0.1",
     "uglify-js": "^2.4.15",
     "xhr": "^1.13.0"
   }
