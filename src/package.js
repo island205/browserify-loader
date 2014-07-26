@@ -1,15 +1,16 @@
 var Util = require('./util')
 var xhr = require('xhr')
 var log = require('./log')
+var path = require('path-browserify')
 
-function Package(uri) {
-  this.uri = uri
+function Package(pathname) {
+  this.pathname = pathname
 }
 
 pkProto = Package.prototype
 
 pkProto.getPackageJson = function(done) {
-  var packageJsonURI = Util.getFileURI(this.uri, '/package.json')
+  var packageJsonURI = Util.getFileURI(this.pathname, '/package.json')
   xhr({
     uri: packageJsonURI,
     headers: {
@@ -28,27 +29,27 @@ pkProto.getPackageJson = function(done) {
 }
 
 pkProto.getMainModule = function(done) {
-  log('getMainModule')
+  var that = this
   this.getPackageJson(function(err, packageJson) {
     if (err) {
       return done(err)
     }
-    var mainScript = packageJson.main || 'index.js'
-    Util.getScriptContent(mainScript, function(err, scriptContent) {
-      if (err) {
-        return done(err)
-      }
-      var mainModule = new Module(rootScript, scriptContent)
-      done(null, mainModule)
-    })
+    log("package.getMainModule", packageJson)
+    var mainScriptPath = packageJson.main || 'index.js'
+    mainScriptPath = path.normalize(that.pathname + mainScriptPath)
+    log("package.getMainModule", mainScriptPath)
+    var mainModule = new Module(mainScriptPath)
+    done(null, mainModule)
   })
 }
 
 pkProto.start = function(done) {
+  log("module.start")
   this.getMainModule(function(err, mainModule) {
     if (err) {
       return done(err)
     }
+    log("package.start", mainModule)
     mainModule.start(done)
   })
 }
