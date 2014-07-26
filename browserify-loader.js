@@ -226,7 +226,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("K/m7xv"))
-},{"K/m7xv":20}],2:[function(require,module,exports){
+},{"K/m7xv":24}],2:[function(require,module,exports){
 (function (process){
 // vim:ts=4:sts=4:sw=4:
 /*!
@@ -2134,7 +2134,7 @@ return Q;
 });
 
 }).call(this,require("K/m7xv"))
-},{"K/m7xv":20}],3:[function(require,module,exports){
+},{"K/m7xv":24}],3:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -4407,7 +4407,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require("K/m7xv"),"/../node_modules/uglify-js/node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"K/m7xv":20,"path":19}],13:[function(require,module,exports){
+},{"K/m7xv":24,"path":23}],13:[function(require,module,exports){
 var sys = require("util");
 var MOZ_SourceMap = require("source-map");
 var UglifyJS = exports;
@@ -12266,7 +12266,7 @@ exports.describe_ast = function () {
     doitem(UglifyJS.AST_Node);
     return out + "";
 };
-},{"source-map":3,"util":22}],14:[function(require,module,exports){
+},{"source-map":3,"util":26}],14:[function(require,module,exports){
 var window = require("global/window")
 var once = require("once")
 
@@ -12438,23 +12438,64 @@ function once (fn) {
 }
 
 },{}],17:[function(require,module,exports){
+var debug = true
+module.exports = function() {
+  if (debug) {
+    console.log.apply(console, arguments)
+  }
+}
+exports.enable = function() {
+  debug = true
+}
+
+exports.disable = function() {
+  debug = false
+}
+},{}],18:[function(require,module,exports){
 var jsp = require('uglify-js').parser
-var xhr = require('xhr')
 var Q = require('q')
-var path = require('path-browserify')
+var Package = require('./package')
+var Module = require('./module')
+var Util = require('./util')
 
 var BL = window.BL = {}
 
-function getFileURI(to, from) {
-  if (typeof from === 'undefined') {
-    from = location.pathname
-  }
-  return location.origin + path.resolve(from, to)
+function start(done) {
+  var rootPackage = new Package(location.pathname)
+  rootPackage.start(done)
+}
+BL.Util = Util
+BL.Package = Package
+BL.Module = Module
+BL.start = start
+BL.start(function() {})
+},{"./module":19,"./package":20,"./util":21,"q":2,"uglify-js":13}],19:[function(require,module,exports){
+function Module(uri, scriptContent) {
+  this.uri = uri
+  this.scriptContent = scriptContent
 }
 
-function getPackageJson(packageURI, done) {
+mdProto = Module.prototype
+
+mdProto.start = function(done) {
+  done(null, true)
+}
+module.exports = Module
+},{}],20:[function(require,module,exports){
+var Util = require('./util')
+var xhr = require('xhr')
+var log = require('./log')
+
+function Package(uri) {
+  this.uri = uri
+}
+
+pkProto = Package.prototype
+
+pkProto.getPackageJson = function(done) {
+  var packageJsonURI = Util.getFileURI(this.uri, '/package.json')
   xhr({
-    uri: packageURI,
+    uri: packageJsonURI,
     headers: {
       "Content-Type": "application/json"
     }
@@ -12464,10 +12505,47 @@ function getPackageJson(packageURI, done) {
     }
     try {
       done(err, JSON.parse(body))
-    } catch (e) {
-      done(e)
+    } catch (err) {
+      done(err)
     }
   })
+}
+
+pkProto.getMainModule = function(done) {
+  log('getMainModule')
+  this.getPackageJson(function(err, packageJson) {
+    if (err) {
+      return done(err)
+    }
+    var mainScript = packageJson.main || 'index.js'
+    Util.getScriptContent(mainScript, function(err, scriptContent) {
+      if (err) {
+        return done(err)
+      }
+      var mainModule = new Module(rootScript, scriptContent)
+      done(null, mainModule)
+    })
+  })
+}
+
+pkProto.start = function(done) {
+  this.getMainModule(function(err, mainModule) {
+    if (err) {
+      return done(err)
+    }
+    mainModule.start(done)
+  })
+}
+
+module.exports = Package
+},{"./log":17,"./util":21,"xhr":14}],21:[function(require,module,exports){
+var path = require('path-browserify')
+
+function getFileURI(from, to) {
+  if (typeof from === 'undefined') {
+    from = location.pathname
+  }
+  return location.origin + path.resolve(from, to)
 }
 
 function getScriptContent(scriptURI, done) {
@@ -12481,22 +12559,9 @@ function getScriptContent(scriptURI, done) {
   })
 }
 
-function start() {
-  var rootPackageJsonURI = getFileURI('/package.json')
-  getPackageJson(rootPackageJsonURI, function(err, packageJson) {
-    var rootScript = '/' + packageJson.main || 'index.js'
-    getScriptContent(rootScript, function(err, scriptContent) {
-      console.log(scriptContent)
-    })
-  })
-}
-
-BL.getFileURI = getFileURI
-BL.getPackageJson = getPackageJson
-BL.start = start
-
-BL.start()
-},{"path-browserify":1,"q":2,"uglify-js":13,"xhr":14}],18:[function(require,module,exports){
+exports.getFileURI = getFileURI
+exports.getScriptContent = getScriptContent
+},{"path-browserify":1}],22:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -12521,9 +12586,9 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],19:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 module.exports=require(1)
-},{"K/m7xv":20}],20:[function(require,module,exports){
+},{"K/m7xv":24}],24:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -12588,14 +12653,14 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],21:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],22:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -13185,4 +13250,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("K/m7xv"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":21,"K/m7xv":20,"inherits":18}]},{},[17])
+},{"./support/isBuffer":25,"K/m7xv":24,"inherits":22}]},{},[18])
