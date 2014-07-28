@@ -34,7 +34,6 @@ pkProto.getMainModule = function(done) {
     if (err) {
       return done(err)
     }
-    log("package.getMainModule", packageJson)
     var mainScriptPath = packageJson.main || 'index.js'
     mainScriptPath = path.normalize(path.dirname(that.packagePath) + '/' + mainScriptPath)
     log("package.getMainModule", mainScriptPath)
