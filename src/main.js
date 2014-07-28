@@ -4,12 +4,14 @@ var Util = require('./util')
 
 var BL = window.BL = {}
 
-function start(done) {
+function run() {
   var rootPackage = new Package('/package.json')
-  rootPackage.start(done)
+  rootPackage.load(function() {
+    rootPackage.run()
+  })
 }
 BL.Util = Util
 BL.Package = Package
 BL.Module = Module
-BL.start = start
-BL.start(function() {})
+BL.run = run
+BL.run()

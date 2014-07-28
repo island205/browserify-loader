@@ -36,20 +36,30 @@ pkProto.getMainModule = function(done) {
     }
     var mainScriptPath = packageJson.main || 'index.js'
     mainScriptPath = path.normalize(path.dirname(that.packagePath) + '/' + mainScriptPath)
-    log("package.getMainModule", mainScriptPath)
+    if (Module.cache(mainScriptPath)) {
+      cont(null)
+      log('module.load:', scriptPath + ' is loaded')
+    } else {
+      var md = new Module(scriptPath)
+      Module.cache(md)
+      md.load(cont)
+    }
     var mainModule = new Module(mainScriptPath)
     done(null, mainModule)
   })
 }
 
-pkProto.start = function(done) {
-  log("package.start")
+pkProto.load = function(done) {
   this.getMainModule(function(err, mainModule) {
     if (err) {
       return done(err)
     }
-    mainModule.start(done)
+    mainModule.load(done)
   })
+}
+
+pkProto.run = function() {
+
 }
 
 module.exports = Package

@@ -10,7 +10,7 @@ module('Module')
 test('analyzeDeps', function() {
   var md = new BL.Module('/src/main.js')
   stop()
-  md.start(function() {
+  md.load(function() {
     start()
     deepEqual(md.deps, ['./package', './module', './util'])
   })

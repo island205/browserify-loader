@@ -10938,15 +10938,17 @@ var Util = require('./util')
 
 var BL = window.BL = {}
 
-function start(done) {
+function run() {
   var rootPackage = new Package('/package.json')
-  rootPackage.start(done)
+  rootPackage.load(function() {
+    rootPackage.run()
+  })
 }
 BL.Util = Util
 BL.Package = Package
 BL.Module = Module
-BL.start = start
-BL.start(function() {})
+BL.run = run
+BL.run()
 },{"./module":19,"./package":20,"./util":21}],19:[function(require,module,exports){
 var Util = require('./util')
 var log = require('./log')
@@ -10958,14 +10960,27 @@ var Package = require('./package')
 function Module(scriptPath) {
   log("module", scriptPath)
   this.scriptPath = scriptPath
+  this.status = Module.STATUS.INIT
 }
+
 Module.__cache = {}
+
 Module.cache = function(md) {
   if (typeof md === 'string') {
     return this.__cache[md]
   } else {
     this.__cache[md.scriptPath] = md
   }
+}
+
+Module.STATUS = {
+  INIT: 0,
+  FETCHING: 1,
+  SAVED: 2,
+  LOADING: 3,
+  LOADED: 4,
+  EXECUTING: 5,
+  EXECUTED: 6
 }
 
 mdProto = Module.prototype
@@ -10986,8 +11001,7 @@ mdProto.analyzeDeps = function() {
   this.deps = deps
 }
 
-mdProto.start = function(done) {
-  log("module.start")
+mdProto.load = function(done) {
   var that = this
   Util.getScriptContent(this.scriptPath, function(err, scriptContent) {
     if (err) {
@@ -10998,23 +11012,27 @@ mdProto.start = function(done) {
     Thenjs.each(that.deps, function(cont, dep) {
       if (dep.slice(0, 1) == '.') {
         var scriptPath = path.normalize(path.dirname(that.scriptPath) + '/' + dep + '.js')
-        if (Module.cache[scriptPath]) {
+        if (Module.cache(scriptPath)) {
           cont(null)
+          log('module.load:', scriptPath + ' is loaded')
         } else {
           var md = new Module(scriptPath)
           Module.cache(md)
-          md.start(cont)
+          md.load(cont)
         }
       } else {
-        debugger
         var packagePath = path.normalize(path.dirname(that.scriptPath) + '/' + 'node_modules/' + dep + '/package.json')
         var pk = new Package(packagePath)
-        pk.start(cont)
+        pk.load(cont)
       }
     }).all(function(cont, err, results) {
       done(err, results)
     })
   })
+}
+
+mdProto.run = function() {
+
 }
 module.exports = Module
 },{"./log":17,"./package":20,"./util":21,"path-browserify":1,"thenjs":2,"uglify-js":13}],20:[function(require,module,exports){
@@ -11056,20 +11074,30 @@ pkProto.getMainModule = function(done) {
     }
     var mainScriptPath = packageJson.main || 'index.js'
     mainScriptPath = path.normalize(path.dirname(that.packagePath) + '/' + mainScriptPath)
-    log("package.getMainModule", mainScriptPath)
+    if (Module.cache(mainScriptPath)) {
+      cont(null)
+      log('module.load:', scriptPath + ' is loaded')
+    } else {
+      var md = new Module(scriptPath)
+      Module.cache(md)
+      md.load(cont)
+    }
     var mainModule = new Module(mainScriptPath)
     done(null, mainModule)
   })
 }
 
-pkProto.start = function(done) {
-  log("package.start")
+pkProto.load = function(done) {
   this.getMainModule(function(err, mainModule) {
     if (err) {
       return done(err)
     }
-    mainModule.start(done)
+    mainModule.load(done)
   })
+}
+
+pkProto.run = function() {
+
 }
 
 module.exports = Package
@@ -11086,7 +11114,6 @@ function getFileURI(from, to) {
 }
 
 function getScriptContent(scriptURI, done) {
-  log('Util.getScriptContent', scriptURI)
   xhr({
     uri: scriptURI,
     headers: {
