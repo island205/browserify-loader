@@ -1,5 +1,3 @@
-var jsp = require('uglify-js').parser
-var Q = require('q')
 var Package = require('./package')
 var Module = require('./module')
 var Util = require('./util')
@@ -7,7 +5,7 @@ var Util = require('./util')
 var BL = window.BL = {}
 
 function start(done) {
-  var rootPackage = new Package(location.pathname)
+  var rootPackage = new Package('/package.json')
   rootPackage.start(done)
 }
 BL.Util = Util

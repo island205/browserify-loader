@@ -1,4 +1,6 @@
 var path = require('path-browserify')
+var log = require('./log')
+var xhr = require('xhr')
 
 function getFileURI(from, to) {
   if (typeof from === 'undefined') {
@@ -8,6 +10,7 @@ function getFileURI(from, to) {
 }
 
 function getScriptContent(scriptURI, done) {
+  log('Util.getScriptContent', scriptURI)
   xhr({
     uri: scriptURI,
     headers: {
