@@ -10,6 +10,7 @@ function Module(scriptPath) {
   log("init module", scriptPath)
   this.scriptPath = scriptPath
   this.status = Module.STATUS.INIT
+  Module.cache(this)
 }
 
 Module.__cache = {}
@@ -68,7 +69,6 @@ mdProto.load = function(done) {
           cont(null)
         } else {
           var md = new Module(scriptPath)
-          Module.cache(md)
           md.load(cont)
         }
       } else {
@@ -84,8 +84,12 @@ mdProto.load = function(done) {
               oldScriptDirname = scriptDirname
               packagePath = path.normalize(scriptDirname + '/' + 'node_modules/' + dep + '/package.json')
               log('try to load package', packagePath)
-              pk = new Package.Package(packagePath)
-              pk.load(tryToLoadPackage)
+              if (Package.Package.cache(packagePath)) {
+                pk.load(tryToLoadPackage)
+              } else {
+                pk = new Package.Package(packagePath)
+                pk.load(tryToLoadPackage)
+              }
             }
           } else {
             cont(null)

@@ -6,6 +6,28 @@ var Module = require('./module')
 
 function Package(packagePath) {
   this.packagePath = packagePath
+  this.status = Package.STATUS.INIT
+  Package.cache(this)
+}
+
+Package.__cache = {}
+
+Package.cache = function(pk) {
+  if (typeof pk === 'string') {
+    return this.__cache[pk]
+  } else {
+    this.__cache[pk.packagePath] = pk
+  }
+}
+
+Package.STATUS = {
+  INIT: 0,
+  FETCHING: 1,
+  SAVED: 2,
+  LOADING: 3,
+  LOADED: 4,
+  EXECUTING: 5,
+  EXECUTED: 6
 }
 
 pkProto = Package.prototype
@@ -44,7 +66,6 @@ pkProto.getMainModule = function(done) {
       log('module.load:', mainScriptPath + ' is loaded')
     } else {
       var md = new Module(mainScriptPath)
-      Module.cache(md)
       md.load(done)
     }
     var mainModule = new Module(mainScriptPath)
@@ -53,6 +74,9 @@ pkProto.getMainModule = function(done) {
 }
 
 pkProto.load = function(done) {
+  if (this.status == Package.STATUS.SAVED) {
+    return done(null)
+  }
   this.getMainModule(function(err, mainModule) {
     if (err) {
       return done(err)

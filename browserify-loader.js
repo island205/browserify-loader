@@ -10935,6 +10935,7 @@ exports.disable = function() {
 var Package = require('./package').Package
 var Module = require('./module')
 var Util = require('./util')
+var log = require('./log')
 
 var BL = window.BL = {}
 
@@ -10942,7 +10943,7 @@ function run() {
   var rootPackage = new Package('/package.json')
   rootPackage.load(function(err) {
     if (err) {
-      console.log(err)
+      log(err)
     }
     rootPackage.run()
   })
@@ -10952,7 +10953,7 @@ BL.Package = Package
 BL.Module = Module
 BL.run = run
 BL.run()
-},{"./module":19,"./package":20,"./util":21}],19:[function(require,module,exports){
+},{"./log":17,"./module":19,"./package":20,"./util":21}],19:[function(require,module,exports){
 var Util = require('./util')
 var log = require('./log')
 var U2 = require('uglify-js')
@@ -10965,6 +10966,7 @@ function Module(scriptPath) {
   log("init module", scriptPath)
   this.scriptPath = scriptPath
   this.status = Module.STATUS.INIT
+  Module.cache(this)
 }
 
 Module.__cache = {}
@@ -11023,7 +11025,6 @@ mdProto.load = function(done) {
           cont(null)
         } else {
           var md = new Module(scriptPath)
-          Module.cache(md)
           md.load(cont)
         }
       } else {
@@ -11039,8 +11040,12 @@ mdProto.load = function(done) {
               oldScriptDirname = scriptDirname
               packagePath = path.normalize(scriptDirname + '/' + 'node_modules/' + dep + '/package.json')
               log('try to load package', packagePath)
-              pk = new Package.Package(packagePath)
-              pk.load(tryToLoadPackage)
+              if (Package.Package.cache(packagePath)) {
+                pk.load(tryToLoadPackage)
+              } else {
+                pk = new Package.Package(packagePath)
+                pk.load(tryToLoadPackage)
+              }
             }
           } else {
             cont(null)
@@ -11073,6 +11078,28 @@ var Module = require('./module')
 
 function Package(packagePath) {
   this.packagePath = packagePath
+  this.status = Package.STATUS.INIT
+  Package.cache(this)
+}
+
+Package.__cache = {}
+
+Package.cache = function(pk) {
+  if (typeof pk === 'string') {
+    return this.__cache[pk]
+  } else {
+    this.__cache[pk.packagePath] = pk
+  }
+}
+
+Package.STATUS = {
+  INIT: 0,
+  FETCHING: 1,
+  SAVED: 2,
+  LOADING: 3,
+  LOADED: 4,
+  EXECUTING: 5,
+  EXECUTED: 6
 }
 
 pkProto = Package.prototype
@@ -11111,7 +11138,6 @@ pkProto.getMainModule = function(done) {
       log('module.load:', mainScriptPath + ' is loaded')
     } else {
       var md = new Module(mainScriptPath)
-      Module.cache(md)
       md.load(done)
     }
     var mainModule = new Module(mainScriptPath)
@@ -11120,6 +11146,9 @@ pkProto.getMainModule = function(done) {
 }
 
 pkProto.load = function(done) {
+  if (this.status == Package.STATUS.SAVED) {
+    return done(null)
+  }
   this.getMainModule(function(err, mainModule) {
     if (err) {
       return done(err)
