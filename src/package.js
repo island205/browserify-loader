@@ -35,14 +35,17 @@ pkProto.getMainModule = function(done) {
       return done(err)
     }
     var mainScriptPath = packageJson.main || 'index.js'
+    if (mainScriptPath.slice(mainScriptPath.length - 3, mainScriptPath.length) !== '.js') {
+      mainScriptPath = mainScriptPath + '.js'
+    }
     mainScriptPath = path.normalize(path.dirname(that.packagePath) + '/' + mainScriptPath)
     if (Module.cache(mainScriptPath)) {
-      cont(null)
-      log('module.load:', scriptPath + ' is loaded')
+      done(null)
+      log('module.load:', mainScriptPath + ' is loaded')
     } else {
-      var md = new Module(scriptPath)
+      var md = new Module(mainScriptPath)
       Module.cache(md)
-      md.load(cont)
+      md.load(done)
     }
     var mainModule = new Module(mainScriptPath)
     done(null, mainModule)
@@ -62,4 +65,4 @@ pkProto.run = function() {
 
 }
 
-module.exports = Package
+exports.Package = Package

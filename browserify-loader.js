@@ -10932,7 +10932,7 @@ exports.disable = function() {
   debug = false
 }
 },{}],18:[function(require,module,exports){
-var Package = require('./package')
+var Package = require('./package').Package
 var Module = require('./module')
 var Util = require('./util')
 
@@ -10940,7 +10940,10 @@ var BL = window.BL = {}
 
 function run() {
   var rootPackage = new Package('/package.json')
-  rootPackage.load(function() {
+  rootPackage.load(function(err) {
+    if (err) {
+      console.log(err)
+    }
     rootPackage.run()
   })
 }
@@ -10957,8 +10960,9 @@ var path = require('path-browserify')
 var Thenjs = require('thenjs')
 var Package = require('./package')
 
+
 function Module(scriptPath) {
-  log("module", scriptPath)
+  log("init module", scriptPath)
   this.scriptPath = scriptPath
   this.status = Module.STATUS.INIT
 }
@@ -11003,29 +11007,53 @@ mdProto.analyzeDeps = function() {
 
 mdProto.load = function(done) {
   var that = this
+  this.status = Module.STATUS.FETCHING
   Util.getScriptContent(this.scriptPath, function(err, scriptContent) {
     if (err) {
       return done(err)
     }
     that.scriptContent = scriptContent
+    that.status = Module.STATUS.SAVED
     that.analyzeDeps()
+    that.status = Module.STATUS.LOADING
     Thenjs.each(that.deps, function(cont, dep) {
       if (dep.slice(0, 1) == '.') {
         var scriptPath = path.normalize(path.dirname(that.scriptPath) + '/' + dep + '.js')
         if (Module.cache(scriptPath)) {
           cont(null)
-          log('module.load:', scriptPath + ' is loaded')
         } else {
           var md = new Module(scriptPath)
           Module.cache(md)
           md.load(cont)
         }
       } else {
-        var packagePath = path.normalize(path.dirname(that.scriptPath) + '/' + 'node_modules/' + dep + '/package.json')
-        var pk = new Package(packagePath)
-        pk.load(cont)
+        var scriptDirname = path.dirname(that.scriptPath)
+        var oldScriptDirname = null
+        var packagePath, pk
+        var tryCount = 0
+        tryToLoadPackage = function(err) {
+          if (err) {
+            if (scriptDirname == oldScriptDirname) {
+              cont('package ' + dep + ' not found')
+            } else {
+              oldScriptDirname = scriptDirname
+              packagePath = path.normalize(scriptDirname + '/' + 'node_modules/' + dep + '/package.json')
+              log('try to load package', packagePath)
+              pk = new Package.Package(packagePath)
+              pk.load(tryToLoadPackage)
+            }
+          } else {
+            cont(null)
+          }
+          scriptDirname = path.dirname(scriptDirname)
+        }
+        tryToLoadPackage('start')
       }
     }).all(function(cont, err, results) {
+      if (err) {
+        return done(err)
+      }
+      that.status = Module.STATUS.LOADED
       done(err, results)
     })
   })
@@ -11034,6 +11062,7 @@ mdProto.load = function(done) {
 mdProto.run = function() {
 
 }
+
 module.exports = Module
 },{"./log":17,"./package":20,"./util":21,"path-browserify":1,"thenjs":2,"uglify-js":13}],20:[function(require,module,exports){
 var Util = require('./util')
@@ -11073,14 +11102,17 @@ pkProto.getMainModule = function(done) {
       return done(err)
     }
     var mainScriptPath = packageJson.main || 'index.js'
+    if (mainScriptPath.slice(mainScriptPath.length - 3, mainScriptPath.length) !== '.js') {
+      mainScriptPath = mainScriptPath + '.js'
+    }
     mainScriptPath = path.normalize(path.dirname(that.packagePath) + '/' + mainScriptPath)
     if (Module.cache(mainScriptPath)) {
-      cont(null)
-      log('module.load:', scriptPath + ' is loaded')
+      done(null)
+      log('module.load:', mainScriptPath + ' is loaded')
     } else {
-      var md = new Module(scriptPath)
+      var md = new Module(mainScriptPath)
       Module.cache(md)
-      md.load(cont)
+      md.load(done)
     }
     var mainModule = new Module(mainScriptPath)
     done(null, mainModule)
@@ -11100,7 +11132,7 @@ pkProto.run = function() {
 
 }
 
-module.exports = Package
+exports.Package = Package
 },{"./log":17,"./module":19,"./util":21,"path-browserify":1,"xhr":14}],21:[function(require,module,exports){
 var path = require('path-browserify')
 var log = require('./log')
