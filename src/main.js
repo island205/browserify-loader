@@ -1,21 +1,39 @@
-var Package = require('./package').Package
-var Module = require('./module')
-var Util = require('./util')
-var log = require('./log')
+var path = require('path-browserify')
+var xhr = require('xhr')
+var RSVP = require('rsvp')
 
-var BL = window.BL = {}
+var STATUS = {
+  INIT: 0,
+  FETCHING: 1,
+  SAVED: 2,
+  LOADING: 3,
+  LOADED: 4,
+  EXECUTING: 5,
+  EXECUTED: 6
+}
 
-function run() {
-  var rootPackage = new Package('/package.json')
-  rootPackage.load(function(err) {
-    if (err) {
-      log(err)
+var debug = false
+
+function log() {
+  if (debug) {
+    console.log.apply(console, arguments)
+  }
+}
+
+function getFileURI(from, to) {
+  if (typeof from === 'undefined') {
+    from = location.pathname
+  }
+  return location.origin + path.resolve(from, to)
+}
+
+function getScriptContent(scriptURI, done) {
+  xhr({
+    uri: scriptURI,
+    headers: {
+      "Content-Type": "text/plain"
     }
-    rootPackage.run()
+  }, function(err, resp, body) {
+    done(err, body)
   })
 }
-BL.Util = Util
-BL.Package = Package
-BL.Module = Module
-BL.run = run
-BL.run()
