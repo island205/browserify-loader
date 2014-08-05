@@ -45,8 +45,11 @@ function getScriptContent(scriptURI, callback) {
   })
 }
 
-function getModuleDependences(scriptContent) {
+function getModuleDependences(uri) {
   var dependences = []
+  var module = modules[uri]
+  var dependence
+  var dependenceUri
   var walker = new U2.TreeWalker(function(node, descend) {
     if (node instanceof U2.AST_Call && node.expression.name === 'require') {
       var args = node.expression.args || node.args
@@ -56,13 +59,8 @@ function getModuleDependences(scriptContent) {
       }
     }
   })
-  var ast = U2.parse(scriptContent)
+  var ast = U2.parse(module.scriptContent)
   ast.walk(walker)
-  var module = modules[uri]
-  module.dependences = {}
-  module.waitForDefinedDependences = []
-  var dependence;
-  var dependenceUri;
   for (var i = 0; i < dependences.length; i ++) {
     dependence = dependences[i]
     if (dependence[0] != '.') {
@@ -76,7 +74,6 @@ function getModuleDependences(scriptContent) {
   module.waitForDefinedDependences = module.waitForDefinedDependences.filter(function(dependenceUri){
     return modules[dependenceUri].status < 2
   })
-  return dependences
 }
 
 function defineModule(uri) {
@@ -98,6 +95,8 @@ function defineModule(uri) {
 function createModule(uri, selfRun) {
   var module = modules[uri] = {}
   module.uri = uri
+  module.dependences = {}
+  module.waitForDefinedDependences = []
   if (selfRun) {
     module.selfRun = selfRun
   }
@@ -133,13 +132,14 @@ function onModuleDefined(uri) {
   for (var moduleUri in modules) {
     if (modules.hasOwnProperty(moduleUri)) {
       module = modules[moduleUri]
-      module.waitForDefinedDependences = module.waitForDefinedDependences.fitler(function(dependenceUri) {
+      module.waitForDefinedDependences = module.waitForDefinedDependences.filter(function(dependenceUri) {
         return uri != dependenceUri
       })
       if (module.waitForDefinedDependences.length === 0) {
         if (module.selfRun) {
           compileModule(moduleUri)
         }
+        onModuleDefined(moduleUri)
       }
     }
   }
@@ -147,6 +147,10 @@ function onModuleDefined(uri) {
   if (module.waitForDefinedDependences.length == 0 && module.selfRun) {
     compileModule(moduleUri)
   }
+}
+
+function onDependenceModulesDefined(uri) {
+  
 }
 
 function loadModuleDependences(uri) {
@@ -165,9 +169,9 @@ function loadModuleDependences(uri) {
 
 function runModule(uri) {
   createModule(uri, true)
-  loadModule(uri, function(scriptContent) {
+  loadModule(uri, function() {
     defineModule(uri)
-    getModuleDependences(url)
+    getModuleDependences(uri)
     loadModuleDependences(uri)
   })
 }

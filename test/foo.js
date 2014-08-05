@@ -1,3 +1,3 @@
-exoprts.foo = function () {
+exports.foo = function () {
   console.log('foo')
 }
