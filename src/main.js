@@ -1,188 +1,154 @@
 "use strict";
 
+var EventEmitter = require('wolfy87-eventemitter')
 var path = require('path-browserify')
 var xhr = require('xhr')
 var U2 = require('uglify-js')
+var url = require('url')
 
-var STATUS = {
-  LOADING: 1,
-  DEFINED: 2,
-  COMPILED: 3
+function Module(uri) {
+  this.uri = uri
+  this.ee = new EventEmitter
+  this.status = Module.STATUS.CREATE
+  Module.modules[uri] = this
+  this.ee.on('defined', function(){
+    this.status = Module.STATUS.DEFINED
+    this.loadDeps()
+  }.bind(this))
 }
 
-var modules = window.modules = {}
-
-window.define = function(uri, factory) {
-  var module = modules[uri]
-  module.status = STATUS.DEFINED
-  module.factory = factory
-  onModuleDefined(uri)
+Module.STATUS = {
+  CREATE: 0,
+  DEFINED: 1,
+  LOADED: 2
 }
 
-var debug = false
+Module.modules = {}
 
-function log() {
-  if (debug) {
-    console.log.apply(console, arguments)
+Module.get = function(uri) {
+  var module = this.modules[uri]
+  if (!module) {
+    module = this.modules[uri] = new Module(uri)
   }
+  return module
 }
 
-function getFileURI(to, from) {
-  if (typeof from === 'undefined') {
-    from = location.pathname
+Module.prototype.run = function() {
+  this.ee.on('loaded', function() {
+    this.compile()
+  }.bind(this))
+  this.load()
+}
+
+Module.prototype.resolve = function(dep) {
+  var uri = url.resolve(this.uri, dep)
+  if (!/\.js$/.test(dep)) {
+    uri = uri + '.js'
   }
-  return location.origin + path.resolve(from, to)
+  return uri
 }
 
-function getScriptContent(scriptURI, callback) {
+Module.prototype.compile = function() {
+  var module = {}
+  var exports = module.exports = {}
+  var require = function(dep){
+    var module = Module.get(this.resolve(dep))
+    return module.exports || module.compile()
+  }.bind(this)
+  this.factory(require, exports, module)
+  return this.exports = module.exports
+}
+
+Module.prototype.load = function() {
+  this.ee.on('scriptLoaded', function(){
+    this.defineScript()
+  }.bind(this))
+  this.loadScript()
+}
+
+Module.prototype.loadScript = function() {
   xhr({
-    uri: scriptURI,
+    uri: this.uri,
     headers: {
       "Content-Type": "text/plain"
     }
   }, function(err, resp, body) {
-    callback(err, body)
-  })
-}
-
-function getModuleDependences(uri) {
-  var dependences = []
-  var module = modules[uri]
-  var dependence
-  var dependenceUri
-  var walker = new U2.TreeWalker(function(node, descend) {
-    if (node instanceof U2.AST_Call && node.expression.name === 'require') {
-      var args = node.expression.args || node.args
-      var child = args[0]
-      if (child instanceof U2.AST_String) {
-        dependences.push(child.getValue())
-      }
-    }
-  })
-  var ast = U2.parse(module.scriptContent)
-  ast.walk(walker)
-  for (var i = 0; i < dependences.length; i ++) {
-    dependence = dependences[i]
-    if (dependence[0] != '.') {
-      // TODO 依赖需要通过 package.json去确认
+    if (err) {
+      throw(err)
     } else {
-      dependenceUri = path.resolve(module.uri, dependence)
-      module.dependences[dependence] = dependenceUri
-      module.waitForDefinedDependences.push(dependenceUri)
+      this.script = body
+      this.ee.trigger('scriptLoaded')
     }
-  }
-  module.waitForDefinedDependences = module.waitForDefinedDependences.filter(function(dependenceUri){
-    return modules[dependenceUri].status < 2
-  })
+  }.bind(this))
 }
 
-function defineModule(uri) {
+Module.prototype.defineScript = function() {
   var js = []
-  var module = modules[uri]
   js.push('define("')
-  js.push(uri)
+  js.push(this.uri)
   js.push('", function(require, exports, module) {\n')
-  js.push(module.scriptContent)
+  js.push(this.script)
   js.push('\n})')
   js = js.join('')
   var script = document.createElement('script')
   script.innerHTML = js
   script.type = 'text/javascript'
-  script.async = true
   document.body.appendChild(script)
 }
 
-function createModule(uri, selfRun) {
-  var module = modules[uri] = {}
-  module.uri = uri
-  module.dependences = {}
-  module.waitForDefinedDependences = []
-  if (selfRun) {
-    module.selfRun = selfRun
-  }
-}
-
-function compileModule(uri) {
-  module = modules[uri]
-  var __require = function(id) {
-    return module.dependences[id].exports
-  }
-  var __module = {}
-  var __exports = __module.exports = {}
-  module.factory(__require, __exports, __module)
-  module.exports = __module.exports
-  module.status = STATUS.COMPILED
-}
-
-function loadModule(uri, callback) {
-  var module = modules[uri]
-  module.status = STATUS.LOADING
-  getScriptContent(uri, function(err, body) {
-    if (err) {
-      throw(err)
-    } else {
-      module.scriptContent = body
-      callback(body)
+Module.prototype.loadDeps = function() {
+  this.getDeps()
+  var depModules = []
+  var module
+  this.deps.forEach(function(uri) {
+    module = Module.get(uri)
+    module.ee.on('loaded', this.isLoaded.bind(this))
+    depModules.push(module)
+  }.bind(this))
+  this.depModules = depModules
+  this.isLoaded()
+  this.depModules.forEach(function(depModule){
+    if (depModule.status === Module.STATUS.CREATE) {
+      depModule.load()
     }
-  })
+  }.bind(this))
 }
 
-function onModuleDefined(uri) {
-  var module;
-  for (var moduleUri in modules) {
-    if (modules.hasOwnProperty(moduleUri)) {
-      module = modules[moduleUri]
-      module.waitForDefinedDependences = module.waitForDefinedDependences.filter(function(dependenceUri) {
-        return uri != dependenceUri
-      })
-      if (module.waitForDefinedDependences.length === 0) {
-        if (module.selfRun) {
-          compileModule(moduleUri)
-        }
-        onModuleDefined(moduleUri)
+Module.prototype.getDeps = function() {
+  var deps = []
+  var walker = new U2.TreeWalker(function(node, descend) {
+    if (node instanceof U2.AST_Call && node.expression.name === 'require') {
+      var args = node.expression.args || node.args
+      var child = args[0]
+      if (child instanceof U2.AST_String) {
+        deps.push(child.getValue())
       }
     }
-  }
-  module = modules[uri]
-  if (module.waitForDefinedDependences.length == 0 && module.selfRun) {
-    compileModule(moduleUri)
-  }
+  })
+  var ast = U2.parse(this.script)
+  ast.walk(walker)
+  deps = deps.map(function(dep) {
+    return this.resolve(dep)
+  }.bind(this))
+  this.deps = deps
 }
 
-function onDependenceModulesDefined(uri) {
-  
-}
-
-function loadModuleDependences(uri) {
-  module.waitForDefinedDependences.forEach(function(dependenceUri){
-    var dependenceModule = modules[dependenceUri]
-    if (!dependenceModule) {
-      createModule(dependenceUri)
-      loadModule(dependenceUri, function() {
-        defineModule(dependenceUri)
-        getModuleDependences(url)
-        loadModuleDependences(dependenceUri)
-      })
+Module.prototype.isLoaded = function() {
+  var isLoaded = true
+  this.depModules.forEach(function(depModule) {
+    if (depModule.status < Module.STATUS.LOADED) {
+      isLoaded = false
     }
   })
+  if (isLoaded) {
+    this.status = Module.STATUS.LOADED
+    this.ee.trigger('loaded')
+  }
 }
 
-function runModule(uri) {
-  createModule(uri, true)
-  loadModule(uri, function() {
-    defineModule(uri)
-    getModuleDependences(uri)
-    loadModuleDependences(uri)
-  })
-}
-
-var BL = window.BL = {
-  getFileURI: getFileURI,
-  getScriptContent: getScriptContent,
-  getModuleDependences: getModuleDependences,
-  createModule: createModule,
-  loadModule: loadModule,
-  defineModule: defineModule,
-  compileModule: compileModule,
-  runModule: runModule
+window.Module = Module
+window.define = function(uri, factory) {
+  var module = Module.modules[uri]
+  module.factory = factory
+  module.ee.trigger('defined')
 }

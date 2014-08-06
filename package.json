@@ -27,6 +27,8 @@
     "path-browserify": "0.0.0",
     "rsvp": "^3.0.9",
     "uglify-js": "^2.4.15",
+    "url": "^0.10.1",
+    "wolfy87-eventemitter": "^4.2.6",
     "xhr": "^1.13.0"
   }
 }
