@@ -10954,6 +10954,14 @@ function Package(uri) {
 
 
 Package.prototype.load = function () {
+  this.ee.on('packageLoaded', function(){
+    var mainScriptPath = this.pkg.main || 'index.js'
+    var mainScriptUri = url.resolve(this.uri, mainScriptPath)
+    var mainModule = new Module(mainScriptUri)
+    mainModule.ee.on('loaded', function(){
+      this.ee.trigger('mainModuleLoaded')
+    }.bind(this))
+  }.bind(this))
   this.loadPackage()
 }
 
@@ -10977,11 +10985,8 @@ Package.prototype.loadPackage = function () {
 }
 
 Package.prototype.run = function () {
-  this.ee.on('packageLoaded', function(){
-    var mainScriptPath = this.pkg.main || 'index.js'
-    var mainScriptUri = url.resolve(this.uri, mainScriptPath)
-    var mainModule = new Module(mainScriptUri)
-    mainModule.run()
+  this.ee.on('mainModuleLoaded', function() {
+    this.mainModule.run()
   }.bind(this))
   this.load()
 }
