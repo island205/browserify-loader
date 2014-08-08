@@ -89,6 +89,8 @@ Module.prototype.defineScript = function() {
   js.push('", function(require, exports, module) {\n')
   js.push(this.script)
   js.push('\n})')
+  js.push('\n//# sourceURL=')
+  js.push(this.uri)
   js = js.join('')
   var script = document.createElement('script')
   script.innerHTML = js
