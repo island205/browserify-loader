@@ -12406,9 +12406,20 @@ var log = require('./log')
 
 function getPackageMainModuleUri(searchPath, dep, callback) {
   log('search', dep, 'in', searchPath)
+  var childModule = null
   var uri = ''
   var pkgUri = url.resolve(searchPath, './')
   var oldSearchPath = searchPath
+  var originDep = dep
+  // global/window
+  dep = dep.split('/')
+  if (dep.length > 1) {
+    childModule = dep
+    dep = childModule.shift()
+    childModule = childModule.join('/')
+  } else {
+    dep = dep.join('/')
+  }
   pkgUri = pkgUri + 'node_modules/' + dep + '/package.json'
   xhr({
     uri: pkgUri,
@@ -12419,16 +12430,20 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
     if (err) {
       searchPath = url.resolve(searchPath, '../')
       if (oldSearchPath != searchPath) {
-        getPackageMainModuleUri(searchPath, dep, callback)
+        getPackageMainModuleUri(searchPath, originDep, callback)
       } else {
-        callback('pkg: ' + dep + ' not Found')
+        callback('pkg: ' + originDep + ' not Found')
       }
       return
     }
     try {
       pkg = JSON.parse(body)
-      uri = pkg.main || 'index.js'
-      uri = '/node_modules/' + dep + '/' + uri
+      if (childModule) {
+        uri = childModule
+      } else {
+        uri = pkg.main || 'index.js'
+      }
+      uri = './node_modules/' + dep + '/' + uri
       uri = url.resolve(searchPath, uri)
       log('get package main module', uri)
       if (!/\.js$/.test(uri)) {
@@ -12443,6 +12458,7 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
 
 function Module(uri) {
   this.uri = uri
+  this.uris = {}
   this.ee = new EventEmitter
   this.status = Module.STATUS.CREATE
   Module.modules[uri] = this
@@ -12475,30 +12491,29 @@ Module.define = function(uri, factory) {
 }
 
 Module.prototype.run = function() {
-  this.ee.on('loaded', function() {
-    this.compile()
-  }.bind(this))
-  this.load()
+  this.compile()
 }
 
 Module.prototype.resolve = function(dep) {
-  // TODO resovle like global/window
   var uri  = ''
+  var that = this
   var promise = new RSVP.Promise(function(resolve, reject) {
     if (/^\./.test(dep)) {
       uri = url.resolve(this.uri, dep)
       if (!/\.js$/.test(uri)) {
         uri = uri + '.js'
       }
+      this.uris[dep] = uri
       resolve(uri)
     } else {
       getPackageMainModuleUri(this.uri, dep, function(err, uri) {
         if (err) {
           reject(err)
         } else {
+          that.uris[dep] = uri
           resolve(uri)
         }
-      })
+      }.bind(this))
     }
   }.bind(this))
   return promise
@@ -12508,7 +12523,7 @@ Module.prototype.compile = function() {
   var module = {}
   var exports = module.exports = {}
   var require = function(dep){
-    var module = Module.get(this.resolve(dep))
+    var module = Module.get(this.uris[dep])
     return module.exports || module.compile()
   }.bind(this)
   this.factory(require, exports, module)
@@ -12633,6 +12648,7 @@ Package.prototype.load = function () {
       this.ee.trigger('mainModuleLoaded')
     }.bind(this))
     mainModule.load()
+    this.mainModule = mainModule
   }.bind(this))
   this.loadPackage()
 }

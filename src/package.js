@@ -20,6 +20,7 @@ Package.prototype.load = function () {
       this.ee.trigger('mainModuleLoaded')
     }.bind(this))
     mainModule.load()
+    this.mainModule = mainModule
   }.bind(this))
   this.loadPackage()
 }
