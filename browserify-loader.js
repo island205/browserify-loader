@@ -1605,7 +1605,7 @@
     }
 }).call(this);
 }).call(this,require("K/m7xv"))
-},{"K/m7xv":22}],2:[function(require,module,exports){
+},{"K/m7xv":23}],2:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -3878,7 +3878,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require("K/m7xv"),"/../node_modules/uglify-js/node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"K/m7xv":22,"path":21}],12:[function(require,module,exports){
+},{"K/m7xv":23,"path":22}],12:[function(require,module,exports){
 var sys = require("util");
 var MOZ_SourceMap = require("source-map");
 var UglifyJS = exports;
@@ -11737,7 +11737,7 @@ exports.describe_ast = function () {
     doitem(UglifyJS.AST_Node);
     return out + "";
 };
-},{"source-map":2,"util":29}],13:[function(require,module,exports){
+},{"source-map":2,"util":30}],13:[function(require,module,exports){
 /*!
  * EventEmitter v4.2.6 - git.io/ee
  * Oliver Caldwell
@@ -12383,13 +12383,18 @@ function once (fn) {
 }
 
 },{}],17:[function(require,module,exports){
+debug = true
+module.exports = function () {
+  console.log.apply(console, arguments)
+}
+},{}],18:[function(require,module,exports){
 var Module = require('./module')
 var Package = require('./package')
 
 window.define = Module.define
 window.Module = Module
 window.Package = Package
-},{"./module":18,"./package":19}],18:[function(require,module,exports){
+},{"./module":19,"./package":20}],19:[function(require,module,exports){
 "use strict";
 
 var EventEmitter = require('wolfy87-eventemitter')
@@ -12397,11 +12402,14 @@ var xhr = require('xhr')
 var U2 = require('uglify-js')
 var url = require('url')
 var RSVP = require('rsvp')
+var log = require('./log')
 
-function getPackageMainModuleUri(searchPath, uri, callback) {
+function getPackageMainModuleUri(searchPath, dep, callback) {
+  log('search', dep, 'in', searchPath)
+  var uri = ''
   var pkgUri = url.resolve(searchPath, './')
   var oldSearchPath = searchPath
-  pkgUri = pkgUri + 'node_modules/' + uri + '/package.json'
+  pkgUri = pkgUri + 'node_modules/' + dep + '/package.json'
   xhr({
     uri: pkgUri,
     headers: {
@@ -12409,17 +12417,24 @@ function getPackageMainModuleUri(searchPath, uri, callback) {
     }
   }, function(err, resp, body) {
     if (err) {
-      searchPath = url.resolve(this.searchPath, '../')
+      searchPath = url.resolve(searchPath, '../')
       if (oldSearchPath != searchPath) {
-        getPackageMainModuleUri(searchPath, uri, callback)
+        getPackageMainModuleUri(searchPath, dep, callback)
       } else {
-        callback('pkg: ' + uri + 'not Found')
+        callback('pkg: ' + dep + ' not Found')
       }
       return
     }
     try {
       pkg = JSON.parse(body)
-      callback(null, pkg.main || 'index.js')
+      uri = pkg.main || 'index.js'
+      uri = '/node_modules/' + dep + '/' + uri
+      uri = url.resolve(searchPath, uri)
+      log('get package main module', uri)
+      if (!/\.js$/.test(uri)) {
+        uri = uri + '.js'
+      }
+      callback(null, uri)
     } catch (err) {
       callback(err)
     }
@@ -12467,8 +12482,25 @@ Module.prototype.run = function() {
 }
 
 Module.prototype.resolve = function(dep) {
+  // TODO resovle like global/window
   var uri  = ''
-  var promise = new RSVP.Promise()
+  var promise = new RSVP.Promise(function(resolve, reject) {
+    if (/^\./.test(dep)) {
+      uri = url.resolve(this.uri, dep)
+      if (!/\.js$/.test(uri)) {
+        uri = uri + '.js'
+      }
+      resolve(uri)
+    } else {
+      getPackageMainModuleUri(this.uri, dep, function(err, uri) {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(uri)
+        }
+      })
+    }
+  }.bind(this))
   return promise
 }
 
@@ -12544,7 +12576,7 @@ Module.prototype.loadDeps = function() {
       }
     }.bind(this))
   }.bind(this)).catch(function(err) {
-    console.log(err)
+    log(err)
   })
 }
 
@@ -12578,7 +12610,7 @@ Module.prototype.isLoaded = function() {
 }
 
 module.exports = Module
-},{"rsvp":1,"uglify-js":12,"url":27,"wolfy87-eventemitter":13,"xhr":14}],19:[function(require,module,exports){
+},{"./log":17,"rsvp":1,"uglify-js":12,"url":28,"wolfy87-eventemitter":13,"xhr":14}],20:[function(require,module,exports){
 "use strict";
 
 var Module = require('./module')
@@ -12600,6 +12632,7 @@ Package.prototype.load = function () {
     mainModule.ee.on('loaded', function(){
       this.ee.trigger('mainModuleLoaded')
     }.bind(this))
+    mainModule.load()
   }.bind(this))
   this.loadPackage()
 }
@@ -12631,7 +12664,7 @@ Package.prototype.run = function () {
 }
 
 module.exports = Package
-},{"./module":18,"url":27,"wolfy87-eventemitter":13,"xhr":14}],20:[function(require,module,exports){
+},{"./module":19,"url":28,"wolfy87-eventemitter":13,"xhr":14}],21:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -12656,7 +12689,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -12884,7 +12917,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("K/m7xv"))
-},{"K/m7xv":22}],22:[function(require,module,exports){
+},{"K/m7xv":23}],23:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -12949,7 +12982,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.4 by @mathias */
 ;(function(root) {
@@ -13460,7 +13493,7 @@ process.chdir = function (dir) {
 }(this));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -13546,7 +13579,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -13633,13 +13666,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":24,"./encode":25}],27:[function(require,module,exports){
+},{"./decode":25,"./encode":26}],28:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -14348,14 +14381,14 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":23,"querystring":26}],28:[function(require,module,exports){
+},{"punycode":24,"querystring":27}],29:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -14945,4 +14978,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("K/m7xv"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":28,"K/m7xv":22,"inherits":20}]},{},[17])
+},{"./support/isBuffer":29,"K/m7xv":23,"inherits":21}]},{},[18])

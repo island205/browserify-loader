@@ -5,11 +5,14 @@ var xhr = require('xhr')
 var U2 = require('uglify-js')
 var url = require('url')
 var RSVP = require('rsvp')
+var log = require('./log')
 
-function getPackageMainModuleUri(searchPath, uri, callback) {
+function getPackageMainModuleUri(searchPath, dep, callback) {
+  log('search', dep, 'in', searchPath)
+  var uri = ''
   var pkgUri = url.resolve(searchPath, './')
   var oldSearchPath = searchPath
-  pkgUri = pkgUri + 'node_modules/' + uri + '/package.json'
+  pkgUri = pkgUri + 'node_modules/' + dep + '/package.json'
   xhr({
     uri: pkgUri,
     headers: {
@@ -17,17 +20,24 @@ function getPackageMainModuleUri(searchPath, uri, callback) {
     }
   }, function(err, resp, body) {
     if (err) {
-      searchPath = url.resolve(this.searchPath, '../')
+      searchPath = url.resolve(searchPath, '../')
       if (oldSearchPath != searchPath) {
-        getPackageMainModuleUri(searchPath, uri, callback)
+        getPackageMainModuleUri(searchPath, dep, callback)
       } else {
-        callback('pkg: ' + uri + 'not Found')
+        callback('pkg: ' + dep + ' not Found')
       }
       return
     }
     try {
       pkg = JSON.parse(body)
-      callback(null, pkg.main || 'index.js')
+      uri = pkg.main || 'index.js'
+      uri = '/node_modules/' + dep + '/' + uri
+      uri = url.resolve(searchPath, uri)
+      log('get package main module', uri)
+      if (!/\.js$/.test(uri)) {
+        uri = uri + '.js'
+      }
+      callback(null, uri)
     } catch (err) {
       callback(err)
     }
@@ -75,16 +85,17 @@ Module.prototype.run = function() {
 }
 
 Module.prototype.resolve = function(dep) {
+  // TODO resovle like global/window
   var uri  = ''
   var promise = new RSVP.Promise(function(resolve, reject) {
-    if (\^\.\.test(dep)) {
+    if (/^\./.test(dep)) {
       uri = url.resolve(this.uri, dep)
-      if (!/\.js$/.test(dep)) {
+      if (!/\.js$/.test(uri)) {
         uri = uri + '.js'
       }
       resolve(uri)
     } else {
-      getPackageMainModuleUri(this.uri, uri, function(err, uri) {
+      getPackageMainModuleUri(this.uri, dep, function(err, uri) {
         if (err) {
           reject(err)
         } else {
@@ -168,7 +179,7 @@ Module.prototype.loadDeps = function() {
       }
     }.bind(this))
   }.bind(this)).catch(function(err) {
-    console.log(err)
+    log(err)
   })
 }
 
