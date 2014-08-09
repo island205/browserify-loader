@@ -1,2 +1,2 @@
-var barModule = new Module(location.origin + '/test/bar.js')
-barModule.run()
+var pkg = new Package(location.origin)
+pkg.run()

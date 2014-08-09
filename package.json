@@ -2,7 +2,7 @@
   "name": "browserify-loader",
   "version": "0.0.0",
   "description": "Another CommonJS Loader",
-  "main": "src/main.js",
+  "main": "test/bar.js",
   "scripts": {
     "test": "node test",
     "build": "browserify src/main.js > browserify-loader.js"
@@ -25,7 +25,7 @@
   "homepage": "https://github.com/island205/browserify-loader",
   "dependencies": {
     "path-browserify": "0.0.0",
-    "rsvp": "^3.0.9",
+    "rsvp": "^3.0.12",
     "uglify-js": "^2.4.15",
     "url": "^0.10.1",
     "wolfy87-eventemitter": "^4.2.6",
