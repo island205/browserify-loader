@@ -25,7 +25,7 @@ Package.prototype.load = function () {
 
 Package.prototype.loadPackage = function () {
   xhr({
-    uri: this.uri,
+    uri: this.uri + '/package.json',
     headers: {
       "Content-Type": "application/json"
     }

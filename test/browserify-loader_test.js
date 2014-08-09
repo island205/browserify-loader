@@ -1,2 +1,2 @@
-var pkg = new Package(location.origin + '/package.json')
+var pkg = new Package(location.origin)
 pkg.run()

@@ -4,6 +4,35 @@ var EventEmitter = require('wolfy87-eventemitter')
 var xhr = require('xhr')
 var U2 = require('uglify-js')
 var url = require('url')
+var RSVP = require('rsvp')
+
+function getPackageMainModuleUri(searchPath, uri, callback) {
+  var pkgUri = url.resolve(searchPath, './')
+  var oldSearchPath = searchPath
+  pkgUri = pkgUri + 'node_modules/' + uri + '/package.json'
+  xhr({
+    uri: pkgUri,
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }, function(err, resp, body) {
+    if (err) {
+      searchPath = url.resolve(this.searchPath, '../')
+      if (oldSearchPath != searchPath) {
+        getPackageMainModuleUri(searchPath, uri, callback)
+      } else {
+        callback('pkg: ' + uri + 'not Found')
+      }
+      return
+    }
+    try {
+      pkg = JSON.parse(body)
+      callback(null, pkg.main || 'index.js')
+    } catch (err) {
+      callback(err)
+    }
+  })
+}
 
 function Module(uri) {
   this.uri = uri
@@ -46,11 +75,25 @@ Module.prototype.run = function() {
 }
 
 Module.prototype.resolve = function(dep) {
-  var uri = url.resolve(this.uri, dep)
-  if (!/\.js$/.test(dep)) {
-    uri = uri + '.js'
-  }
-  return uri
+  var uri  = ''
+  var promise = new RSVP.Promise(function(resolve, reject) {
+    if (\^\.\.test(dep)) {
+      uri = url.resolve(this.uri, dep)
+      if (!/\.js$/.test(dep)) {
+        uri = uri + '.js'
+      }
+      resolve(uri)
+    } else {
+      getPackageMainModuleUri(this.uri, uri, function(err, uri) {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(uri)
+        }
+      })
+    }
+  }.bind(this))
+  return promise
 }
 
 Module.prototype.compile = function() {
@@ -107,18 +150,26 @@ Module.prototype.loadDeps = function() {
   this.getDeps()
   var depModules = []
   var module
-  this.deps.forEach(function(uri) {
-    module = Module.get(uri)
-    module.ee.on('loaded', this.isLoaded.bind(this))
-    depModules.push(module)
+  var resolveDepPromises = this.deps.map(function(dep) {
+    return this.resolve(dep)
   }.bind(this))
-  this.depModules = depModules
-  this.isLoaded()
-  this.depModules.forEach(function(depModule){
-    if (depModule.status === Module.STATUS.CREATE) {
-      depModule.load()
-    }
-  }.bind(this))
+  RSVP.all(resolveDepPromises).then(function(deps){
+    this.deps = deps
+    this.deps.forEach(function(uri) {
+      module = Module.get(uri)
+      module.ee.on('loaded', this.isLoaded.bind(this))
+      depModules.push(module)
+    }.bind(this))
+    this.depModules = depModules
+    this.isLoaded()
+    this.depModules.forEach(function(depModule){
+      if (depModule.status === Module.STATUS.CREATE) {
+        depModule.load()
+      }
+    }.bind(this))
+  }.bind(this)).catch(function(err) {
+    console.log(err)
+  })
 }
 
 Module.prototype.getDeps = function() {
@@ -134,9 +185,6 @@ Module.prototype.getDeps = function() {
   })
   var ast = U2.parse(this.script)
   ast.walk(walker)
-  deps = deps.map(function(dep) {
-    return this.resolve(dep)
-  }.bind(this))
   this.deps = deps
 }
 
