@@ -1605,7 +1605,7 @@
     }
 }).call(this);
 }).call(this,require("K/m7xv"))
-},{"K/m7xv":23}],2:[function(require,module,exports){
+},{"K/m7xv":22}],2:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -3878,7 +3878,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require("K/m7xv"),"/../node_modules/uglify-js/node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"K/m7xv":23,"path":22}],12:[function(require,module,exports){
+},{"K/m7xv":22,"path":21}],12:[function(require,module,exports){
 var sys = require("util");
 var MOZ_SourceMap = require("source-map");
 var UglifyJS = exports;
@@ -11737,7 +11737,7 @@ exports.describe_ast = function () {
     doitem(UglifyJS.AST_Node);
     return out + "";
 };
-},{"source-map":2,"util":30}],13:[function(require,module,exports){
+},{"source-map":2,"util":29}],13:[function(require,module,exports){
 /*!
  * EventEmitter v4.2.6 - git.io/ee
  * Oliver Caldwell
@@ -12388,18 +12388,35 @@ module.exports = function () {
   console.log.apply(console, arguments)
 }
 },{}],18:[function(require,module,exports){
+var xhr = require('xhr')
 var Module = require('./module')
-var Package = require('./package')
+var url = require('url')
 
 window.define = Module.define
-window.Module = Module
 
-function run() {
-  var pkg = new Package(location.origin)
-  pkg.run()
+function bootstrap() {
+  xhr({
+    uri: location.origin + '/package.json',
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }, function(err, resp, body) {
+    if (err) {
+      throw (err)
+    }
+    var pkg = JSON.parse(body)
+    var mainScriptPath = pkg.main || 'index.js'
+    var mainScriptUri = url.resolve(location.origin, mainScriptPath)
+    var mainModule = new Module(mainScriptUri)
+    mainModule.ee.on('loaded', function() {
+      mainModule.run()
+    })
+    mainModule.load()
+  })
 }
-run()
-},{"./module":19,"./package":20}],19:[function(require,module,exports){
+
+bootstrap()
+},{"./module":19,"url":27,"xhr":14}],19:[function(require,module,exports){
 "use strict";
 
 var EventEmitter = require('wolfy87-eventemitter')
@@ -12635,62 +12652,7 @@ Module.prototype.isLoaded = function() {
 }
 
 module.exports = Module
-},{"./log":17,"rsvp":1,"uglify-js":12,"url":28,"wolfy87-eventemitter":13,"xhr":14}],20:[function(require,module,exports){
-"use strict";
-
-var Module = require('./module')
-var EventEmitter = require('wolfy87-eventemitter')
-var url = require('url')
-var xhr = require('xhr')
-
-function Package(uri) {
-  this.uri = uri
-  this.ee = new EventEmitter
-}
-
-
-Package.prototype.load = function () {
-  this.ee.on('packageLoaded', function(){
-    var mainScriptPath = this.pkg.main || 'index.js'
-    var mainScriptUri = url.resolve(this.uri, mainScriptPath)
-    var mainModule = new Module(mainScriptUri)
-    mainModule.ee.on('loaded', function(){
-      this.ee.trigger('mainModuleLoaded')
-    }.bind(this))
-    mainModule.load()
-    this.mainModule = mainModule
-  }.bind(this))
-  this.loadPackage()
-}
-
-Package.prototype.loadPackage = function () {
-  xhr({
-    uri: this.uri + '/package.json',
-    headers: {
-      "Content-Type": "application/json"
-    }
-  }, function(err, resp, body) {
-    if (err) {
-      this.ee.trigger('packageLoadErr', err)
-    }
-    try {
-      this.pkg = JSON.parse(body)
-      this.ee.trigger('packageLoaded')
-    } catch (err) {
-      this.ee.trigger('packageLoadErr', err)
-    }
-  }.bind(this))
-}
-
-Package.prototype.run = function () {
-  this.ee.on('mainModuleLoaded', function() {
-    this.mainModule.run()
-  }.bind(this))
-  this.load()
-}
-
-module.exports = Package
-},{"./module":19,"url":28,"wolfy87-eventemitter":13,"xhr":14}],21:[function(require,module,exports){
+},{"./log":17,"rsvp":1,"uglify-js":12,"url":27,"wolfy87-eventemitter":13,"xhr":14}],20:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -12715,7 +12677,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -12943,7 +12905,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("K/m7xv"))
-},{"K/m7xv":23}],23:[function(require,module,exports){
+},{"K/m7xv":22}],22:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -13008,7 +12970,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.4 by @mathias */
 ;(function(root) {
@@ -13519,7 +13481,7 @@ process.chdir = function (dir) {
 }(this));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -13605,7 +13567,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -13692,13 +13654,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":25,"./encode":26}],28:[function(require,module,exports){
+},{"./decode":24,"./encode":25}],27:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -14407,14 +14369,14 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":24,"querystring":27}],29:[function(require,module,exports){
+},{"punycode":23,"querystring":26}],28:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],30:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -15004,4 +14966,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("K/m7xv"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":29,"K/m7xv":23,"inherits":21}]},{},[18])
+},{"./support/isBuffer":28,"K/m7xv":22,"inherits":20}]},{},[18])
