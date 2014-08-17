@@ -2,7 +2,7 @@
 
 var EventEmitter = require('wolfy87-eventemitter')
 var xhr = require('xhr')
-var U2 = require('uglify-js')
+var parseDependencies = require('searequire')
 var url = require('url')
 var RSVP = require('rsvp')
 var log = require('./log')
@@ -201,19 +201,10 @@ Module.prototype.loadDeps = function() {
 }
 
 Module.prototype.getDeps = function() {
-  var deps = []
-  var walker = new U2.TreeWalker(function(node, descend) {
-    if (node instanceof U2.AST_Call && node.expression.name === 'require') {
-      var args = node.expression.args || node.args
-      var child = args[0]
-      if (child instanceof U2.AST_String) {
-        deps.push(child.getValue())
-      }
-    }
+  var deps = parseDependencies(this.script)
+  this.deps = deps.map(function(dep) {
+    return dep.path
   })
-  var ast = U2.parse(this.script)
-  ast.walk(walker)
-  this.deps = deps
 }
 
 Module.prototype.isLoaded = function() {
