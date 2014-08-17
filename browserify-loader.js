@@ -12393,7 +12393,12 @@ var Package = require('./package')
 
 window.define = Module.define
 window.Module = Module
-window.Package = Package
+
+function run() {
+  var pkg = new Package(location.origin)
+  pkg.run()
+}
+run()
 },{"./module":19,"./package":20}],19:[function(require,module,exports){
 "use strict";
 
@@ -12437,7 +12442,7 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
       return
     }
     try {
-      pkg = JSON.parse(body)
+      var pkg = JSON.parse(body)
       if (childModule) {
         uri = childModule
       } else {
@@ -12460,7 +12465,7 @@ function Module(uri) {
   this.uri = uri
   this.uris = {}
   this.ee = new EventEmitter
-  this.status = Module.STATUS.CREATE
+  this.status = Module.STATUS.CREATED
   Module.modules[uri] = this
   this.ee.on('defined', function(){
     this.status = Module.STATUS.DEFINED
@@ -12469,9 +12474,10 @@ function Module(uri) {
 }
 
 Module.STATUS = {
-  CREATE: 0,
-  DEFINED: 1,
-  LOADED: 2
+  CREATED: 0,
+  LOADING: 1,
+  DEFINED: 2,
+  LOADED: 3
 }
 
 Module.modules = {}
@@ -12531,6 +12537,7 @@ Module.prototype.compile = function() {
 }
 
 Module.prototype.load = function() {
+  this.status = Module.STATUS.LOADING
   this.ee.on('scriptLoaded', function(){
     this.defineScript()
   }.bind(this))
@@ -12586,7 +12593,7 @@ Module.prototype.loadDeps = function() {
     this.depModules = depModules
     this.isLoaded()
     this.depModules.forEach(function(depModule){
-      if (depModule.status === Module.STATUS.CREATE) {
+      if (depModule.status < Module.STATUS.LOADING) {
         depModule.load()
       }
     }.bind(this))
@@ -12612,6 +12619,9 @@ Module.prototype.getDeps = function() {
 }
 
 Module.prototype.isLoaded = function() {
+  if (this.status == Module.STATUS.LOADED) {
+    return
+  }
   var isLoaded = true
   this.depModules.forEach(function(depModule) {
     if (depModule.status < Module.STATUS.LOADED) {
