@@ -2,7 +2,7 @@
 
 var EventEmitter = require('wolfy87-eventemitter')
 var xhr = require('xhr')
-var U2 = require('uglify-js')
+var parseDependencies = require('searequire')
 var url = require('url')
 var RSVP = require('rsvp')
 var log = require('./log')
@@ -40,7 +40,7 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
       return
     }
     try {
-      pkg = JSON.parse(body)
+      var pkg = JSON.parse(body)
       if (childModule) {
         uri = childModule
       } else {
@@ -63,7 +63,7 @@ function Module(uri) {
   this.uri = uri
   this.uris = {}
   this.ee = new EventEmitter
-  this.status = Module.STATUS.CREATE
+  this.status = Module.STATUS.CREATED
   Module.modules[uri] = this
   this.ee.on('defined', function(){
     this.status = Module.STATUS.DEFINED
@@ -72,9 +72,10 @@ function Module(uri) {
 }
 
 Module.STATUS = {
-  CREATE: 0,
-  DEFINED: 1,
-  LOADED: 2
+  CREATED: 0,
+  LOADING: 1,
+  DEFINED: 2,
+  LOADED: 3
 }
 
 Module.modules = {}
@@ -134,6 +135,7 @@ Module.prototype.compile = function() {
 }
 
 Module.prototype.load = function() {
+  this.status = Module.STATUS.LOADING
   this.ee.on('scriptLoaded', function(){
     this.defineScript()
   }.bind(this))
@@ -189,7 +191,7 @@ Module.prototype.loadDeps = function() {
     this.depModules = depModules
     this.isLoaded()
     this.depModules.forEach(function(depModule){
-      if (depModule.status === Module.STATUS.CREATE) {
+      if (depModule.status < Module.STATUS.LOADING) {
         depModule.load()
       }
     }.bind(this))
@@ -199,22 +201,16 @@ Module.prototype.loadDeps = function() {
 }
 
 Module.prototype.getDeps = function() {
-  var deps = []
-  var walker = new U2.TreeWalker(function(node, descend) {
-    if (node instanceof U2.AST_Call && node.expression.name === 'require') {
-      var args = node.expression.args || node.args
-      var child = args[0]
-      if (child instanceof U2.AST_String) {
-        deps.push(child.getValue())
-      }
-    }
+  var deps = parseDependencies(this.script)
+  this.deps = deps.map(function(dep) {
+    return dep.path
   })
-  var ast = U2.parse(this.script)
-  ast.walk(walker)
-  this.deps = deps
 }
 
 Module.prototype.isLoaded = function() {
+  if (this.status == Module.STATUS.LOADED) {
+    return
+  }
   var isLoaded = true
   this.depModules.forEach(function(depModule) {
     if (depModule.status < Module.STATUS.LOADED) {

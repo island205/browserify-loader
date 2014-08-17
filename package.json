@@ -1,6 +1,6 @@
 {
   "name": "browserify-loader",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "description": "Another CommonJS Loader",
   "main": "test/bar.js",
   "scripts": {
@@ -26,7 +26,7 @@
   "dependencies": {
     "path-browserify": "0.0.0",
     "rsvp": "^3.0.12",
-    "uglify-js": "^2.4.15",
+    "searequire": "^1.5.2",
     "url": "^0.10.1",
     "wolfy87-eventemitter": "^4.2.6",
     "xhr": "^1.13.0"
