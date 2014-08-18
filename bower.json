@@ -1,0 +1,26 @@
+{
+  "name": "browserify-loader",
+  "main": "browserify-loader.js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/island205/browserify-loader",
+  "authors": [
+    "island205 <island205@gmail.com>"
+  ],
+  "description": "CommonJS loader for browserify workflow",
+  "keywords": [
+    "CommonJS",
+    "browserify",
+    "node.js"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "qunit": "~1.14.0"
+  }
+}
