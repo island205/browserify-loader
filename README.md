@@ -1,4 +1,4 @@
-# browserify-loader
+browserify-loader
 =================
 
 A CommonJS Loader for browserify workflow.
