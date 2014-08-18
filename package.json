@@ -1,6 +1,6 @@
 {
   "name": "browserify-loader",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Another CommonJS Loader",
   "main": "test/bar.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "url": "https://github.com/island205/browserify-loader/issues"
   },
   "homepage": "https://github.com/island205/browserify-loader",
-  "dependencies": {
+  "devDependencies": {
     "path-browserify": "0.0.0",
     "rsvp": "^3.0.12",
     "searequire": "^1.5.2",
