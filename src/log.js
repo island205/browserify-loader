@@ -1,4 +1,4 @@
-debug = true
+debug = false
 module.exports = function () {
-  console.log.apply(console, arguments)
+  debug && console.log.apply(console, arguments)
 }
