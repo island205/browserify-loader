@@ -62,10 +62,12 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
 function Module(uri) {
   this.uri = uri
   this.uris = {}
+  this.performance = {}
   this.ee = new EventEmitter
   this.status = Module.STATUS.CREATED
   Module.modules[uri] = this
   this.ee.on('defined', function(){
+    this.performance['define_end'] = new Date
     this.status = Module.STATUS.DEFINED
     this.loadDeps()
   }.bind(this))
@@ -79,6 +81,7 @@ Module.STATUS = {
 }
 
 Module.modules = {}
+Module.performance = {}
 
 Module.get = function(uri) {
   var module = this.modules[uri]
@@ -92,6 +95,43 @@ Module.define = function(uri, factory) {
   var module = Module.modules[uri]
   module.factory = factory
   module.ee.trigger('defined')
+}
+
+Module.performance = function() {
+  var uri, module, defineCost, getDepsCost, resolveDepsCost
+  var compileCost, loadCost
+  var allCost
+
+  var totalCost = 0, extraCost = 0
+  for (uri in Module.modules) {
+    if (Module.modules.hasOwnProperty(uri)) {
+      module = Module.modules[uri]
+
+      defineCost = module.performance['define_end'].getTime() - module.performance['define_start'].getTime()
+      console.log(uri, 'define cost:',  defineCost)
+
+      getDepsCost = module.performance['getDeps_end'].getTime() - module.performance['getDeps_start'].getTime()
+      console.log(uri, 'getDeps cost:',  getDepsCost)
+
+      resolveDepsCost = module.performance['resolveDeps_end'].getTime() - module.performance['resolveDeps_start'].getTime()
+      console.log(uri, 'resolveDeps cost:',  resolveDepsCost)
+
+      compileCost = module.performance['compile_end'].getTime() - module.performance['compile_start'].getTime()
+      console.log(uri, 'compile cost:',  compileCost)
+
+      loadCost = module.performance['load_end'].getTime() - module.performance['load_start'].getTime()
+      console.log(uri, 'load cost:',  loadCost)
+
+      totalCost += defineCost + getDepsCost + resolveDepsCost + loadCost
+      extraCost += defineCost + getDepsCost + resolveDepsCost
+    }
+  }
+  console.log('module performance:', extraCost/totalCost)
+
+  var allCost = Module.performance['bootstrap_start'].getTime() - Module.performance['bootstrap_end'].getTime()
+
+  console.log('all performance:', (allCost - totalCost)/allCost)
+
 }
 
 Module.prototype.run = function() {
@@ -130,7 +170,9 @@ Module.prototype.compile = function() {
     var module = Module.get(this.uris[dep])
     return module.exports || module.compile()
   }.bind(this)
+  this.performance['compile_start'] = new Date
   this.factory(require, exports, module)
+  this.performance['compile_end'] = new Date
   return this.exports = module.exports
 }
 
@@ -143,12 +185,14 @@ Module.prototype.load = function() {
 }
 
 Module.prototype.loadScript = function() {
+  this.performance['load_start'] = new Date
   xhr({
     uri: this.uri,
     headers: {
       "Content-Type": "text/plain"
     }
   }, function(err, resp, body) {
+    this.performance['load_end'] = new Date
     if (err) {
       throw(err)
     } else {
@@ -159,6 +203,7 @@ Module.prototype.loadScript = function() {
 }
 
 Module.prototype.defineScript = function() {
+  this.performance['define_start'] = new Date
   var js = []
   js.push('define("')
   js.push(this.uri)
@@ -175,13 +220,17 @@ Module.prototype.defineScript = function() {
 }
 
 Module.prototype.loadDeps = function() {
+  this.performance['getDeps_start'] = new Date
   this.getDeps()
+  this.performance['getDeps_end'] = new Date
   var depModules = []
   var module
+  this.performance['resolveDeps_start'] = new Date
   var resolveDepPromises = this.deps.map(function(dep) {
     return this.resolve(dep)
   }.bind(this))
   RSVP.all(resolveDepPromises).then(function(deps){
+    this.performance['resolveDeps_end'] = new Date
     this.deps = deps
     this.deps.forEach(function(uri) {
       module = Module.get(uri)
