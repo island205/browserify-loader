@@ -8,14 +8,14 @@ window.define.performance = Module.performance
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
   mainModule.ee.on('loaded', function() {
-    Module.performance['bootstrap_end'] = new Date()
     mainModule.run()
+    performance.mark('bootstrap_end')
   })
   mainModule.load()
 }
 
 function bootstrap() {
-  Module.performance['bootstrap_start'] = new Date()
+  performance.mark('bootstrap_start')
   var blScript = document.getElementById('bl-script')
   var packagePath
   var mainScriptPath
