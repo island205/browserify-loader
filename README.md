@@ -43,24 +43,64 @@ Then, `browserify-loader` will start to run for `main` file in your `package.jso
 
 ### options
 
-`browserify-loader` has two options to specify the `main` script or `package` location.
+`browserify-loader` has two options to specify the `main` script or `package` location. and browserify-loader supports `coffee-script`.
 
 ```javascript
     <script type="text/javascript"
         id="bl-script"
         main="backbone/app.js"
         package="backbone/"
+        extensions="js coffee"
         src="node_modules/browserify-loader/browserify-loader.js"></script>
 ```
 
 - **main**: the main entrance script like `app.js` in `node app.js`
--  **package**  the location where `browserify-loader` to load `package.json`， then get the main entrance from `main` property.
+-  **package**:  the location where `browserify-loader` to load `package.json`， then get the main entrance from `main` property.
+- **extensions**: the extension names of your source code.  `browserify-loader` now supports `.js` and '.coffee'.
 
 >  **main** 's  priority is higher the **package** 's.
 
 ## example
 
 Look into [todomvc-in-bl](https://github.com/island205/todomvc-in-bl) , which is a demo project based on [todomvc](https://github.com/tastejs/todomvc) to show how to use `browserify-loader`.
+
+## performance
+
+`browserify-loader`'s performance is important, and it is not ideal now yet!
+
+browserify-loader provide  a method to get its performance: `window.define.performance()`
+
+Just think if there is no browserify-loader, where performance cost come from:
+
+- script load time
+
+and then thinking cost in browserify-loader: 
+
+- xhr loading time,  roughly equals script load time
+
+- define time, concat code, insert script tag and so on
+
+- analysis module's dependences
+
+- resolve dependences' uri, include get package.json recursively
+
+- and so on
+
+### Now:
+
+```javascript
+define + getDeps + resolveDeps / define + getDeps + resolveDeps + load ≈ 0.2 - 0.5
+all - load / load ≈ 3 - 5
+```
+`load` here is just the  xhr loading time (roughly equals script loading time), `all` is the all cost form start loading all modules to done with browserify-loader.
+
+### Update
+
+#### 0.2.0
+
+- support `coffee-script`
+
+
 
 
 

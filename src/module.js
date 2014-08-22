@@ -6,15 +6,16 @@ var parseDependencies = require('searequire')
 var url = require('url')
 var RSVP = require('rsvp')
 var log = require('./log')
+var CoffeeScript = require('coffee-script')
 
 function getPackageMainModuleUri(searchPath, dep, callback) {
-  log('search', dep, 'in', searchPath)
+  log('resolve', dep, 'from', searchPath)
   var childModule = null
   var uri = ''
   var pkgUri = url.resolve(searchPath, './')
   var oldSearchPath = searchPath
   var originDep = dep
-  // global/window
+    // global/window
   dep = dep.split('/')
   if (dep.length > 1) {
     childModule = dep
@@ -49,9 +50,9 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
       uri = './node_modules/' + dep + '/' + uri
       uri = url.resolve(searchPath, uri)
       log('get package main module', uri)
-      if (!/\.js$/.test(uri)) {
-        uri = uri + '.js'
-      }
+      // if (!/\.js$/.test(uri)) {
+      //   uri = uri + '.js'
+      // }
       callback(null, uri)
     } catch (err) {
       callback(err)
@@ -65,7 +66,7 @@ function Module(uri) {
   this.ee = new EventEmitter
   this.status = Module.STATUS.CREATED
   Module.modules[uri] = this
-  this.ee.on('defined', function(){
+  this.ee.on('defined', function() {
     this.status = Module.STATUS.DEFINED
     this.loadDeps()
   }.bind(this))
@@ -94,19 +95,39 @@ Module.define = function(uri, factory) {
   module.ee.trigger('defined')
 }
 
+Module.performance = function() {
+  var uri, module
+  var allCost
+  var normalCost = 0
+  var compileCost, loadCost
+  for (uri in Module.modules) {
+    if (Module.modules.hasOwnProperty(uri)) {
+      performance.measure(uri + '_compile', uri + '_compile_start', uri + '_compile_end')
+      performance.measure(uri + '_load', uri + '_load_start', uri + '_load_end')
+      compileCost = performance.getEntriesByName(uri + '_compile')[0].duration
+      loadCost = performance.getEntriesByName(uri + '_load')[0].duration
+      normalCost += compileCost + loadCost
+    }
+  }
+
+  performance.measure('all_cost', 'bootstrap_start', 'bootstrap_end');
+  allCost = performance.getEntriesByName('all_cost')[0].duration
+  console.log('performance:', allCost / normalCost * 6)
+}
+
 Module.prototype.run = function() {
   this.compile()
 }
 
 Module.prototype.resolve = function(dep) {
-  var uri  = ''
+  var uri = ''
   var that = this
   var promise = new RSVP.Promise(function(resolve, reject) {
     if (/^\./.test(dep)) {
       uri = url.resolve(this.uri, dep)
-      if (!/\.js$/.test(uri)) {
-        uri = uri + '.js'
-      }
+      // if (!/\.js$/.test(uri)) {
+      //   uri = uri + '.js'
+      // }
       this.uris[dep] = uri
       resolve(uri)
     } else {
@@ -126,47 +147,100 @@ Module.prototype.resolve = function(dep) {
 Module.prototype.compile = function() {
   var module = {}
   var exports = module.exports = {}
-  var require = function(dep){
+  var require = function(dep) {
     var module = Module.get(this.uris[dep])
     return module.exports || module.compile()
   }.bind(this)
+  performance.mark(this.uri + '_compile_start')
   this.factory(require, exports, module)
+  performance.mark(this.uri + '_compile_end')
   return this.exports = module.exports
 }
 
 Module.prototype.load = function() {
   this.status = Module.STATUS.LOADING
-  this.ee.on('scriptLoaded', function(){
+  this.ee.on('scriptLoaded', function() {
     this.defineScript()
   }.bind(this))
   this.loadScript()
 }
 
 Module.prototype.loadScript = function() {
-  xhr({
-    uri: this.uri,
-    headers: {
-      "Content-Type": "text/plain"
-    }
-  }, function(err, resp, body) {
-    if (err) {
-      throw(err)
-    } else {
-      this.script = body
-      this.ee.trigger('scriptLoaded')
-    }
-  }.bind(this))
+  performance.mark(this.uri + '_load_start')
+  var uri = this.uri
+  var ext = uri.split('.').pop()
+  var extIndex = 0
+
+  function tryExt(uri, callback) {
+    xhr({
+      uri: uri + '.' + Module.extensions[extIndex],
+      headers: {
+        "Content-Type": "text/plain"
+      }
+    }, function(err, resp, body) {
+      if (err) {
+        if (extIndex >= Module.extensions.length - 1) {
+          callback(err, resp, body)
+        } else {
+          extIndex++
+          tryExt(uri, callback)
+        }
+      } else {
+        callback(err, resp, body)
+      }
+    }.bind(this))
+  }
+  if (ext == uri || Module.extensions.indexOf(ext) == -1) { // no ext
+    log(uri, 'no', ext)
+    tryExt(uri, function(err, resp, body) {
+      performance.mark(this.uri + '_load_end')
+      if (err) {
+        throw (err)
+      } else {
+        this.ext = Module.extensions[extIndex]
+        this.script = body
+        this.ee.trigger('scriptLoaded')
+      }
+    }.bind(this))
+  } else { // has ext
+    log(uri, 'has', ext)
+    this.ext = ext
+    xhr({
+      uri: uri,
+      headers: {
+        "Content-Type": "text/plain"
+      }
+    }, function(err, resp, body) {
+      performance.mark(this.uri + '_load_end')
+      if (err) {
+        throw (err)
+      } else {
+        this.script = body
+        this.ee.trigger('scriptLoaded')
+      }
+    }.bind(this))
+  }
 }
 
 Module.prototype.defineScript = function() {
+  if (this.ext == 'coffee') {
+    this.script = CoffeeScript.compile(this.script)
+  }
   var js = []
   js.push('define("')
   js.push(this.uri)
   js.push('", function(require, exports, module) {\n')
-  js.push(this.script)
+  // indent for source code
+  js.push(this.script.split('\n').map(function(line) {
+    return '  ' + line
+  }).join('\n'))
   js.push('\n})')
   js.push('\n//# sourceURL=')
-  js.push(this.uri)
+  if (this.uri.split('.').pop() != this.ext) {
+    js.push(this.uri + '.' + this.ext)
+  } else {
+    js.push(this.uri)
+  }
   js = js.join('')
   var script = document.createElement('script')
   script.innerHTML = js
@@ -181,7 +255,7 @@ Module.prototype.loadDeps = function() {
   var resolveDepPromises = this.deps.map(function(dep) {
     return this.resolve(dep)
   }.bind(this))
-  RSVP.all(resolveDepPromises).then(function(deps){
+  RSVP.all(resolveDepPromises).then(function(deps) {
     this.deps = deps
     this.deps.forEach(function(uri) {
       module = Module.get(uri)
@@ -190,7 +264,7 @@ Module.prototype.loadDeps = function() {
     }.bind(this))
     this.depModules = depModules
     this.isLoaded()
-    this.depModules.forEach(function(depModule){
+    this.depModules.forEach(function(depModule) {
       if (depModule.status < Module.STATUS.LOADING) {
         depModule.load()
       }
