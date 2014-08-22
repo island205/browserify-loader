@@ -4,6 +4,7 @@ var url = require('url')
 
 window.define = Module.define
 window.define.performance = Module.performance
+window.define.Module = Module
 
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
@@ -19,12 +20,20 @@ function bootstrap() {
   var blScript = document.getElementById('bl-script')
   var packagePath
   var mainScriptPath
+  var extensions
   if (blScript) {
     mainScriptPath = blScript.getAttribute('main')
     packagePath = blScript.getAttribute('package')
+    extensions = blScript.getAttribute('extensions')
+    if (extensions) {
+      extensions = extensions.split(' ')
+    } else {
+      extensions = ['.js']
+    }
   } else {
     packagePath = './'
   }
+  Module.extensions = extensions
   if (mainScriptPath) {
     mainScriptPath = url.resolve(location.origin, mainScriptPath)
     loadMainModule(mainScriptPath)

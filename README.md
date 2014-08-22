@@ -43,18 +43,20 @@ Then, `browserify-loader` will start to run for `main` file in your `package.jso
 
 ### options
 
-`browserify-loader` has two options to specify the `main` script or `package` location.
+`browserify-loader` has two options to specify the `main` script or `package` location. and browserify-loader supports `coffee-script`.
 
 ```javascript
     <script type="text/javascript"
         id="bl-script"
         main="backbone/app.js"
         package="backbone/"
+        extensions="js coffee"
         src="node_modules/browserify-loader/browserify-loader.js"></script>
 ```
 
 - **main**: the main entrance script like `app.js` in `node app.js`
 -  **package**:  the location where `browserify-loader` to load `package.json`， then get the main entrance from `main` property.
+- **extensions**: the extension names of your source code.  `browserify-loader` now supports `.js` and '.coffee'.
 
 >  **main** 's  priority is higher the **package** 's.
 

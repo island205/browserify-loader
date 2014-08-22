@@ -30,5 +30,8 @@
     "url": "^0.10.1",
     "wolfy87-eventemitter": "^4.2.6",
     "xhr": "^1.13.0"
+  },
+  "dependencies": {
+    "coffee-script": "^1.7.1"
   }
 }
