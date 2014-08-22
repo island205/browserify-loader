@@ -94,6 +94,12 @@ all - load / load ≈ 3 - 5
 ```
 `load` here is just the  xhr loading time (roughly equals script loading time), `all` is the all cost form start loading all modules to done with browserify-loader.
 
+### Update
+
+#### 0.2.0
+
+- support `coffee-script`
+
 
 
 
