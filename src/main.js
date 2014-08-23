@@ -23,7 +23,7 @@ function bootstrap() {
   var extensions
   if (blScript) {
     mainScriptPath = blScript.getAttribute('main')
-    packagePath = blScript.getAttribute('package')
+    packagePath = blScript.getAttribute('package') || './'
     extensions = blScript.getAttribute('extensions')
     if (extensions) {
       extensions = extensions.split(' ')
