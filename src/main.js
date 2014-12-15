@@ -20,18 +20,19 @@ function bootstrap() {
   var blScript = document.getElementById('bl-script')
   var packagePath
   var mainScriptPath
-  var extensions
+  var extensions = []
   if (blScript) {
     mainScriptPath = blScript.getAttribute('main')
     packagePath = blScript.getAttribute('package') || './'
     extensions = blScript.getAttribute('extensions')
     if (extensions) {
       extensions = extensions.split(' ')
-    } else {
-      extensions = ['.js']
     }
   } else {
     packagePath = './'
+  }
+  if (extensions.indexOf('js') == -1) {
+    extensions.push('js')
   }
   Module.extensions = extensions
   if (mainScriptPath) {

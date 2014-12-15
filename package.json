@@ -25,7 +25,6 @@
   "homepage": "https://github.com/island205/browserify-loader",
   "devDependencies": {
     "path-browserify": "0.0.0",
-    "rsvp": "^3.0.12",
     "searequire": "^1.5.2",
     "url": "^0.10.1",
     "wolfy87-eventemitter": "^4.2.6",

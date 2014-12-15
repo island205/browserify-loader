@@ -4,7 +4,6 @@ var EventEmitter = require('wolfy87-eventemitter')
 var xhr = require('xhr')
 var parseDependencies = require('searequire')
 var url = require('url')
-var RSVP = require('rsvp')
 var log = require('./log')
 var CoffeeScript = require('coffee-script')
 
@@ -122,7 +121,7 @@ Module.prototype.run = function() {
 Module.prototype.resolve = function(dep) {
   var uri = ''
   var that = this
-  var promise = new RSVP.Promise(function(resolve, reject) {
+  var promise = new Promise(function(resolve, reject) {
     if (/^\./.test(dep)) {
       uri = url.resolve(this.uri, dep)
       // if (!/\.js$/.test(uri)) {
@@ -255,7 +254,7 @@ Module.prototype.loadDeps = function() {
   var resolveDepPromises = this.deps.map(function(dep) {
     return this.resolve(dep)
   }.bind(this))
-  RSVP.all(resolveDepPromises).then(function(deps) {
+  Promise.all(resolveDepPromises).then(function(deps) {
     this.deps = deps
     this.deps.forEach(function(uri) {
       module = Module.get(uri)
