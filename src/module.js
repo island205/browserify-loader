@@ -7,7 +7,6 @@ var log = require('./log')
 var CoffeeScript = require('coffee-script')
 
 function getPackageMainModuleUri(searchPath, dep, callback) {
-  log('resolve', dep, 'from', searchPath)
   var childModule = null
   var uri = ''
   var pkgUri = url.resolve(searchPath, './')
@@ -47,7 +46,6 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
       }
       uri = './node_modules/' + dep + '/' + uri
       uri = url.resolve(searchPath, uri)
-      log('get package main module', uri)
       // if (!/\.js$/.test(uri)) {
       //   uri = uri + '.js'
       // }
@@ -92,20 +90,22 @@ Module.define = function(uri, factory) {
 Module.loadPromises = {}
 
 Module.resolve = function(uri) {
+  log('loaded ' + uri)
   var loadPromise = Module.loadPromises[uri]
   if (loadPromise) {
     loadPromise.resolve()
   } else {
-    throw ("can't find loadPromise for " + uri)
+    throw "can't find loadPromise for " + uri
   }
 }
 
 Module.reject = function(uri, err) {
+  log('reject load ' + uri)
   var loadPromise = Module.loadPromises[uri]
   if (loadPromise) {
     loadPromise.reject(err)
   } else {
-    throw ("can't find loadPromise for " + uri)
+    throw "can't find loadPromise for " + uri
   }
 }
 
@@ -139,9 +139,6 @@ Module.prototype.resolve = function(dep) {
   var promise = new Promise(function(resolve, reject) {
     if (/^\./.test(dep)) {
       uri = url.resolve(this.uri, dep)
-      // if (!/\.js$/.test(uri)) {
-      //   uri = uri + '.js'
-      // }
       this.uris[dep] = uri
       resolve(uri)
     } else {
@@ -173,11 +170,14 @@ Module.prototype.compile = function() {
 
 Module.prototype.load = function() {
   this.status = Module.STATUS.LOADING
-  var loadPromise = new Promise(function(resolve, reject) {
-    Module.loadPromises[this.uri] = {
-      resolve: resolve,
-      reject: reject
-    }
+  if (Module.loadPromises[this.uri] && Module.loadPromises[this.uri].promise) {
+    return Module.loadPromises[this.uri].promise
+  }
+  Module.loadPromises[this.uri] = {}
+  var loadPromise = Module.loadPromises[this.uri].promise = new Promise(function(resolve, reject) {
+    log('load ' + this.uri)
+    Module.loadPromises[this.uri].resolve = resolve
+    Module.loadPromises[this.uri].reject = reject
     this.loadScript().then(function() {
       return this.defineScript()
     }.bind(this))
@@ -213,7 +213,6 @@ Module.prototype.loadScript = function() {
 
   return new Promise(function(resolve, reject) {
     if (ext == uri || Module.extensions.indexOf(ext) == -1) { // no ext
-      log(uri, 'no', ext)
       tryExt(uri, function(err, resp, body) {
         performance.mark(this.uri + '_load_end')
         if (err) {
@@ -225,7 +224,6 @@ Module.prototype.loadScript = function() {
         }
       }.bind(this))
     } else { // has ext
-      log(uri, 'has', ext)
       this.ext = ext
       xhr({
         uri: uri,
@@ -288,10 +286,10 @@ Module.prototype.loadDeps = function() {
       Module.resolve(this.uri)
     }.bind(this)).catch(function(err) {
       Module.reject(this.uri, err)
-    })
+    }.bind(this))
   }.bind(this)).catch(function(err) {
     Module.reject(this.uri, err)
-  })
+  }.bind(this))
 }
 
 Module.prototype.getDeps = function() {

@@ -2,9 +2,9 @@ var xhr = require('xhr')
 var Module = require('./module')
 var url = require('url')
 
-window.define = Module.define
-window.define.performance = Module.performance
-window.define.Module = Module
+define = window.define = Module.define
+define.performance = Module.performance
+define.Module = Module
 
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
@@ -48,7 +48,7 @@ function bootstrap() {
       }
     }, function(err, resp, body) {
       if (err) {
-        throw (err)
+        throw err
       }
       var pkg = JSON.parse(body)
       mainScriptPath = pkg.main || 'index.js'
