@@ -1,40 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
     <title>Browserify-loader by island205</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
   </head>
-
   <body>
-    <header>
-      <div class="inner">
-        <h1>Browserify-loader</h1>
-        <h2>A CommonJS Loader for browserify workflow.</h2>
-        <a href="https://github.com/island205/browserify-loader" class="button"><small>View project on</small> GitHub</a>
-      </div>
-    </header>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/island205/browserify-loader">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/island205/browserify-loader/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/island205/browserify-loader/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h1>
-<a name="browserify-loader" class="anchor" href="#browserify-loader"><span class="octicon octicon-link"></span></a>browserify-loader</h1>
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Browserify-loader</h1>
+          <p>A CommonJS Loader for browserify workflow.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/island205">island205</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a id="browserify-loader" class="anchor" href="#browserify-loader" aria-hidden="true"><span class="octicon octicon-link"></span></a>browserify-loader</h1>
 
 <p>A CommonJS Loader for browserify workflow.</p>
 
 <h2>
-<a name="what-is-browserify-loader" class="anchor" href="#what-is-browserify-loader"><span class="octicon octicon-link"></span></a>What is browserify-loader</h2>
+<a id="what-is-browserify-loader" class="anchor" href="#what-is-browserify-loader" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is browserify-loader</h2>
 
 <p><code>browserify-loader</code> is another CommonJS loader for  browserify workflow. With BL, You don’t need  any tools  like watchify, browserify-middleware to auto build and serve bundle *js in development env.</p>
 
@@ -49,44 +59,41 @@
 </ul>
 
 <h2>
-<a name="getting-start" class="anchor" href="#getting-start"><span class="octicon octicon-link"></span></a>Getting start</h2>
+<a id="getting-start" class="anchor" href="#getting-start" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting start</h2>
 
 <h3>
-<a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>install</h3>
+<a id="install" class="anchor" href="#install" aria-hidden="true"><span class="octicon octicon-link"></span></a>install</h3>
 
 <p>Download <code>browserify-loader</code>  with <code>npm</code> or  <code>bower</code>:</p>
 
-<div class="highlight highlight-bash"><pre><span class="nv">$ </span>npm install browserify-loader
-</pre></div>
+<div class="highlight highlight-bash"><pre>$ npm install browserify-loader</pre></div>
 
 <p>Put  <code>browserify-loader.js</code> in your page:</p>
 
-<div class="highlight highlight-html"><pre><span class="cp">&lt;!DOCTYPE html&gt;</span>
-<span class="nt">&lt;html&gt;</span>
-<span class="nt">&lt;head&gt;</span>
-  <span class="nt">&lt;title&gt;&lt;/title&gt;</span>
-<span class="nt">&lt;/head&gt;</span>
-<span class="nt">&lt;body&gt;</span>
-    <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"text/javascript"</span>
-      <span class="na">src=</span><span class="s">"node_modules/browserify-loader/browserify-loader.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
-<span class="nt">&lt;/body&gt;</span>
-<span class="nt">&lt;/html&gt;</span>
-</pre></div>
+<div class="highlight highlight-html"><pre>&lt;!DOCTYPE html&gt;
+&lt;<span class="pl-ent">html</span>&gt;
+&lt;<span class="pl-ent">head</span>&gt;
+  &lt;<span class="pl-ent">title</span>&gt;&lt;/<span class="pl-ent">title</span>&gt;
+&lt;/<span class="pl-ent">head</span>&gt;
+&lt;<span class="pl-ent">body</span>&gt;
+<span class="pl-s2">    &lt;<span class="pl-ent">script</span> <span class="pl-e">type</span>=<span class="pl-s1"><span class="pl-pds">"</span>text/javascript<span class="pl-pds">"</span></span></span>
+<span class="pl-s2">      <span class="pl-e">src</span>=<span class="pl-s1"><span class="pl-pds">"</span>node_modules/browserify-loader/browserify-loader.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</span>
+&lt;/<span class="pl-ent">body</span>&gt;
+&lt;/<span class="pl-ent">html</span>&gt;</pre></div>
 
 <p>Then, <code>browserify-loader</code> will start to run for <code>main</code> file in your <code>package.json</code> file.</p>
 
 <h3>
-<a name="options" class="anchor" href="#options"><span class="octicon octicon-link"></span></a>options</h3>
+<a id="options" class="anchor" href="#options" aria-hidden="true"><span class="octicon octicon-link"></span></a>options</h3>
 
 <p><code>browserify-loader</code> has two options to specify the <code>main</code> script or <code>package</code> location. and browserify-loader supports <code>coffee-script</code>.</p>
 
-<div class="highlight highlight-javascript"><pre>    <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">"text/javascript"</span>
-        <span class="nx">id</span><span class="o">=</span><span class="s2">"bl-script"</span>
-        <span class="nx">main</span><span class="o">=</span><span class="s2">"backbone/app.js"</span>
-        <span class="kr">package</span><span class="o">=</span><span class="s2">"backbone/"</span>
-        <span class="nx">extensions</span><span class="o">=</span><span class="s2">"js coffee"</span>
-        <span class="nx">src</span><span class="o">=</span><span class="s2">"node_modules/browserify-loader/browserify-loader.js"</span><span class="o">&gt;&lt;</span><span class="err">/script&gt;</span>
-</pre></div>
+<div class="highlight highlight-javascript"><pre>    <span class="pl-k">&lt;</span>script type<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>text/javascript<span class="pl-pds">"</span></span>
+        id<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>bl-script<span class="pl-pds">"</span></span>
+        main<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>backbone/app.js<span class="pl-pds">"</span></span>
+        <span class="pl-k">package</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>backbone/<span class="pl-pds">"</span></span>
+        extensions<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>js coffee<span class="pl-pds">"</span></span>
+        src<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>node_modules/browserify-loader/browserify-loader.js<span class="pl-pds">"</span></span><span class="pl-k">&gt;&lt;</span>/script<span class="pl-k">&gt;</span></pre></div>
 
 <ul>
 <li>
@@ -102,12 +109,12 @@
 </blockquote>
 
 <h2>
-<a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>example</h2>
+<a id="example" class="anchor" href="#example" aria-hidden="true"><span class="octicon octicon-link"></span></a>example</h2>
 
 <p>Look into <a href="https://github.com/island205/todomvc-in-bl">todomvc-in-bl</a> , which is a demo project based on <a href="https://github.com/tastejs/todomvc">todomvc</a> to show how to use <code>browserify-loader</code>.</p>
 
 <h2>
-<a name="performance" class="anchor" href="#performance"><span class="octicon octicon-link"></span></a>performance</h2>
+<a id="performance" class="anchor" href="#performance" aria-hidden="true"><span class="octicon octicon-link"></span></a>performance</h2>
 
 <p><code>browserify-loader</code>'s performance is important, and it is not ideal now yet!</p>
 
@@ -130,43 +137,26 @@
 </ul>
 
 <h3>
-<a name="now" class="anchor" href="#now"><span class="octicon octicon-link"></span></a>Now:</h3>
-
-<div class="highlight highlight-javascript"><pre><span class="nx">define</span> <span class="o">+</span> <span class="nx">getDeps</span> <span class="o">+</span> <span class="nx">resolveDeps</span> <span class="o">/</span> <span class="nx">define</span> <span class="o">+</span> <span class="nx">getDeps</span> <span class="o">+</span> <span class="nx">resolveDeps</span> <span class="o">+</span> <span class="nx">load</span> <span class="err">≈</span> <span class="mf">0.2</span> <span class="o">-</span> <span class="mf">0.5</span>
-<span class="nx">all</span> <span class="o">-</span> <span class="nx">load</span> <span class="o">/</span> <span class="nx">load</span> <span class="err">≈</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">5</span>
-</pre></div>
-
-<p><code>load</code> here is just the  xhr loading time (roughly equals script loading time), <code>all</code> is the all cost form start loading all modules to done with browserify-loader.</p>
-
-<h3>
-<a name="update" class="anchor" href="#update"><span class="octicon octicon-link"></span></a>Update</h3>
+<a id="update" class="anchor" href="#update" aria-hidden="true"><span class="octicon octicon-link"></span></a>Update</h3>
 
 <h4>
-<a name="020" class="anchor" href="#020"><span class="octicon octicon-link"></span></a>0.2.0</h4>
+<a id="030" class="anchor" href="#030" aria-hidden="true"><span class="octicon octicon-link"></span></a>0.3.0</h4>
+
+<ul>
+<li>use ES6's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a> instead of rsvp and eventemitter</li>
+</ul>
+
+<h4>
+<a id="020" class="anchor" href="#020" aria-hidden="true"><span class="octicon octicon-link"></span></a>0.2.0</h4>
 
 <ul>
 <li>support <code>coffee-script</code>
 </li>
 </ul>
-        </section>
+      </section>
 
-        <aside id="sidebar">
-          <a href="https://github.com/island205/browserify-loader/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/island205/browserify-loader/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/island205/browserify-loader"></a> is maintained by <a href="https://github.com/island205">island205</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
     </div>
-
-  
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
   </body>
 </html>
