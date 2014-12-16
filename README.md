@@ -88,6 +88,10 @@ and then thinking cost in browserify-loader:
 
 ### Update
 
+#### 0.3.0
+
+- use ES6's [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) instead of rsvp and eventemitter
+
 #### 0.2.0
 
 - support `coffee-script`
