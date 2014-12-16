@@ -2,17 +2,18 @@ var xhr = require('xhr')
 var Module = require('./module')
 var url = require('url')
 
-window.define = Module.define
-window.define.performance = Module.performance
-window.define.Module = Module
+define = window.define = Module.define
+define.performance = Module.performance
+define.Module = Module
 
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
-  mainModule.ee.on('loaded', function() {
+  mainModule.load().then(function() {
     mainModule.run()
     performance.mark('bootstrap_end')
+  },function(err) {
+    throw(err)
   })
-  mainModule.load()
 }
 
 function bootstrap() {
@@ -20,18 +21,19 @@ function bootstrap() {
   var blScript = document.getElementById('bl-script')
   var packagePath
   var mainScriptPath
-  var extensions
+  var extensions = []
   if (blScript) {
     mainScriptPath = blScript.getAttribute('main')
     packagePath = blScript.getAttribute('package') || './'
     extensions = blScript.getAttribute('extensions')
     if (extensions) {
       extensions = extensions.split(' ')
-    } else {
-      extensions = ['.js']
     }
   } else {
     packagePath = './'
+  }
+  if (extensions.indexOf('js') == -1) {
+    extensions.push('js')
   }
   Module.extensions = extensions
   if (mainScriptPath) {
@@ -46,7 +48,7 @@ function bootstrap() {
       }
     }, function(err, resp, body) {
       if (err) {
-        throw (err)
+        throw err
       }
       var pkg = JSON.parse(body)
       mainScriptPath = pkg.main || 'index.js'

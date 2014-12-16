@@ -86,14 +86,6 @@ and then thinking cost in browserify-loader:
 
 - and so on
 
-### Now:
-
-```javascript
-define + getDeps + resolveDeps / define + getDeps + resolveDeps + load ≈ 0.2 - 0.5
-all - load / load ≈ 3 - 5
-```
-`load` here is just the  xhr loading time (roughly equals script loading time), `all` is the all cost form start loading all modules to done with browserify-loader.
-
 ### Update
 
 #### 0.2.0

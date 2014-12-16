@@ -1,3 +1,5 @@
 class People
   say: ->
-    cosnole.log 'I am browseriy-loader!'
+    console.log 'I am browseriy-loader!'
+
+module.exports = People
