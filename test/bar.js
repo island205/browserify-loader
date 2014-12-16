@@ -1,6 +1,6 @@
 var foo = require('./foo')
-var RSVP = require('rsvp')
+var xhr = require('xhr')
 var People = require('./people')
 foo.foo()
-var = p new People
+var p = new People
 p.say()
