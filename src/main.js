@@ -8,11 +8,12 @@ window.define.Module = Module
 
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
-  mainModule.ee.on('loaded', function() {
+  mainModule.load().then(function() {
     mainModule.run()
     performance.mark('bootstrap_end')
+  },function(err) {
+    throw(err)
   })
-  mainModule.load()
 }
 
 function bootstrap() {

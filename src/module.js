@@ -1,6 +1,5 @@
 "use strict";
 
-var EventEmitter = require('wolfy87-eventemitter')
 var xhr = require('xhr')
 var parseDependencies = require('searequire')
 var url = require('url')
@@ -62,13 +61,8 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
 function Module(uri) {
   this.uri = uri
   this.uris = {}
-  this.ee = new EventEmitter
   this.status = Module.STATUS.CREATED
   Module.modules[uri] = this
-  this.ee.on('defined', function() {
-    this.status = Module.STATUS.DEFINED
-    this.loadDeps()
-  }.bind(this))
 }
 
 Module.STATUS = {
@@ -91,7 +85,28 @@ Module.get = function(uri) {
 Module.define = function(uri, factory) {
   var module = Module.modules[uri]
   module.factory = factory
-  module.ee.trigger('defined')
+  module.status = Module.STATUS.DEFINED
+  module.loadDeps()
+}
+
+Module.loadPromises = {}
+
+Module.resolve = function(uri) {
+  var loadPromise = Module.loadPromises[uri]
+  if (loadPromise) {
+    loadPromise.resolve()
+  } else {
+    throw ("can't find loadPromise for " + uri)
+  }
+}
+
+Module.reject = function(uri, err) {
+  var loadPromise = Module.loadPromises[uri]
+  if (loadPromise) {
+    loadPromise.reject(err)
+  } else {
+    throw ("can't find loadPromise for " + uri)
+  }
 }
 
 Module.performance = function() {
@@ -158,10 +173,16 @@ Module.prototype.compile = function() {
 
 Module.prototype.load = function() {
   this.status = Module.STATUS.LOADING
-  this.ee.on('scriptLoaded', function() {
-    this.defineScript()
+  var loadPromise = new Promise(function(resolve, reject) {
+    Module.loadPromises[this.uri] = {
+      resolve: resolve,
+      reject: reject
+    }
+    this.loadScript().then(function() {
+      return this.defineScript()
+    }.bind(this))
   }.bind(this))
-  this.loadScript()
+  return loadPromise
 }
 
 Module.prototype.loadScript = function() {
@@ -189,36 +210,39 @@ Module.prototype.loadScript = function() {
       }
     }.bind(this))
   }
-  if (ext == uri || Module.extensions.indexOf(ext) == -1) { // no ext
-    log(uri, 'no', ext)
-    tryExt(uri, function(err, resp, body) {
-      performance.mark(this.uri + '_load_end')
-      if (err) {
-        throw (err)
-      } else {
-        this.ext = Module.extensions[extIndex]
-        this.script = body
-        this.ee.trigger('scriptLoaded')
-      }
-    }.bind(this))
-  } else { // has ext
-    log(uri, 'has', ext)
-    this.ext = ext
-    xhr({
-      uri: uri,
-      headers: {
-        "Content-Type": "text/plain"
-      }
-    }, function(err, resp, body) {
-      performance.mark(this.uri + '_load_end')
-      if (err) {
-        throw (err)
-      } else {
-        this.script = body
-        this.ee.trigger('scriptLoaded')
-      }
-    }.bind(this))
-  }
+
+  return new Promise(function(resolve, reject) {
+    if (ext == uri || Module.extensions.indexOf(ext) == -1) { // no ext
+      log(uri, 'no', ext)
+      tryExt(uri, function(err, resp, body) {
+        performance.mark(this.uri + '_load_end')
+        if (err) {
+          reject(err)
+        } else {
+          this.ext = Module.extensions[extIndex]
+          this.script = body
+          resolve()
+        }
+      }.bind(this))
+    } else { // has ext
+      log(uri, 'has', ext)
+      this.ext = ext
+      xhr({
+        uri: uri,
+        headers: {
+          "Content-Type": "text/plain"
+        }
+      }, function(err, resp, body) {
+        performance.mark(this.uri + '_load_end')
+        if (err) {
+          reject(err)
+        } else {
+          this.script = body
+          resolve()
+        }
+      }.bind(this))
+    }
+  }.bind(this))
 }
 
 Module.prototype.defineScript = function() {
@@ -256,20 +280,17 @@ Module.prototype.loadDeps = function() {
   }.bind(this))
   Promise.all(resolveDepPromises).then(function(deps) {
     this.deps = deps
-    this.deps.forEach(function(uri) {
-      module = Module.get(uri)
-      module.ee.on('loaded', this.isLoaded.bind(this))
-      depModules.push(module)
-    }.bind(this))
-    this.depModules = depModules
-    this.isLoaded()
-    this.depModules.forEach(function(depModule) {
-      if (depModule.status < Module.STATUS.LOADING) {
-        depModule.load()
-      }
-    }.bind(this))
+    var loadDepPromises = this.deps.map(function(uri) {
+      var module = Module.get(uri)
+      return module.load()
+    })
+    Promise.all(loadDepPromises).then(function() {
+      Module.resolve(this.uri)
+    }.bind(this)).catch(function(err) {
+      Module.reject(this.uri, err)
+    })
   }.bind(this)).catch(function(err) {
-    log(err)
+    Module.reject(this.uri, err)
   })
 }
 
@@ -278,22 +299,6 @@ Module.prototype.getDeps = function() {
   this.deps = deps.map(function(dep) {
     return dep.path
   })
-}
-
-Module.prototype.isLoaded = function() {
-  if (this.status == Module.STATUS.LOADED) {
-    return
-  }
-  var isLoaded = true
-  this.depModules.forEach(function(depModule) {
-    if (depModule.status < Module.STATUS.LOADED) {
-      isLoaded = false
-    }
-  })
-  if (isLoaded) {
-    this.status = Module.STATUS.LOADED
-    this.ee.trigger('loaded')
-  }
 }
 
 module.exports = Module
