@@ -22,5 +22,8 @@
   ],
   "devDependencies": {
     "qunit": "~1.14.0"
+  },
+  "dependencies": {
+    "react": "~0.12.1"
   }
 }

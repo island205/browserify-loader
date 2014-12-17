@@ -5,6 +5,7 @@ var parseDependencies = require('searequire')
 var url = require('url')
 var log = require('./log')
 var CoffeeScript = require('coffee-script')
+var reactTools = require('react-tools')
 
 function getPackageMainModuleUri(searchPath, dep, callback) {
   var childModule = null
@@ -163,6 +164,7 @@ Module.prototype.compile = function() {
     return module.exports || module.compile()
   }.bind(this)
   performance.mark(this.uri + '_compile_start')
+  log('compile ' + this.uri)
   this.factory(require, exports, module)
   performance.mark(this.uri + '_compile_end')
   return this.exports = module.exports
@@ -246,6 +248,8 @@ Module.prototype.loadScript = function() {
 Module.prototype.defineScript = function() {
   if (this.ext == 'coffee') {
     this.script = CoffeeScript.compile(this.script)
+  } else if (this.ext == 'jsx') {
+    this.script = reactTools.transform(this.script)
   }
   var js = []
   js.push('define("')
