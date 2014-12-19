@@ -4,7 +4,6 @@ var xhr = require('xhr')
 var parseDependencies = require('searequire')
 var url = require('url')
 var log = require('./log')
-var CoffeeScript = require('coffee-script')
 
 function getPackageMainModuleUri(searchPath, dep, callback) {
   var childModule = null
@@ -74,6 +73,16 @@ Module.modules = {}
 
 Module.get = function(uri) {
   var module = this.modules[uri]
+  var ext
+  if (!module) {
+    for (var i = 0; i < Module.extensions.length; i++) {
+      ext = Module.extensions[i]
+      module = this.modules[uri + '.' + ext]
+      if (module) {
+        break
+      }
+    }
+  }
   if (!module) {
     module = this.modules[uri] = new Module(uri)
   }
@@ -85,6 +94,12 @@ Module.define = function(uri, factory) {
   module.factory = factory
   module.status = Module.STATUS.DEFINED
   module.loadDeps()
+}
+
+Module._extensions = {}
+
+Module.registerExtension = function(name, compile) {
+  Module._extensions[name] = compile
 }
 
 Module.loadPromises = {}
@@ -100,7 +115,7 @@ Module.resolve = function(uri) {
 }
 
 Module.reject = function(uri, err) {
-  log('reject load ' + uri)
+  log('reject load ' + uri, err)
   var loadPromise = Module.loadPromises[uri]
   if (loadPromise) {
     loadPromise.reject(err)
@@ -163,6 +178,7 @@ Module.prototype.compile = function() {
     return module.exports || module.compile()
   }.bind(this)
   performance.mark(this.uri + '_compile_start')
+  log('compile ' + this.uri)
   this.factory(require, exports, module)
   performance.mark(this.uri + '_compile_end')
   return this.exports = module.exports
@@ -244,9 +260,9 @@ Module.prototype.loadScript = function() {
 }
 
 Module.prototype.defineScript = function() {
-  if (this.ext == 'coffee') {
-    this.script = CoffeeScript.compile(this.script)
-  }
+
+  this.script = Module._extensions[this.ext](this.script)
+
   var js = []
   js.push('define("')
   js.push(this.uri)
@@ -263,6 +279,7 @@ Module.prototype.defineScript = function() {
     js.push(this.uri)
   }
   js = js.join('')
+  
   var script = document.createElement('script')
   script.innerHTML = js
   script.type = 'text/javascript'
