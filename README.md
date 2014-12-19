@@ -50,13 +50,13 @@ Then, `browserify-loader` will start to run for `main` file in your `package.jso
         id="bl-script"
         main="backbone/app.js"
         package="backbone/"
-        extensions="js coffee"
+        extensions="coffee json jsx"
         src="node_modules/browserify-loader/browserify-loader.js"></script>
 ```
 
 - **main**: the main entrance script like `app.js` in `node app.js`
 -  **package**:  the location where `browserify-loader` to load `package.json`， then get the main entrance from `main` property.
-- **extensions**: the extension names of your source code.  `browserify-loader` now supports `.js` and '.coffee'.
+- **extensions**: the enable extensions you want basing on your source code.  `browserify-loader` now supports `.js`，`.coffee`, `json` and `jsx`(for react fans).
 
 >  **main** 's  priority is higher the **package** 's.
 
@@ -64,11 +64,28 @@ Then, `browserify-loader` will start to run for `main` file in your `package.jso
 
 Look into [todomvc-in-bl](https://github.com/island205/todomvc-in-bl) , which is a demo project based on [todomvc](https://github.com/tastejs/todomvc) to show how to use `browserify-loader`.
 
-## performance
+## API
+
+### define
+
+> The internal wrapper API.
+
+### define.registerExtension
+
+Register extension to `browserify-loader`, like:
+
+```
+define.registerExtension('jsx', function(script) {
+  // react-tools for compile jsx file
+  return reactTools.transform(script)
+})
+```
+
+### define.performance
 
 `browserify-loader`'s performance is important, and it is not ideal now yet!
 
-browserify-loader provide  a method to get its performance: `window.define.performance()`
+browserify-loader provide  a method to get its performance: `define.performance()`
 
 Just think if there is no browserify-loader, where performance cost come from:
 
@@ -84,9 +101,12 @@ and then thinking cost in browserify-loader:
 
 - resolve dependences' uri, include get package.json recursively
 
-- and so on
-
 ### Update
+
+#### 0.4.0
+
+- add `registerExtension` API
+- support `jsx` and `json`
 
 #### 0.3.0
 

@@ -1,8 +1,8 @@
 {
   "name": "browserify-loader",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Another CommonJS Loader",
-  "main": "test/bar.js",
+  "main": "example/bar.js",
   "scripts": {
     "test": "node test",
     "build": "browserify src/main.js > browserify-loader.js"
@@ -30,6 +30,8 @@
     "xhr": "^1.13.0"
   },
   "dependencies": {
-    "coffee-script": "^1.7.1"
+    "coffee-script": "^1.7.1",
+    "react": "^0.12.1",
+    "react-tools": "^0.12.1"
   }
 }
