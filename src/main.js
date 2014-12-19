@@ -1,6 +1,24 @@
 var xhr = require('xhr')
 var Module = require('./module')
 var url = require('url')
+var CoffeeScript = require('coffee-script')
+var reactTools = require('react-tools')
+
+Module.registerExtension('js', function(script) {
+  return script
+})
+
+Module.registerExtension('json', function(script) {
+  return 'module.exports = ' + script
+})
+
+Module.registerExtension('jsx', function(script) {
+  return reactTools.transform(script)
+})
+
+Module.registerExtension('coffee', function(script) {
+  return CoffeeScript.compile(script)
+})
 
 define = window.define = Module.define
 define.performance = Module.performance

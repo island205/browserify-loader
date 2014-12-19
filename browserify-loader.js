@@ -19950,6 +19950,24 @@ module.exports = function () {
 var xhr = require('xhr')
 var Module = require('./module')
 var url = require('url')
+var CoffeeScript = require('coffee-script')
+var reactTools = require('react-tools')
+
+Module.registerExtension('js', function(script) {
+  return script
+})
+
+Module.registerExtension('json', function(script) {
+  return 'module.exports = ' + script
+})
+
+Module.registerExtension('jsx', function(script) {
+  return reactTools.transform(script)
+})
+
+Module.registerExtension('coffee', function(script) {
+  return CoffeeScript.compile(script)
+})
 
 define = window.define = Module.define
 define.performance = Module.performance
@@ -20008,15 +20026,13 @@ function bootstrap() {
 }
 
 bootstrap()
-},{"./module":47,"url":58,"xhr":42}],47:[function(require,module,exports){
+},{"./module":47,"coffee-script":1,"react-tools":10,"url":58,"xhr":42}],47:[function(require,module,exports){
 "use strict";
 
 var xhr = require('xhr')
 var parseDependencies = require('searequire')
 var url = require('url')
 var log = require('./log')
-var CoffeeScript = require('coffee-script')
-var reactTools = require('react-tools')
 
 function getPackageMainModuleUri(searchPath, dep, callback) {
   var childModule = null
@@ -20086,6 +20102,16 @@ Module.modules = {}
 
 Module.get = function(uri) {
   var module = this.modules[uri]
+  var ext
+  if (!module) {
+    for (var i = 0; i < Module.extensions.length; i++) {
+      ext = Module.extensions[i]
+      module = this.modules[uri + '.' + ext]
+      if (module) {
+        break
+      }
+    }
+  }
   if (!module) {
     module = this.modules[uri] = new Module(uri)
   }
@@ -20097,6 +20123,12 @@ Module.define = function(uri, factory) {
   module.factory = factory
   module.status = Module.STATUS.DEFINED
   module.loadDeps()
+}
+
+Module._extensions = {}
+
+Module.registerExtension = function(name, compile) {
+  Module._extensions[name] = compile
 }
 
 Module.loadPromises = {}
@@ -20112,7 +20144,7 @@ Module.resolve = function(uri) {
 }
 
 Module.reject = function(uri, err) {
-  log('reject load ' + uri)
+  log('reject load ' + uri, err)
   var loadPromise = Module.loadPromises[uri]
   if (loadPromise) {
     loadPromise.reject(err)
@@ -20257,11 +20289,9 @@ Module.prototype.loadScript = function() {
 }
 
 Module.prototype.defineScript = function() {
-  if (this.ext == 'coffee') {
-    this.script = CoffeeScript.compile(this.script)
-  } else if (this.ext == 'jsx') {
-    this.script = reactTools.transform(this.script)
-  }
+
+  this.script = Module._extensions[this.ext](this.script)
+
   var js = []
   js.push('define("')
   js.push(this.uri)
@@ -20315,7 +20345,7 @@ Module.prototype.getDeps = function() {
 }
 
 module.exports = Module
-},{"./log":45,"coffee-script":1,"react-tools":10,"searequire":41,"url":58,"xhr":42}],48:[function(require,module,exports){
+},{"./log":45,"searequire":41,"url":58,"xhr":42}],48:[function(require,module,exports){
 
 },{}],49:[function(require,module,exports){
 /*!
