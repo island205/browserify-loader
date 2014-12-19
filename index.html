@@ -1,44 +1,34 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Browserify-loader by island205</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
     <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
+    <title>Browserify-loader by island205</title>
   </head>
+
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/island205/browserify-loader">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/island205/browserify-loader/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/island205/browserify-loader/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
+    <header>
+      <div class="inner">
+        <h1>Browserify-loader</h1>
+        <h2>A CommonJS Loader for browserify workflow.</h2>
+        <a href="https://github.com/island205/browserify-loader" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
 
-    <div class="wrapper">
-
-      <section>
-        <div id="title">
-          <h1>Browserify-loader</h1>
-          <p>A CommonJS Loader for browserify workflow.</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/island205">island205</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
-        </div>
-
-        <h1>
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
 <a id="browserify-loader" class="anchor" href="#browserify-loader" aria-hidden="true"><span class="octicon octicon-link"></span></a>browserify-loader</h1>
 
 <p>A CommonJS Loader for browserify workflow.</p>
@@ -92,7 +82,7 @@
         id<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>bl-script<span class="pl-pds">"</span></span>
         main<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>backbone/app.js<span class="pl-pds">"</span></span>
         <span class="pl-k">package</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>backbone/<span class="pl-pds">"</span></span>
-        extensions<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>js coffee<span class="pl-pds">"</span></span>
+        extensions<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>coffee json jsx<span class="pl-pds">"</span></span>
         src<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>node_modules/browserify-loader/browserify-loader.js<span class="pl-pds">"</span></span><span class="pl-k">&gt;&lt;</span>/script<span class="pl-k">&gt;</span></pre></div>
 
 <ul>
@@ -101,7 +91,7 @@
 </li>
 <li> <strong>package</strong>:  the location where <code>browserify-loader</code> to load <code>package.json</code>， then get the main entrance from <code>main</code> property.</li>
 <li>
-<strong>extensions</strong>: the extension names of your source code.  <code>browserify-loader</code> now supports <code>.js</code> and '.coffee'.</li>
+<strong>extensions</strong>: the enable extensions you want basing on your source code.  <code>browserify-loader</code> now supports <code>.js</code>，<code>.coffee</code>, <code>json</code> and <code>jsx</code>(for react fans).</li>
 </ul>
 
 <blockquote>
@@ -114,11 +104,32 @@
 <p>Look into <a href="https://github.com/island205/todomvc-in-bl">todomvc-in-bl</a> , which is a demo project based on <a href="https://github.com/tastejs/todomvc">todomvc</a> to show how to use <code>browserify-loader</code>.</p>
 
 <h2>
-<a id="performance" class="anchor" href="#performance" aria-hidden="true"><span class="octicon octicon-link"></span></a>performance</h2>
+<a id="api" class="anchor" href="#api" aria-hidden="true"><span class="octicon octicon-link"></span></a>API</h2>
+
+<h3>
+<a id="define" class="anchor" href="#define" aria-hidden="true"><span class="octicon octicon-link"></span></a>define</h3>
+
+<blockquote>
+<p>The internal wrapper API.</p>
+</blockquote>
+
+<h3>
+<a id="defineregisterextension" class="anchor" href="#defineregisterextension" aria-hidden="true"><span class="octicon octicon-link"></span></a>define.registerExtension</h3>
+
+<p>Register extension to <code>browserify-loader</code>, like:</p>
+
+<pre><code>define.registerExtension('jsx', function(script) {
+  // react-tools for compile jsx file
+  return reactTools.transform(script)
+})
+</code></pre>
+
+<h3>
+<a id="defineperformance" class="anchor" href="#defineperformance" aria-hidden="true"><span class="octicon octicon-link"></span></a>define.performance</h3>
 
 <p><code>browserify-loader</code>'s performance is important, and it is not ideal now yet!</p>
 
-<p>browserify-loader provide  a method to get its performance: <code>window.define.performance()</code></p>
+<p>browserify-loader provide  a method to get its performance: <code>define.performance()</code></p>
 
 <p>Just think if there is no browserify-loader, where performance cost come from:</p>
 
@@ -133,11 +144,19 @@
 <li><p>define time, concat code, insert script tag and so on</p></li>
 <li><p>analysis module's dependences</p></li>
 <li><p>resolve dependences' uri, include get package.json recursively</p></li>
-<li><p>and so on</p></li>
 </ul>
 
 <h3>
 <a id="update" class="anchor" href="#update" aria-hidden="true"><span class="octicon octicon-link"></span></a>Update</h3>
+
+<h4>
+<a id="040" class="anchor" href="#040" aria-hidden="true"><span class="octicon octicon-link"></span></a>0.4.0</h4>
+
+<ul>
+<li>add <code>registerExtension</code> API</li>
+<li>support <code>jsx</code> and <code>json</code>
+</li>
+</ul>
 
 <h4>
 <a id="030" class="anchor" href="#030" aria-hidden="true"><span class="octicon octicon-link"></span></a>0.3.0</h4>
@@ -153,10 +172,25 @@
 <li>support <code>coffee-script</code>
 </li>
 </ul>
-      </section>
+        </section>
 
+        <aside id="sidebar">
+          <a href="https://github.com/island205/browserify-loader/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/island205/browserify-loader/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/island205/browserify-loader"></a> is maintained by <a href="https://github.com/island205">island205</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
+
+  
   </body>
 </html>
