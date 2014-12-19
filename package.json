@@ -1,6 +1,6 @@
 {
   "name": "browserify-loader",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Another CommonJS Loader",
   "main": "example/bar.js",
   "scripts": {
