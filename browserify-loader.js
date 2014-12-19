@@ -19942,11 +19942,15 @@ function once (fn) {
 }
 
 },{}],45:[function(require,module,exports){
-debug = true
+"use strict";
+
+var debug = false
 module.exports = function () {
   debug && console.log.apply(console, arguments)
 }
 },{}],46:[function(require,module,exports){
+"use strict";
+
 var xhr = require('xhr')
 var Module = require('./module')
 var url = require('url')
@@ -19971,7 +19975,7 @@ Module.registerExtension('coffee', function(script) {
 
 define = window.define = Module.define
 define.performance = Module.performance
-define.Module = Module
+define.registerExtension = Module.registerExtension
 
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
@@ -19999,9 +20003,7 @@ function bootstrap() {
   } else {
     packagePath = './'
   }
-  if (extensions.indexOf('js') == -1) {
-    extensions.push('js')
-  }
+  extensions.unshift('js')
   Module.extensions = extensions
   if (mainScriptPath) {
     mainScriptPath = url.resolve(location.origin, mainScriptPath)
@@ -20308,6 +20310,7 @@ Module.prototype.defineScript = function() {
     js.push(this.uri)
   }
   js = js.join('')
+  
   var script = document.createElement('script')
   script.innerHTML = js
   script.type = 'text/javascript'

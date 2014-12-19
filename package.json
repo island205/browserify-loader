@@ -2,7 +2,7 @@
   "name": "browserify-loader",
   "version": "0.3.0",
   "description": "Another CommonJS Loader",
-  "main": "test/bar.js",
+  "main": "example/bar.js",
   "scripts": {
     "test": "node test",
     "build": "browserify src/main.js > browserify-loader.js"

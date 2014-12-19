@@ -279,6 +279,7 @@ Module.prototype.defineScript = function() {
     js.push(this.uri)
   }
   js = js.join('')
+  
   var script = document.createElement('script')
   script.innerHTML = js
   script.type = 'text/javascript'
