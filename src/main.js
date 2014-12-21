@@ -29,10 +29,12 @@ define.registerExtension = Module.registerExtension
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
   mainModule.load().then(function() {
-    mainModule.run()
+    mainModule.compile()
     performance.mark('bootstrap_end')
   },function(err) {
     throw(err)
+  }).catch(function(err){
+    console.error(err)
   })
 }
 

@@ -144,10 +144,6 @@ Module.performance = function() {
   console.log('performance:', allCost / normalCost * 6)
 }
 
-Module.prototype.run = function() {
-  this.compile()
-}
-
 Module.prototype.resolve = function(dep) {
   var uri = ''
   var that = this

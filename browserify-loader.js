@@ -19980,10 +19980,12 @@ define.registerExtension = Module.registerExtension
 function loadMainModule(mainScriptUri) {
   var mainModule = new Module(mainScriptUri)
   mainModule.load().then(function() {
-    mainModule.run()
+    mainModule.compile()
     performance.mark('bootstrap_end')
   },function(err) {
     throw(err)
+  }).catch(function(err){
+    console.error(err)
   })
 }
 
@@ -20173,10 +20175,6 @@ Module.performance = function() {
   performance.measure('all_cost', 'bootstrap_start', 'bootstrap_end');
   allCost = performance.getEntriesByName('all_cost')[0].duration
   console.log('performance:', allCost / normalCost * 6)
-}
-
-Module.prototype.run = function() {
-  this.compile()
 }
 
 Module.prototype.resolve = function(dep) {
