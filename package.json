@@ -30,6 +30,8 @@
     "xhr": "^1.13.0"
   },
   "dependencies": {
+  },
+  "devDependencies": {
     "coffee-script": "^1.7.1",
     "react": "^0.12.1",
     "react-tools": "^0.12.1"
