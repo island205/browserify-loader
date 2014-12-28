@@ -1,7 +1,7 @@
 {
   "name": "browserify-loader",
   "main": "browserify-loader.js",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "homepage": "https://github.com/island205/browserify-loader",
   "authors": [
     "island205 <island205@gmail.com>"

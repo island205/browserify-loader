@@ -34,7 +34,7 @@ function loadMainModule(mainScriptUri) {
   },function(err) {
     throw(err)
   }).catch(function(err){
-    console.error(err)
+    console.error(err.stack)
   })
 }
 

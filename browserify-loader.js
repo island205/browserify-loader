@@ -19985,7 +19985,7 @@ function loadMainModule(mainScriptUri) {
   },function(err) {
     throw(err)
   }).catch(function(err){
-    console.error(err)
+    console.error(err.stack)
   })
 }
 
@@ -20225,7 +20225,9 @@ Module.prototype.load = function() {
     Module.loadPromises[this.uri].reject = reject
     this.loadScript().then(function() {
       return this.defineScript()
-    }.bind(this))
+    }.bind(this)).catch(function(err) {
+      reject(err)
+    })
   }.bind(this))
   return loadPromise
 }
@@ -20245,7 +20247,7 @@ Module.prototype.loadScript = function() {
     }, function(err, resp, body) {
       if (err) {
         if (extIndex >= Module.extensions.length - 1) {
-          callback(err, resp, body)
+          callback(new Error('cannot GET ' + uri))
         } else {
           extIndex++
           tryExt(uri, callback)
@@ -20289,8 +20291,11 @@ Module.prototype.loadScript = function() {
 }
 
 Module.prototype.defineScript = function() {
-
-  this.script = Module._extensions[this.ext](this.script)
+  try {
+    this.script = Module._extensions[this.ext](this.script)
+  } catch (err) {
+    Module.reject(this.uri, err)
+  }
 
   var js = []
   js.push('define("')
@@ -20308,7 +20313,7 @@ Module.prototype.defineScript = function() {
     js.push(this.uri)
   }
   js = js.join('')
-  
+
   var script = document.createElement('script')
   script.innerHTML = js
   script.type = 'text/javascript'
