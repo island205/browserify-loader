@@ -19983,7 +19983,7 @@ function loadMainModule(mainScriptUri) {
     mainModule.compile()
     performance.mark('bootstrap_end')
   },function(err) {
-    throw(err)
+    throw err
   }).catch(function(err){
     console.error(err.stack)
   })
@@ -20019,7 +20019,7 @@ function bootstrap() {
       }
     }, function(err, resp, body) {
       if (err) {
-        throw err
+        throw new Error('canot get main module')
       }
       var pkg = JSON.parse(body)
       mainScriptPath = pkg.main || 'index.js'
