@@ -1,7 +1,7 @@
 browserify-loader
 =================
 
-A CommonJS Loader for browserify workflow.
+A CommonJS Loader for browserify workflow [ES6 support].
 
 
 ## What is browserify-loader
@@ -50,13 +50,13 @@ Then, `browserify-loader` will start to run for `main` file in your `package.jso
         id="bl-script"
         main="backbone/app.js"
         package="backbone/"
-        extensions="coffee json jsx"
+        extensions="js json 6.js jsx"
         src="node_modules/browserify-loader/browserify-loader.js"></script>
 ```
 
 - **main**: the main entrance script like `app.js` in `node app.js`
 -  **package**:  the location where `browserify-loader` to load `package.json`， then get the main entrance from `main` property.
-- **extensions**: the enable extensions you want basing on your source code.  `browserify-loader` now supports `.js`，`.coffee`, `json` and `jsx`(for react fans).
+- **extensions**: the enable extensions you want basing on your source code.  `browserify-loader` now supports `.js`，`.6.js`(ES6), `json` and `jsx`(for react fans).
 
 >  **main** 's  priority is higher the **package** 's.
 
@@ -75,9 +75,10 @@ Look into [todomvc-in-bl](https://github.com/island205/todomvc-in-bl) , which is
 Register extension to `browserify-loader`, like:
 
 ```
+var to5Transform = require('6to5/lib/6to5/transformation/transform')
+
 define.registerExtension('jsx', function(script) {
-  // react-tools for compile jsx file
-  return reactTools.transform(script)
+  return to5Transform(script, {modules: "common"}).code
 })
 ```
 
@@ -102,6 +103,15 @@ and then thinking cost in browserify-loader:
 - resolve dependences' uri, include get package.json recursively
 
 ### Update
+
+#### 0.5.0
+
+- support ES6!
+- remove support `coffee-script`
+
+#### 0.4.2
+
+- improve for friendly debuging. 
 
 #### 0.4.0
 
