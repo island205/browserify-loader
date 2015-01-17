@@ -31,7 +31,7 @@
           <h1>
 <a id="browserify-loader" class="anchor" href="#browserify-loader" aria-hidden="true"><span class="octicon octicon-link"></span></a>browserify-loader</h1>
 
-<p>A CommonJS Loader for browserify workflow.</p>
+<p>A CommonJS Loader for browserify workflow [ES6 support].</p>
 
 <h2>
 <a id="what-is-browserify-loader" class="anchor" href="#what-is-browserify-loader" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is browserify-loader</h2>
@@ -82,7 +82,7 @@
         id<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>bl-script<span class="pl-pds">"</span></span>
         main<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>backbone/app.js<span class="pl-pds">"</span></span>
         <span class="pl-k">package</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>backbone/<span class="pl-pds">"</span></span>
-        extensions<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>coffee json jsx<span class="pl-pds">"</span></span>
+        extensions<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>js json 6.js jsx<span class="pl-pds">"</span></span>
         src<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>node_modules/browserify-loader/browserify-loader.js<span class="pl-pds">"</span></span><span class="pl-k">&gt;&lt;</span>/script<span class="pl-k">&gt;</span></pre></div>
 
 <ul>
@@ -91,7 +91,7 @@
 </li>
 <li> <strong>package</strong>:  the location where <code>browserify-loader</code> to load <code>package.json</code>， then get the main entrance from <code>main</code> property.</li>
 <li>
-<strong>extensions</strong>: the enable extensions you want basing on your source code.  <code>browserify-loader</code> now supports <code>.js</code>，<code>.coffee</code>, <code>json</code> and <code>jsx</code>(for react fans).</li>
+<strong>extensions</strong>: the enable extensions you want basing on your source code.  <code>browserify-loader</code> now supports <code>.js</code>，<code>.6.js</code>(ES6), <code>json</code> and <code>jsx</code>(for react fans).</li>
 </ul>
 
 <blockquote>
@@ -118,9 +118,10 @@
 
 <p>Register extension to <code>browserify-loader</code>, like:</p>
 
-<pre><code>define.registerExtension('jsx', function(script) {
-  // react-tools for compile jsx file
-  return reactTools.transform(script)
+<pre><code>var to5Transform = require('6to5/lib/6to5/transformation/transform')
+
+define.registerExtension('jsx', function(script) {
+  return to5Transform(script, {modules: "common"}).code
 })
 </code></pre>
 
@@ -148,6 +149,22 @@
 
 <h3>
 <a id="update" class="anchor" href="#update" aria-hidden="true"><span class="octicon octicon-link"></span></a>Update</h3>
+
+<h4>
+<a id="050" class="anchor" href="#050" aria-hidden="true"><span class="octicon octicon-link"></span></a>0.5.0</h4>
+
+<ul>
+<li>support ES6!</li>
+<li>remove support <code>coffee-script</code>
+</li>
+</ul>
+
+<h4>
+<a id="042" class="anchor" href="#042" aria-hidden="true"><span class="octicon octicon-link"></span></a>0.4.2</h4>
+
+<ul>
+<li>improve for friendly debuging. </li>
+</ul>
 
 <h4>
 <a id="040" class="anchor" href="#040" aria-hidden="true"><span class="octicon octicon-link"></span></a>0.4.0</h4>
