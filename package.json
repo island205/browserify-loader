@@ -1,7 +1,7 @@
 {
   "name": "browserify-loader",
-  "version": "0.4.2",
-  "description": "Another CommonJS Loader",
+  "version": "0.5.0",
+  "description": "Another CommonJS Loader[ES6 support]",
   "main": "example/bar.js",
   "scripts": {
     "test": "node test",
@@ -26,9 +26,7 @@
   "devDependencies": {
     "coffee-script": "^1.7.1",
     "react": "^0.12.1",
-    "react-tools": "^0.12.1"
-  },
-  "dependencies": {
+    "react-tools": "^0.12.1",
     "6to5": "^2.12.6"
   }
 }
