@@ -3,11 +3,14 @@
 var xhr = require('xhr')
 var Module = require('./module')
 var url = require('url')
-var CoffeeScript = require('coffee-script')
-var reactTools = require('react-tools')
+var to5Transform = require('6to5/lib/6to5/transformation/transform')
 
 Module.registerExtension('js', function(script) {
   return script
+})
+
+Module.registerExtension('6.js', function(script) {
+  return to5Transform(script, {modules: "common", blacklist: ["react"]}).code
 })
 
 Module.registerExtension('json', function(script) {
@@ -15,11 +18,7 @@ Module.registerExtension('json', function(script) {
 })
 
 Module.registerExtension('jsx', function(script) {
-  return reactTools.transform(script)
-})
-
-Module.registerExtension('coffee', function(script) {
-  return CoffeeScript.compile(script)
+  return to5Transform(script, {modules: "common"}).code
 })
 
 define = window.define = Module.define
