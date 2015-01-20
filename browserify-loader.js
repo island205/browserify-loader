@@ -56452,412 +56452,494 @@ function once (fn) {
 },{}],166:[function(require,module,exports){
 "use strict";
 
-var debug = false
+var debug = false;
 module.exports = function () {
-  debug && console.log.apply(console, arguments)
-}
+  debug && console.log.apply(console, arguments);
+};
+
 },{}],167:[function(require,module,exports){
 "use strict";
 
-var xhr = require('xhr')
-var Module = require('./module')
-var url = require('url')
-var to5Transform = require('6to5/lib/6to5/transformation/transform')
+var xhr = require("xhr");
+var Module = require("./module");
+var url = require("url");
+var to5Transform = require("6to5/lib/6to5/transformation/transform");
 
-Module.registerExtension('js', function(script) {
-  return script
-})
+Module.registerExtension("js", function (script) {
+  return script;
+});
 
-Module.registerExtension('6.js', function(script) {
-  return to5Transform(script, {modules: "common", blacklist: ["react"]}).code
-})
+Module.registerExtension("6.js", function (script) {
+  return to5Transform(script, { modules: "common", blacklist: ["react"] }).code;
+});
 
-Module.registerExtension('json', function(script) {
-  return 'module.exports = ' + script
-})
+Module.registerExtension("json", function (script) {
+  return "module.exports = " + script;
+});
 
-Module.registerExtension('jsx', function(script) {
-  return to5Transform(script, {modules: "common"}).code
-})
+Module.registerExtension("jsx", function (script) {
+  return to5Transform(script, { modules: "common" }).code;
+});
 
-define = window.define = Module.define
-define.performance = Module.performance
-define.registerExtension = Module.registerExtension
+define = window.define = Module.define;
+define.performance = Module.performance;
+define.registerExtension = Module.registerExtension;
 
 function loadMainModule(mainScriptUri) {
-  var mainModule = new Module(mainScriptUri)
-  mainModule.load().then(function() {
-    mainModule.compile()
-    performance.mark('bootstrap_end')
-  },function(err) {
-    throw err
-  }).catch(function(err){
-    console.error(err.stack)
-  })
+  var mainModule = new Module(mainScriptUri);
+  mainModule.load().then(function () {
+    mainModule.compile();
+    performance.mark("bootstrap_end");
+  }, function (err) {
+    throw err;
+  })["catch"](function (err) {
+    console.error(err.stack);
+  });
 }
 
 function bootstrap() {
-  performance.mark('bootstrap_start')
-  var blScript = document.getElementById('bl-script')
-  var packagePath
-  var mainScriptPath
-  var extensions = []
+  performance.mark("bootstrap_start");
+  var blScript = document.getElementById("bl-script");
+  var packagePath;
+  var mainScriptPath;
+  var extensions = [];
   if (blScript) {
-    mainScriptPath = blScript.getAttribute('main')
-    packagePath = blScript.getAttribute('package') || './'
-    extensions = blScript.getAttribute('extensions')
+    mainScriptPath = blScript.getAttribute("main");
+    packagePath = blScript.getAttribute("package") || "./";
+    extensions = blScript.getAttribute("extensions");
     if (extensions) {
-      extensions = extensions.split(' ')
+      extensions = extensions.split(" ");
     }
   } else {
-    packagePath = './'
+    packagePath = "./";
   }
-  extensions.unshift('js')
-  Module.extensions = extensions
+  extensions.unshift("js");
+  Module.extensions = extensions;
   if (mainScriptPath) {
-    mainScriptPath = url.resolve(location.origin, mainScriptPath)
-    loadMainModule(mainScriptPath)
+    mainScriptPath = url.resolve(location.origin, mainScriptPath);
+    loadMainModule(mainScriptPath);
   } else {
-    packagePath = url.resolve(url.resolve(location.origin, packagePath), './package.json')
+    packagePath = url.resolve(url.resolve(location.origin, packagePath), "./package.json");
     xhr({
       uri: packagePath,
       headers: {
         "Content-Type": "application/json"
       }
-    }, function(err, resp, body) {
+    }, function (err, resp, body) {
       if (err) {
-        throw new Error('canot get main module')
+        throw new Error("canot get main module");
       }
-      var pkg = JSON.parse(body)
-      mainScriptPath = pkg.main || 'index.js'
-      mainScriptPath = url.resolve(packagePath, mainScriptPath)
-      loadMainModule(mainScriptPath)
-    })
+      var pkg = JSON.parse(body);
+      mainScriptPath = pkg.main || "index.js";
+      mainScriptPath = url.resolve(packagePath, mainScriptPath);
+      loadMainModule(mainScriptPath);
+    });
   }
 }
 
-bootstrap()
+bootstrap();
+
 },{"./module":168,"6to5/lib/6to5/transformation/transform":37,"url":198,"xhr":163}],168:[function(require,module,exports){
 "use strict";
 
-var xhr = require('xhr')
-var parseDependencies = require('searequire')
-var url = require('url')
-var log = require('./log')
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
+var xhr = require("xhr");
+var parseDependencies = require("searequire");
+var url = require("url");
+var log = require("./log");
 
 function getPackageMainModuleUri(searchPath, dep, callback) {
-  var childModule = null
-  var uri = ''
-  var pkgUri = url.resolve(searchPath, './')
-  var oldSearchPath = searchPath
-  var originDep = dep
-    // global/window
-  dep = dep.split('/')
+  var childModule = null;
+  var uri = "";
+  var pkgUri = url.resolve(searchPath, "./");
+  var oldSearchPath = searchPath;
+  var originDep = dep;
+  // global/window
+  dep = dep.split("/");
   if (dep.length > 1) {
-    childModule = dep
-    dep = childModule.shift()
-    childModule = childModule.join('/')
+    childModule = dep;
+    dep = childModule.shift();
+    childModule = childModule.join("/");
   } else {
-    dep = dep.join('/')
+    dep = dep.join("/");
   }
-  pkgUri = pkgUri + 'node_modules/' + dep + '/package.json'
+  pkgUri = "" + pkgUri + "node_modules/" + dep + "/package.json";
   xhr({
     uri: pkgUri,
     headers: {
       "Content-Type": "application/json"
     }
-  }, function(err, resp, body) {
+  }, function (err, resp, body) {
     if (err) {
-      searchPath = url.resolve(searchPath, '../')
+      searchPath = url.resolve(searchPath, "../");
       if (oldSearchPath != searchPath) {
-        getPackageMainModuleUri(searchPath, originDep, callback)
+        getPackageMainModuleUri(searchPath, originDep, callback);
       } else {
-        callback('pkg: ' + originDep + ' not Found')
+        callback("pkg: " + originDep + " not Found");
       }
-      return
+      return;
     }
     try {
-      var pkg = JSON.parse(body)
+      var pkg = JSON.parse(body);
       if (childModule) {
-        uri = childModule
+        uri = childModule;
       } else {
-        uri = pkg.main || 'index.js'
+        uri = pkg.main || "index.js";
       }
-      uri = './node_modules/' + dep + '/' + uri
-      uri = url.resolve(searchPath, uri)
-      // if (!/\.js$/.test(uri)) {
-      //   uri = uri + '.js'
-      // }
-      callback(null, uri)
+      uri = "./node_modules/" + dep + "/" + uri;
+      uri = url.resolve(searchPath, uri);
+      callback(null, uri);
     } catch (err) {
-      callback(err)
+      callback(err);
     }
-  })
+  });
 }
 
-function Module(uri) {
-  this.uri = uri
-  this.uris = {}
-  this.status = Module.STATUS.CREATED
-  Module.modules[uri] = this
-}
+var Module = (function () {
+  function Module(uri) {
+    this.uri = uri;
+    this.uris = {};
+    this.status = Module.STATUS.CREATED;
+    Module.modules[uri] = this;
+  }
+
+  _prototypeProperties(Module, {
+    get: {
+      value: function get(uri) {
+        var module = this.modules[uri];
+        var ext;
+        if (!module) {
+          for (var i = 0; i < Module.extensions.length; i++) {
+            ext = Module.extensions[i];
+            module = this.modules["" + uri + "." + ext];
+            if (module) {
+              break;
+            }
+          }
+        }
+        if (!module) {
+          module = this.modules[uri] = new Module(uri);
+        }
+        return module;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    define: {
+      value: function define(uri, factory) {
+        var module = Module.modules[uri];
+        module.factory = factory;
+        module.status = Module.STATUS.DEFINED;
+        module.loadDeps();
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    registerExtension: {
+      value: function registerExtension(name, compile) {
+        Module._extensions[name] = compile;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    resolve: {
+      value: function resolve(uri) {
+        log("loaded " + uri);
+
+        var loadPromise = Module.loadPromises[uri];
+        if (loadPromise) {
+          loadPromise.resolve();
+        } else {
+          throw "can't find loadPromise for  " + uri;
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    reject: {
+      value: function reject(uri, err) {
+        log("reject load " + uri, err);
+
+        var loadPromise = Module.loadPromises[uri];
+        if (loadPromise) {
+          loadPromise.reject(err);
+        } else {
+          throw "can't find loadPromise for " + uri;
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    performance: {
+      value: (function (_performance) {
+        var _performanceWrapper = function performance() {
+          return _performance.apply(this, arguments);
+        };
+
+        _performanceWrapper.toString = function () {
+          return _performance.toString();
+        };
+
+        return _performanceWrapper;
+      })(function () {
+        var uri, module;
+        var allCost;
+        var normalCost = 0;
+        var compileCost, loadCost;
+        for (uri in Module.modules) {
+          if (Module.modules.hasOwnProperty(uri)) {
+            performance.measure("" + uri + "_compile", "" + uri + "_compile_start", "" + uri + "_compile_end");
+            performance.measure("" + uri + "_load", "" + uri + "_load_start", "" + uri + "_load_end");
+            compileCost = performance.getEntriesByName("" + uri + "_compile")[0].duration;
+            loadCost = performance.getEntriesByName("" + uri + "_load")[0].duration;
+
+            normalCost += compileCost + loadCost;
+          }
+        }
+
+        performance.measure("all_cost", "bootstrap_start", "bootstrap_end");
+
+        allCost = performance.getEntriesByName("all_cost")[0].duration;
+
+        console.log("performance:", allCost / normalCost * 6);
+      }),
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  }, {
+    resolve: {
+      value: function resolve(dep) {
+        var _this = this;
+        var uri = "";
+        var promise = new Promise(function (resolve, reject) {
+          if (/^\./.test(dep)) {
+            uri = url.resolve(_this.uri, dep);
+            _this.uris[dep] = uri;
+            resolve(uri);
+          } else {
+            getPackageMainModuleUri(_this.uri, dep, function (err, uri) {
+              if (err) {
+                reject(err);
+              } else {
+                _this.uris[dep] = uri;
+                resolve(uri);
+              }
+            });
+          }
+        });
+        return promise;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    compile: {
+      value: function compile() {
+        var _this2 = this;
+        var module = {};
+        var exports = module.exports = {};
+        var require = function (dep) {
+          var module = Module.get(_this2.uris[dep]);
+          return module.exports || module.compile();
+        };
+
+        performance.mark("" + this.uri + "_compile_start");
+
+        log("compile " + this.uri);
+
+        this.factory(require, exports, module);
+
+        performance.mark("" + this.uri + "_compile_end");
+
+        return this.exports = module.exports;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    load: {
+      value: function load() {
+        var _this3 = this;
+        this.status = Module.STATUS.LOADING;
+        if (Module.loadPromises[this.uri] && Module.loadPromises[this.uri].promise) {
+          return Module.loadPromises[this.uri].promise;
+        }
+        Module.loadPromises[this.uri] = {};
+        var loadPromise = Module.loadPromises[this.uri].promise = new Promise(function (resolve, reject) {
+          log("load " + _this3.uri);
+
+          Module.loadPromises[_this3.uri].resolve = resolve;
+          Module.loadPromises[_this3.uri].reject = reject;
+          _this3.loadScript().then(function () {
+            return _this3.defineScript();
+          })["catch"](function (err) {
+            return reject(err);
+          });
+        });
+        return loadPromise;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    loadScript: {
+      value: function loadScript() {
+        var _this4 = this;
+        var tryExt = function (uri, callback) {
+          xhr({
+            uri: uri + "." + Module.extensions[extIndex],
+            headers: {
+              "Content-Type": "text/plain"
+            }
+          }, function (err, resp, body) {
+            if (err) {
+              if (extIndex >= Module.extensions.length - 1) {
+                callback(new Error("cannot GET " + uri));
+              } else {
+                extIndex++;
+                tryExt(uri, callback);
+              }
+            } else {
+              callback(err, resp, body);
+            }
+          });
+        };
+
+        performance.mark("" + this.uri + "_load_start");
+
+        var uri = this.uri;
+        var ext = uri.split(".").pop();
+        var extIndex = 0;
+
+        return new Promise(function (resolve, reject) {
+          if (ext == uri || !Module.extensions.contains(ext)) {
+            // no ext
+            tryExt(uri, function (err, resp, body) {
+              performance.mark("" + _this4.uri + "_load_end");
+              if (err) {
+                reject(err);
+              } else {
+                _this4.ext = Module.extensions[extIndex];
+                _this4.script = body;
+                resolve();
+              }
+            });
+          } else {
+            // has ext
+            _this4.ext = ext;
+            xhr({
+              uri: uri,
+              headers: {
+                "Content-Type": "text/plain"
+              }
+            }, function (err, resp, body) {
+              performance.mark("" + _this4.uri + "_load_end");
+
+              if (err) {
+                reject(err);
+              } else {
+                _this4.script = body;
+                resolve();
+              }
+            });
+          }
+        });
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    defineScript: {
+      value: function defineScript() {
+        try {
+          this.script = Module._extensions[this.ext](this.script);
+        } catch (err) {
+          Module.reject(this.uri, err);
+        }
+
+        var code = this.script.split("\n").map(function (line) {
+          return "  " + line;
+        }).join("\n");
+
+        var sourceURL = this.uri.split(".").pop() != this.ext ? "" + this.uri + "." + this.ext : this.uri;
+
+        code = "define(\"" + this.uri + "\", function(require, exports, module) {\n" + code + "\n})\n//# sourceURL=" + sourceURL;
+
+        var scriptNode = document.createElement("script");
+        scriptNode.innerHTML = code;
+        scriptNode.type = "text/javascript";
+        document.body.appendChild(scriptNode);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    loadDeps: {
+      value: function loadDeps() {
+        var _this5 = this;
+        this.getDeps();
+        var depModules = [];
+        var module;
+        var resolveDepPromises = this.deps.map(function (dep) {
+          return _this5.resolve(dep);
+        });
+        Promise.all(resolveDepPromises).then(function (deps) {
+          _this5.deps = deps;
+          var loadDepPromises = _this5.deps.map(function (uri) {
+            var module = Module.get(uri);
+            return module.load();
+          });
+          Promise.all(loadDepPromises).then(function () {
+            Module.resolve(_this5.uri);
+          })["catch"](function (err) {
+            Module.reject(_this5.uri, err);
+          });
+        })["catch"](function (err) {
+          Module.reject(_this5.uri, err);
+        });
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    getDeps: {
+      value: function getDeps() {
+        var deps = parseDependencies(this.script);
+        this.deps = deps.map(function (dep) {
+          return dep.path;
+        });
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return Module;
+})();
 
 Module.STATUS = {
   CREATED: 0,
   LOADING: 1,
   DEFINED: 2,
   LOADED: 3
-}
+};
+Module.modules = {};
+Module._extensions = {};
+Module.loadPromises = {};
 
-Module.modules = {}
+module.exports = Module;
 
-Module.get = function(uri) {
-  var module = this.modules[uri]
-  var ext
-  if (!module) {
-    for (var i = 0; i < Module.extensions.length; i++) {
-      ext = Module.extensions[i]
-      module = this.modules[uri + '.' + ext]
-      if (module) {
-        break
-      }
-    }
-  }
-  if (!module) {
-    module = this.modules[uri] = new Module(uri)
-  }
-  return module
-}
-
-Module.define = function(uri, factory) {
-  var module = Module.modules[uri]
-  module.factory = factory
-  module.status = Module.STATUS.DEFINED
-  module.loadDeps()
-}
-
-Module._extensions = {}
-
-Module.registerExtension = function(name, compile) {
-  Module._extensions[name] = compile
-}
-
-Module.loadPromises = {}
-
-Module.resolve = function(uri) {
-  log('loaded ' + uri)
-  var loadPromise = Module.loadPromises[uri]
-  if (loadPromise) {
-    loadPromise.resolve()
-  } else {
-    throw "can't find loadPromise for " + uri
-  }
-}
-
-Module.reject = function(uri, err) {
-  log('reject load ' + uri, err)
-  var loadPromise = Module.loadPromises[uri]
-  if (loadPromise) {
-    loadPromise.reject(err)
-  } else {
-    throw "can't find loadPromise for " + uri
-  }
-}
-
-Module.performance = function() {
-  var uri, module
-  var allCost
-  var normalCost = 0
-  var compileCost, loadCost
-  for (uri in Module.modules) {
-    if (Module.modules.hasOwnProperty(uri)) {
-      performance.measure(uri + '_compile', uri + '_compile_start', uri + '_compile_end')
-      performance.measure(uri + '_load', uri + '_load_start', uri + '_load_end')
-      compileCost = performance.getEntriesByName(uri + '_compile')[0].duration
-      loadCost = performance.getEntriesByName(uri + '_load')[0].duration
-      normalCost += compileCost + loadCost
-    }
-  }
-
-  performance.measure('all_cost', 'bootstrap_start', 'bootstrap_end');
-  allCost = performance.getEntriesByName('all_cost')[0].duration
-  console.log('performance:', allCost / normalCost * 6)
-}
-
-Module.prototype.resolve = function(dep) {
-  var uri = ''
-  var that = this
-  var promise = new Promise(function(resolve, reject) {
-    if (/^\./.test(dep)) {
-      uri = url.resolve(this.uri, dep)
-      this.uris[dep] = uri
-      resolve(uri)
-    } else {
-      getPackageMainModuleUri(this.uri, dep, function(err, uri) {
-        if (err) {
-          reject(err)
-        } else {
-          that.uris[dep] = uri
-          resolve(uri)
-        }
-      }.bind(this))
-    }
-  }.bind(this))
-  return promise
-}
-
-Module.prototype.compile = function() {
-  var module = {}
-  var exports = module.exports = {}
-  var require = function(dep) {
-    var module = Module.get(this.uris[dep])
-    return module.exports || module.compile()
-  }.bind(this)
-  performance.mark(this.uri + '_compile_start')
-  log('compile ' + this.uri)
-  this.factory(require, exports, module)
-  performance.mark(this.uri + '_compile_end')
-  return this.exports = module.exports
-}
-
-Module.prototype.load = function() {
-  this.status = Module.STATUS.LOADING
-  if (Module.loadPromises[this.uri] && Module.loadPromises[this.uri].promise) {
-    return Module.loadPromises[this.uri].promise
-  }
-  Module.loadPromises[this.uri] = {}
-  var loadPromise = Module.loadPromises[this.uri].promise = new Promise(function(resolve, reject) {
-    log('load ' + this.uri)
-    Module.loadPromises[this.uri].resolve = resolve
-    Module.loadPromises[this.uri].reject = reject
-    this.loadScript().then(function() {
-      return this.defineScript()
-    }.bind(this)).catch(function(err) {
-      reject(err)
-    })
-  }.bind(this))
-  return loadPromise
-}
-
-Module.prototype.loadScript = function() {
-  performance.mark(this.uri + '_load_start')
-  var uri = this.uri
-  var ext = uri.split('.').pop()
-  var extIndex = 0
-
-  function tryExt(uri, callback) {
-    xhr({
-      uri: uri + '.' + Module.extensions[extIndex],
-      headers: {
-        "Content-Type": "text/plain"
-      }
-    }, function(err, resp, body) {
-      if (err) {
-        if (extIndex >= Module.extensions.length - 1) {
-          callback(new Error('cannot GET ' + uri))
-        } else {
-          extIndex++
-          tryExt(uri, callback)
-        }
-      } else {
-        callback(err, resp, body)
-      }
-    }.bind(this))
-  }
-
-  return new Promise(function(resolve, reject) {
-    if (ext == uri || Module.extensions.indexOf(ext) == -1) { // no ext
-      tryExt(uri, function(err, resp, body) {
-        performance.mark(this.uri + '_load_end')
-        if (err) {
-          reject(err)
-        } else {
-          this.ext = Module.extensions[extIndex]
-          this.script = body
-          resolve()
-        }
-      }.bind(this))
-    } else { // has ext
-      this.ext = ext
-      xhr({
-        uri: uri,
-        headers: {
-          "Content-Type": "text/plain"
-        }
-      }, function(err, resp, body) {
-        performance.mark(this.uri + '_load_end')
-        if (err) {
-          reject(err)
-        } else {
-          this.script = body
-          resolve()
-        }
-      }.bind(this))
-    }
-  }.bind(this))
-}
-
-Module.prototype.defineScript = function() {
-  try {
-    this.script = Module._extensions[this.ext](this.script)
-  } catch (err) {
-    Module.reject(this.uri, err)
-  }
-
-  var js = []
-  js.push('define("')
-  js.push(this.uri)
-  js.push('", function(require, exports, module) {\n')
-  // indent for source code
-  js.push(this.script.split('\n').map(function(line) {
-    return '  ' + line
-  }).join('\n'))
-  js.push('\n})')
-  js.push('\n//# sourceURL=')
-  if (this.uri.split('.').pop() != this.ext) {
-    js.push(this.uri + '.' + this.ext)
-  } else {
-    js.push(this.uri)
-  }
-  js = js.join('')
-
-  var script = document.createElement('script')
-  script.innerHTML = js
-  script.type = 'text/javascript'
-  document.body.appendChild(script)
-}
-
-Module.prototype.loadDeps = function() {
-  this.getDeps()
-  var depModules = []
-  var module
-  var resolveDepPromises = this.deps.map(function(dep) {
-    return this.resolve(dep)
-  }.bind(this))
-  Promise.all(resolveDepPromises).then(function(deps) {
-    this.deps = deps
-    var loadDepPromises = this.deps.map(function(uri) {
-      var module = Module.get(uri)
-      return module.load()
-    })
-    Promise.all(loadDepPromises).then(function() {
-      Module.resolve(this.uri)
-    }.bind(this)).catch(function(err) {
-      Module.reject(this.uri, err)
-    }.bind(this))
-  }.bind(this)).catch(function(err) {
-    Module.reject(this.uri, err)
-  }.bind(this))
-}
-
-Module.prototype.getDeps = function() {
-  var deps = parseDependencies(this.script)
-  this.deps = deps.map(function(dep) {
-    return dep.path
-  })
-}
-
-module.exports = Module
 },{"./log":166,"searequire":162,"url":198,"xhr":163}],169:[function(require,module,exports){
 
 },{}],170:[function(require,module,exports){
