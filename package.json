@@ -1,11 +1,11 @@
 {
   "name": "browserify-loader",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Another CommonJS Loader[ES6 support]",
   "main": "example/bar.js",
   "scripts": {
     "test": "node test",
-    "build": "browserify src/main.js > browserify-loader.js && uglifyjs browserify-loader.js -o browserify-loader.min.js"
+    "build": "browserify -t 6to5ify src/main.js > browserify-loader.js && uglifyjs browserify-loader.js -o browserify-loader.min.js"
   },
   "repository": {
     "type": "git",
@@ -24,9 +24,10 @@
   },
   "homepage": "https://github.com/island205/browserify-loader",
   "devDependencies": {
+    "6to5": "^2.12.6",
+    "6to5ify": "^3.1.2",
     "coffee-script": "^1.7.1",
     "react": "^0.12.1",
-    "react-tools": "^0.12.1",
-    "6to5": "^2.12.6"
+    "react-tools": "^0.12.1"
   }
 }

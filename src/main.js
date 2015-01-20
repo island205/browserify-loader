@@ -5,17 +5,13 @@ var Module = require('./module')
 var url = require('url')
 var to5Transform = require('6to5/lib/6to5/transformation/transform')
 
-Module.registerExtension('js', function(script) {
-  return script
-})
+Module.registerExtension('js', (script) => script)
 
 Module.registerExtension('6.js', function(script) {
   return to5Transform(script, {modules: "common", blacklist: ["react"]}).code
 })
 
-Module.registerExtension('json', function(script) {
-  return 'module.exports = ' + script
-})
+Module.registerExtension('json', (script) => `module.exports = ${script}`)
 
 Module.registerExtension('jsx', function(script) {
   return to5Transform(script, {modules: "common"}).code
