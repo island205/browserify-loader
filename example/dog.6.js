@@ -6,6 +6,6 @@ class Dog {
 }
 
 import * as math from "./math";
-alert("2π = " + math.sum(math.pi, math.pi));
+console.log("2π = " + math.sum(math.pi, math.pi));
 
 module.exports = Dog

@@ -58212,6 +58212,22 @@ bootstrap();
 },{"./module":171,"6to5/lib/6to5/transformation/transform":38,"url":201,"xhr":166}],171:[function(require,module,exports){
 "use strict";
 
+var _slicedToArray = function (arr, i) {
+  if (Array.isArray(arr)) {
+    return arr;
+  } else {
+    var _arr = [];
+
+    for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+      _arr.push(_step.value);
+
+      if (i && _arr.length === i) break;
+    }
+
+    return _arr;
+  }
+};
+
 var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (staticProps) Object.defineProperties(child, staticProps);
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
@@ -58223,35 +58239,31 @@ var url = require("url");
 var log = require("./log");
 require("6to5/polyfill");
 
-function getNpmModuleUri(searchPath, dep, callback) {
-  var _searchNpmModulePackageJson = function (searchPath, done) {
-    var pkgUri = "" + searchPath + "node_modules/" + dep + "/package.json";
+function loadNpmModulePackageJson(searchPath, dep) {
+  var pkgUri = "" + searchPath + "node_modules/" + dep + "/package.json";
+  return new Promise(function (resolve, reject) {
     xhr({
       uri: pkgUri,
       headers: {
         "Content-Type": "application/json"
       }
     }, function (err, resp, body) {
-      var newSearchPath;
       var pkg;
       if (err) {
-        newSearchPath = url.resolve(searchPath, "../");
-        if (newSearchPath != searchPath) {
-          _searchNpmModulePackageJson(newSearchPath, done);
-        } else {
-          done("pkg: " + originDep + " not Found");
-        }
+        reject(err);
       } else {
         try {
           pkg = JSON.parse(body);
-          done(null, searchPath, pkg);
+          resolve([searchPath, pkg]);
         } catch (err) {
-          done(err);
+          reject(err);
         }
       }
     });
-  };
+  });
+}
 
+function getNpmModuleUri(searchPath, dep, callback) {
   var childModule;
   var originDep = dep;
 
@@ -58267,26 +58279,61 @@ function getNpmModuleUri(searchPath, dep, callback) {
     dep = dep.join("/");
   }
 
-  searchPath = url.resolve(searchPath, "./");
+  return new Promise(function callee$1$0(resovle, reject) {
+    var oldSearchPath, pkgPath, pkg, uri, _ref, _ref2;
+    return regeneratorRuntime.async(function callee$1$0$(context$2$0) {
+      while (1) switch (context$2$0.prev = context$2$0.next) {
+        case 0:
 
-  _searchNpmModulePackageJson(searchPath, function (err, searchPath, pkg) {
-    var uri;
 
-    if (err) {
-      return callback(err);
-    }
+          searchPath = url.resolve(searchPath, "./");
+          oldSearchPath = null;
 
-    if (childModule) {
-      uri = childModule;
-    } else {
-      uri = pkg.main || "index.js";
-    }
+        case 2:
+          if (!(oldSearchPath != searchPath)) {
+            context$2$0.next = 24;
+            break;
+          }
+          oldSearchPath = searchPath;
+          log("searchPath " + searchPath);
+          context$2$0.prev = 5;
+          context$2$0.next = 8;
+          return loadNpmModulePackageJson(searchPath, dep);
+        case 8:
+          _ref = context$2$0.sent;
+          _ref2 = _slicedToArray(_ref, 2);
+          pkgPath = _ref2[0];
+          pkg = _ref2[1];
 
-    // uri = './node_modules/global/window'
-    uri = "./node_modules/" + dep + "/" + uri;
-    uri = url.resolve(searchPath, uri);
 
-    callback(null, uri);
+          if (childModule) {
+            uri = childModule;
+          } else {
+            uri = pkg.main || "index.js";
+          }
+
+          // uri = './node_modules/global/window'
+          uri = "./node_modules/" + dep + "/" + uri;
+          uri = url.resolve(searchPath, uri);
+
+          resovle(uri);
+          return context$2$0.abrupt("break", 24);
+        case 19:
+          context$2$0.prev = 19;
+          context$2$0.t0 = context$2$0["catch"](5);
+        case 21:
+          searchPath = url.resolve(searchPath, "../");
+          context$2$0.next = 2;
+          break;
+        case 24:
+
+
+          reject("pkg: " + originDep + " not Found");
+        case 25:
+        case "end":
+          return context$2$0.stop();
+      }
+    }, null, this, [[5, 19]]);
   });
 }
 
@@ -58410,25 +58457,13 @@ var Module = (function () {
   }, {
     resolve: {
       value: function resolve(dep) {
-        var _this = this;
         var uri = "";
-        var promise = new Promise(function (resolve, reject) {
-          if (/^\./.test(dep)) {
-            uri = url.resolve(_this.uri, dep);
-            _this.uris[dep] = uri;
-            resolve(uri);
-          } else {
-            getNpmModuleUri(_this.uri, dep, function (err, uri) {
-              if (err) {
-                reject(err);
-              } else {
-                _this.uris[dep] = uri;
-                resolve(uri);
-              }
-            });
-          }
-        });
-        return promise;
+        if (/^\./.test(dep)) {
+          uri = url.resolve(this.uri, dep);
+          return Promise.resolve(uri);
+        } else {
+          return getNpmModuleUri(this.uri, dep);
+        }
       },
       writable: true,
       enumerable: true,
@@ -58436,11 +58471,11 @@ var Module = (function () {
     },
     compile: {
       value: function compile() {
-        var _this2 = this;
+        var _this = this;
         var module = {};
         var exports = module.exports = {};
         var require = function (dep) {
-          var module = Module.get(_this2.uris[dep]);
+          var module = Module.get(_this.uris[dep]);
           return module.exports || module.compile();
         };
 
@@ -58460,19 +58495,19 @@ var Module = (function () {
     },
     load: {
       value: function load() {
-        var _this3 = this;
+        var _this2 = this;
         this.status = Module.STATUS.LOADING;
         if (Module.loadPromises[this.uri] && Module.loadPromises[this.uri].promise) {
           return Module.loadPromises[this.uri].promise;
         }
         Module.loadPromises[this.uri] = {};
         var loadPromise = Module.loadPromises[this.uri].promise = new Promise(function (resolve, reject) {
-          log("load " + _this3.uri);
+          log("load " + _this2.uri);
 
-          Module.loadPromises[_this3.uri].resolve = resolve;
-          Module.loadPromises[_this3.uri].reject = reject;
-          _this3.loadScript().then(function () {
-            return _this3.defineScript();
+          Module.loadPromises[_this2.uri].resolve = resolve;
+          Module.loadPromises[_this2.uri].reject = reject;
+          _this2.loadScript().then(function () {
+            return _this2.defineScript();
           })["catch"](function (err) {
             return reject(err);
           });
@@ -58485,7 +58520,7 @@ var Module = (function () {
     },
     loadScript: {
       value: function loadScript() {
-        var _this4 = this;
+        var _this3 = this;
         var tryExt = function (uri, callback) {
           xhr({
             uri: uri + "." + Module.extensions[extIndex],
@@ -58516,30 +58551,30 @@ var Module = (function () {
           if (ext == uri || !(Module.extensions.indexOf(ext) > -1)) {
             // no ext
             tryExt(uri, function (err, resp, body) {
-              performance.mark("" + _this4.uri + "_load_end");
+              performance.mark("" + _this3.uri + "_load_end");
               if (err) {
                 reject(err);
               } else {
-                _this4.ext = Module.extensions[extIndex];
-                _this4.script = body;
+                _this3.ext = Module.extensions[extIndex];
+                _this3.script = body;
                 resolve();
               }
             });
           } else {
             // has ext
-            _this4.ext = ext;
+            _this3.ext = ext;
             xhr({
               uri: uri,
               headers: {
                 "Content-Type": "text/plain"
               }
             }, function (err, resp, body) {
-              performance.mark("" + _this4.uri + "_load_end");
+              performance.mark("" + _this3.uri + "_load_end");
 
               if (err) {
                 reject(err);
               } else {
-                _this4.script = body;
+                _this3.script = body;
                 resolve();
               }
             });
@@ -58577,7 +58612,7 @@ var Module = (function () {
     },
     loadDeps: {
       value: function loadDeps() {
-        var module, resolvedDeps, dep, resolvedDep;
+        var module, resolvedDeps, dep, resolvedDep, i;
         return regeneratorRuntime.async(function loadDeps$(context$2$0) {
           while (1) switch (context$2$0.prev = context$2$0.next) {
             case 0:
@@ -58587,55 +58622,56 @@ var Module = (function () {
               this.getDeps();
 
               context$2$0.prev = 2;
-              context$2$0.t0 = regeneratorRuntime.keys(this.deps);
+              i = 0;
             case 4:
-              if ((context$2$0.t1 = context$2$0.t0()).done) {
-                context$2$0.next = 12;
+              if (!(i < this.deps.length)) {
+                context$2$0.next = 13;
                 break;
               }
-              dep = context$2$0.t1.value;
+              dep = this.deps[i];
               context$2$0.next = 8;
-              return this.resolve(this.deps[dep]);
+              return this.resolve(dep);
             case 8:
-              context$2$0.t2 = context$2$0.sent;
-              resolvedDeps.push(context$2$0.t2);
-
+              this.uris[dep] = context$2$0.sent;
+              resolvedDeps.push(this.uris[dep]);
+            case 10:
+              i++;
               context$2$0.next = 4;
               break;
-            case 12:
+            case 13:
               this.deps = resolvedDeps;
-              context$2$0.next = 18;
+              context$2$0.next = 19;
               break;
-            case 15:
-              context$2$0.prev = 15;
-              context$2$0.t3 = context$2$0["catch"](2);
-              return context$2$0.abrupt("return", Module.reject(this.uri, context$2$0.t3));
-            case 18:
-              context$2$0.prev = 18;
-              context$2$0.t4 = regeneratorRuntime.keys(resolvedDeps);
-            case 20:
-              if ((context$2$0.t5 = context$2$0.t4()).done) {
-                context$2$0.next = 27;
+            case 16:
+              context$2$0.prev = 16;
+              context$2$0.t1 = context$2$0["catch"](2);
+              return context$2$0.abrupt("return", Module.reject(this.uri, context$2$0.t1));
+            case 19:
+              context$2$0.prev = 19;
+              context$2$0.t2 = regeneratorRuntime.keys(resolvedDeps);
+            case 21:
+              if ((context$2$0.t3 = context$2$0.t2()).done) {
+                context$2$0.next = 28;
                 break;
               }
-              resolvedDep = context$2$0.t5.value;
+              resolvedDep = context$2$0.t3.value;
               module = Module.get(resolvedDeps[resolvedDep]);
-              context$2$0.next = 25;
+              context$2$0.next = 26;
               return module.load();
-            case 25:
-              context$2$0.next = 20;
+            case 26:
+              context$2$0.next = 21;
               break;
-            case 27:
+            case 28:
               return context$2$0.abrupt("return", Module.resolve(this.uri));
-            case 30:
-              context$2$0.prev = 30;
-              context$2$0.t6 = context$2$0["catch"](18);
-              return context$2$0.abrupt("return", Module.reject(this.uri, context$2$0.t6));
-            case 33:
+            case 31:
+              context$2$0.prev = 31;
+              context$2$0.t4 = context$2$0["catch"](19);
+              return context$2$0.abrupt("return", Module.reject(this.uri, context$2$0.t4));
+            case 34:
             case "end":
               return context$2$0.stop();
           }
-        }, null, this, [[2, 15], [18, 30]]);
+        }, null, this, [[2, 16], [19, 31]]);
       },
       writable: true,
       enumerable: true,

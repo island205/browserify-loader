@@ -6,7 +6,32 @@ var url = require('url')
 var log = require('./log')
 require("6to5/polyfill")
 
+function loadNpmModulePackageJson(searchPath, dep) {
+  var pkgUri = `${searchPath}node_modules/${dep}/package.json`
+  return new Promise(function(resolve, reject) {
+    xhr({
+      uri: pkgUri,
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }, function(err, resp, body) {
+      var pkg
+      if (err) {
+        reject(err)
+      } else {
+        try {
+          pkg = JSON.parse(body)
+          resolve([searchPath, pkg])
+        } catch (err) {
+          reject(err)
+        }
+      }
+    })
+  })
+}
+
 function getNpmModuleUri(searchPath, dep, callback) {
+
   var childModule
   var originDep = dep
 
@@ -22,55 +47,40 @@ function getNpmModuleUri(searchPath, dep, callback) {
     dep = dep.join('/')
   }
 
-  searchPath = url.resolve(searchPath, './')
-
-  _searchNpmModulePackageJson(searchPath, function (err, searchPath, pkg) {
+  return new Promise(async function (resovle, reject) {
+    var oldSearchPath
+    var pkgPath, pkg
     var uri
 
-    if (err) {
-      return  callback(err)
-    }
+    searchPath = url.resolve(searchPath, './')
+    oldSearchPath = null
 
-    if (childModule) {
-      uri = childModule
-    } else {
-      uri = pkg.main || 'index.js'
-    }
+    while(oldSearchPath != searchPath) {
+      oldSearchPath = searchPath
+      log(`searchPath ${searchPath}`)
+      try {
 
-    // uri = './node_modules/global/window'
-    uri = `./node_modules/${dep}/${uri}`
-    uri = url.resolve(searchPath, uri)
+        [pkgPath, pkg] = await loadNpmModulePackageJson(searchPath, dep)
 
-    callback(null, uri)
-  })
-
-  function _searchNpmModulePackageJson(searchPath, done) {
-    var pkgUri = `${searchPath}node_modules/${dep}/package.json`
-    xhr({
-      uri: pkgUri,
-      headers: {
-        "Content-Type": "application/json"
-      }
-    }, function(err, resp, body) {
-      var newSearchPath
-      var pkg
-      if (err) {
-        newSearchPath = url.resolve(searchPath, '../')
-        if (newSearchPath != searchPath) {
-          _searchNpmModulePackageJson(newSearchPath, done)
+        if (childModule) {
+          uri = childModule
         } else {
-          done(`pkg: ${originDep} not Found`)
+          uri = pkg.main || 'index.js'
         }
-      } else {
-        try {
-          pkg = JSON.parse(body)
-          done(null, searchPath, pkg)
-        } catch (err) {
-          done(err)
-        }
+
+        // uri = './node_modules/global/window'
+        uri = `./node_modules/${dep}/${uri}`
+        uri = url.resolve(searchPath, uri)
+        
+        resovle(uri)
+        break
+      } catch(e) {
       }
-    })
-  }
+      searchPath = url.resolve(searchPath, '../')
+    }
+
+    reject(`pkg: ${originDep} not Found`)
+  })
 }
 
 class Module {
@@ -159,23 +169,12 @@ class Module {
 
   resolve(dep) {
     var uri = ''
-    var promise = new Promise((resolve, reject) => {
-      if (/^\./.test(dep)) {
-        uri = url.resolve(this.uri, dep)
-        this.uris[dep] = uri
-        resolve(uri)
-      } else {
-        getNpmModuleUri(this.uri, dep, (err, uri) => {
-          if (err) {
-            reject(err)
-          } else {
-            this.uris[dep] = uri
-            resolve(uri)
-          }
-        })
-      }
-    })
-    return promise
+    if (/^\./.test(dep)) {
+      uri = url.resolve(this.uri, dep)
+      return Promise.resolve(uri)
+    } else {
+      return getNpmModuleUri(this.uri, dep)
+    }
   }
 
   compile() {
@@ -310,10 +309,12 @@ class Module {
     var dep, resolvedDep
 
     this.getDeps()
-    
+
     try {
-      for (dep in this.deps) {
-        resolvedDeps.push(await this.resolve(this.deps[dep]))
+      for (var i = 0; i < this.deps.length; i++) {
+        dep = this.deps[i]
+        this.uris[dep] =  await this.resolve(dep)
+        resolvedDeps.push(this.uris[dep])
       }
       this.deps = resolvedDeps
     } catch (err) {
