@@ -4,14 +4,40 @@ var xhr = require('xhr')
 var parseDependencies = require('searequire')
 var url = require('url')
 var log = require('./log')
+require("6to5/polyfill")
 
-function getPackageMainModuleUri(searchPath, dep, callback) {
-  var childModule = null
-  var uri = ''
-  var pkgUri = url.resolve(searchPath, './')
-  var oldSearchPath = searchPath
+function loadNpmModulePackageJson(searchPath, dep) {
+  var pkgUri = `${searchPath}node_modules/${dep}/package.json`
+  return new Promise(function(resolve, reject) {
+    xhr({
+      uri: pkgUri,
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }, function(err, resp, body) {
+      var pkg
+      if (err) {
+        reject(err)
+      } else {
+        try {
+          pkg = JSON.parse(body)
+          resolve([searchPath, pkg])
+        } catch (err) {
+          reject(err)
+        }
+      }
+    })
+  })
+}
+
+function getNpmModuleUri(searchPath, dep, callback) {
+
+  var childModule
   var originDep = dep
-    // global/window
+
+  // global/window
+  // childModule = window
+  // dep = global
   dep = dep.split('/')
   if (dep.length > 1) {
     childModule = dep
@@ -20,35 +46,40 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
   } else {
     dep = dep.join('/')
   }
-  pkgUri = `${pkgUri}node_modules/${dep}/package.json`
-  xhr({
-    uri: pkgUri,
-    headers: {
-      "Content-Type": "application/json"
-    }
-  }, function(err, resp, body) {
-    if (err) {
+
+  return new Promise(async function (resovle, reject) {
+    var oldSearchPath
+    var pkgPath, pkg
+    var uri
+
+    searchPath = url.resolve(searchPath, './')
+    oldSearchPath = null
+
+    while(oldSearchPath != searchPath) {
+      oldSearchPath = searchPath
+      log(`searchPath ${searchPath}`)
+      try {
+
+        [pkgPath, pkg] = await loadNpmModulePackageJson(searchPath, dep)
+
+        if (childModule) {
+          uri = childModule
+        } else {
+          uri = pkg.main || 'index.js'
+        }
+
+        // uri = './node_modules/global/window'
+        uri = `./node_modules/${dep}/${uri}`
+        uri = url.resolve(searchPath, uri)
+        
+        resovle(uri)
+        break
+      } catch(e) {
+      }
       searchPath = url.resolve(searchPath, '../')
-      if (oldSearchPath != searchPath) {
-        getPackageMainModuleUri(searchPath, originDep, callback)
-      } else {
-        callback(`pkg: ${originDep} not Found`)
-      }
-      return
     }
-    try {
-      var pkg = JSON.parse(body)
-      if (childModule) {
-        uri = childModule
-      } else {
-        uri = pkg.main || 'index.js'
-      }
-      uri = `./node_modules/${dep}/${uri}`
-      uri = url.resolve(searchPath, uri)
-      callback(null, uri)
-    } catch (err) {
-      callback(err)
-    }
+
+    reject(`pkg: ${originDep} not Found`)
   })
 }
 
@@ -138,23 +169,12 @@ class Module {
 
   resolve(dep) {
     var uri = ''
-    var promise = new Promise((resolve, reject) => {
-      if (/^\./.test(dep)) {
-        uri = url.resolve(this.uri, dep)
-        this.uris[dep] = uri
-        resolve(uri)
-      } else {
-        getPackageMainModuleUri(this.uri, dep, (err, uri) => {
-          if (err) {
-            reject(err)
-          } else {
-            this.uris[dep] = uri
-            resolve(uri)
-          }
-        })
-      }
-    })
-    return promise
+    if (/^\./.test(dep)) {
+      uri = url.resolve(this.uri, dep)
+      return Promise.resolve(uri)
+    } else {
+      return getNpmModuleUri(this.uri, dep)
+    }
   }
 
   compile() {
@@ -224,7 +244,7 @@ class Module {
     }
 
     return new Promise((resolve, reject) => {
-      if (ext == uri || !Module.extensions.contains(ext)) { // no ext
+      if (ext == uri || !(Module.extensions.indexOf(ext) > -1)) { // no ext
         tryExt(uri, (err, resp, body) => {
           performance.mark(`${this.uri}_load_end`)
           if (err) {
@@ -283,27 +303,32 @@ class Module {
     document.body.appendChild(scriptNode)
   }
 
-  loadDeps() {
-    this.getDeps()
-    var depModules = []
+  async loadDeps() {
     var module
-    var resolveDepPromises = this.deps.map((dep) => {
-      return this.resolve(dep)
-    })
-    Promise.all(resolveDepPromises).then((deps) => {
-      this.deps = deps
-      var loadDepPromises = this.deps.map(function(uri) {
-        var module = Module.get(uri)
-        return module.load()
-      })
-      Promise.all(loadDepPromises).then(() => {
-        Module.resolve(this.uri)
-      }).catch((err) => {
-        Module.reject(this.uri, err)
-      })
-    }).catch((err) => {
-      Module.reject(this.uri, err)
-    })
+    var resolvedDeps = []
+    var dep, resolvedDep
+
+    this.getDeps()
+
+    try {
+      for (var i = 0; i < this.deps.length; i++) {
+        dep = this.deps[i]
+        this.uris[dep] =  await this.resolve(dep)
+        resolvedDeps.push(this.uris[dep])
+      }
+      this.deps = resolvedDeps
+    } catch (err) {
+      return Module.reject(this.uri, err)
+    }
+    try {
+      for (resolvedDep in resolvedDeps) {
+        module = Module.get(resolvedDeps[resolvedDep])
+        await module.load()
+      }
+      return Module.resolve(this.uri)
+    } catch (err) {
+      return Module.reject(this.uri, err)
+    }
   }
 
   getDeps() {
