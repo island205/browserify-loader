@@ -5,7 +5,7 @@
   "main": "example/bar.js",
   "scripts": {
     "test": "node test",
-    "build": "browserify -t 6to5ify src/main.js > browserify-loader.js && uglifyjs browserify-loader.js -o browserify-loader.min.js"
+    "build": "browserify -t [ 6to5ify --experimental ] src/main.js > browserify-loader.js && uglifyjs browserify-loader.js -o browserify-loader.min.js"
   },
   "repository": {
     "type": "git",

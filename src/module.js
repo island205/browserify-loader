@@ -4,14 +4,15 @@ var xhr = require('xhr')
 var parseDependencies = require('searequire')
 var url = require('url')
 var log = require('./log')
+require("6to5/polyfill")
 
-function getPackageMainModuleUri(searchPath, dep, callback) {
-  var childModule = null
-  var uri = ''
-  var pkgUri = url.resolve(searchPath, './')
-  var oldSearchPath = searchPath
+function getNpmModuleUri(searchPath, dep, callback) {
+  var childModule
   var originDep = dep
-    // global/window
+
+  // global/window
+  // childModule = window
+  // dep = global
   dep = dep.split('/')
   if (dep.length > 1) {
     childModule = dep
@@ -20,36 +21,56 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
   } else {
     dep = dep.join('/')
   }
-  pkgUri = `${pkgUri}node_modules/${dep}/package.json`
-  xhr({
-    uri: pkgUri,
-    headers: {
-      "Content-Type": "application/json"
-    }
-  }, function(err, resp, body) {
+
+  searchPath = url.resolve(searchPath, './')
+
+  _searchNpmModulePackageJson(searchPath, function (err, searchPath, pkg) {
+    var uri
+
     if (err) {
-      searchPath = url.resolve(searchPath, '../')
-      if (oldSearchPath != searchPath) {
-        getPackageMainModuleUri(searchPath, originDep, callback)
-      } else {
-        callback(`pkg: ${originDep} not Found`)
-      }
-      return
+      return  callback(err)
     }
-    try {
-      var pkg = JSON.parse(body)
-      if (childModule) {
-        uri = childModule
-      } else {
-        uri = pkg.main || 'index.js'
-      }
-      uri = `./node_modules/${dep}/${uri}`
-      uri = url.resolve(searchPath, uri)
-      callback(null, uri)
-    } catch (err) {
-      callback(err)
+
+    if (childModule) {
+      uri = childModule
+    } else {
+      uri = pkg.main || 'index.js'
     }
+
+    // uri = './node_modules/global/window'
+    uri = `./node_modules/${dep}/${uri}`
+    uri = url.resolve(searchPath, uri)
+
+    callback(null, uri)
   })
+
+  function _searchNpmModulePackageJson(searchPath, done) {
+    var pkgUri = `${searchPath}node_modules/${dep}/package.json`
+    xhr({
+      uri: pkgUri,
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }, function(err, resp, body) {
+      var newSearchPath
+      var pkg
+      if (err) {
+        newSearchPath = url.resolve(searchPath, '../')
+        if (newSearchPath != searchPath) {
+          _searchNpmModulePackageJson(newSearchPath, done)
+        } else {
+          done(`pkg: ${originDep} not Found`)
+        }
+      } else {
+        try {
+          pkg = JSON.parse(body)
+          done(null, searchPath, pkg)
+        } catch (err) {
+          done(err)
+        }
+      }
+    })
+  }
 }
 
 class Module {
@@ -144,7 +165,7 @@ class Module {
         this.uris[dep] = uri
         resolve(uri)
       } else {
-        getPackageMainModuleUri(this.uri, dep, (err, uri) => {
+        getNpmModuleUri(this.uri, dep, (err, uri) => {
           if (err) {
             reject(err)
           } else {
@@ -224,7 +245,7 @@ class Module {
     }
 
     return new Promise((resolve, reject) => {
-      if (ext == uri || !Module.extensions.contains(ext)) { // no ext
+      if (ext == uri || !(Module.extensions.indexOf(ext) > -1)) { // no ext
         tryExt(uri, (err, resp, body) => {
           performance.mark(`${this.uri}_load_end`)
           if (err) {
@@ -283,27 +304,30 @@ class Module {
     document.body.appendChild(scriptNode)
   }
 
-  loadDeps() {
-    this.getDeps()
-    var depModules = []
+  async loadDeps() {
     var module
-    var resolveDepPromises = this.deps.map((dep) => {
-      return this.resolve(dep)
-    })
-    Promise.all(resolveDepPromises).then((deps) => {
-      this.deps = deps
-      var loadDepPromises = this.deps.map(function(uri) {
-        var module = Module.get(uri)
-        return module.load()
-      })
-      Promise.all(loadDepPromises).then(() => {
-        Module.resolve(this.uri)
-      }).catch((err) => {
-        Module.reject(this.uri, err)
-      })
-    }).catch((err) => {
-      Module.reject(this.uri, err)
-    })
+    var resolvedDeps = []
+    var dep, resolvedDep
+
+    this.getDeps()
+    
+    try {
+      for (dep in this.deps) {
+        resolvedDeps.push(await this.resolve(this.deps[dep]))
+      }
+      this.deps = resolvedDeps
+    } catch (err) {
+      return Module.reject(this.uri, err)
+    }
+    try {
+      for (resolvedDep in resolvedDeps) {
+        module = Module.get(resolvedDeps[resolvedDep])
+        await module.load()
+      }
+      return Module.resolve(this.uri)
+    } catch (err) {
+      return Module.reject(this.uri, err)
+    }
   }
 
   getDeps() {
