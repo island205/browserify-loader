@@ -56822,7 +56822,7 @@ var Module = (function () {
         var extIndex = 0;
 
         return new Promise(function (resolve, reject) {
-          if (ext == uri || !Module.extensions.contains(ext)) {
+          if (ext == uri || Module.extensions.indexOf(ext) == -1) {
             // no ext
             tryExt(uri, function (err, resp, body) {
               performance.mark("" + _this4.uri + "_load_end");
