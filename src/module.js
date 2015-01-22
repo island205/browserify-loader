@@ -224,7 +224,7 @@ class Module {
     }
 
     return new Promise((resolve, reject) => {
-      if (ext == uri || !Module.extensions.contains(ext)) { // no ext
+      if (ext == uri || Module.extensions.indexOf(ext) == -1) { // no ext
         tryExt(uri, (err, resp, body) => {
           performance.mark(`${this.uri}_load_end`)
           if (err) {

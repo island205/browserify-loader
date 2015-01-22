@@ -104,6 +104,10 @@ and then thinking cost in browserify-loader:
 
 ### Update
 
+#### 0.5.2
+
+- hotfix
+
 #### 0.5.1
 
 - rewrite in es6
