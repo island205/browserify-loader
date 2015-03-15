@@ -1,4 +1,6 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+
 module.exports = File;
 
 var SHEBANG_REGEX = /^\#\!.*/;
@@ -78,6 +80,10 @@ File.normaliseOptions = function (opts) {
   opts.whitelist = util.arrayify(opts.whitelist);
   opts.optional  = util.arrayify(opts.optional);
   opts.loose     = util.arrayify(opts.loose);
+
+  if (_.contains(opts.loose, "all")) {
+    opts.loose = Object.keys(transform.transformers);
+  }
 
   // todo: remove in 3.0.0
   _.each({
@@ -326,7 +332,10 @@ File.prototype.generateUid = function (name, scope) {
 };
 
 File.prototype.generateUidIdentifier = function (name, scope) {
-  return t.identifier(this.generateUid(name, scope));
+  scope = scope || this.scope;
+  var id = t.identifier(this.generateUid(name, scope));
+  scope.add(id);
+  return id;
 };
 
 File.prototype._generateUid = function (name) {
@@ -339,7 +348,9 @@ File.prototype._generateUid = function (name) {
   return "_" + id;
 };
 
-},{"./generation/generator":3,"./transformation/transform":37,"./traverse/scope":80,"./types":83,"./util":85,"lodash":108}],2:[function(require,module,exports){
+},{"./generation/generator":3,"./transformation/transform":42,"./traverse/scope":89,"./types":92,"./util":94,"lodash":117}],2:[function(require,module,exports){
+"use strict";
+
 module.exports = Buffer;
 
 var util = require("../util");
@@ -497,7 +508,9 @@ Buffer.prototype.isLast = function (cha, trimRight) {
   }
 };
 
-},{"../util":85,"lodash":108}],3:[function(require,module,exports){
+},{"../util":94,"lodash":117}],3:[function(require,module,exports){
+"use strict";
+
 module.exports = function (ast, opts, code) {
   var gen = new CodeGenerator(ast, opts, code);
   return gen.generate();
@@ -826,7 +839,9 @@ CodeGenerator.prototype._printComments = function (comments) {
   });
 };
 
-},{"../types":83,"../util":85,"./buffer":2,"./generators/base":4,"./generators/classes":5,"./generators/comprehensions":6,"./generators/expressions":7,"./generators/flow":8,"./generators/jsx":9,"./generators/methods":10,"./generators/modules":11,"./generators/playground":12,"./generators/statements":13,"./generators/template-literals":14,"./generators/types":15,"./node":16,"./position":19,"./source-map":20,"./whitespace":21,"lodash":108}],4:[function(require,module,exports){
+},{"../types":92,"../util":94,"./buffer":2,"./generators/base":4,"./generators/classes":5,"./generators/comprehensions":6,"./generators/expressions":7,"./generators/flow":8,"./generators/jsx":9,"./generators/methods":10,"./generators/modules":11,"./generators/playground":12,"./generators/statements":13,"./generators/template-literals":14,"./generators/types":15,"./node":16,"./position":19,"./source-map":20,"./whitespace":21,"lodash":117}],4:[function(require,module,exports){
+"use strict";
+
 exports.File = function (node, print) {
   print(node.program);
 };
@@ -848,6 +863,8 @@ exports.BlockStatement = function (node, print) {
 };
 
 },{}],5:[function(require,module,exports){
+"use strict";
+
 exports.ClassExpression =
 exports.ClassDeclaration = function (node, print) {
   this.push("class");
@@ -890,6 +907,8 @@ exports.MethodDefinition = function (node, print) {
 };
 
 },{}],6:[function(require,module,exports){
+"use strict";
+
 exports.ComprehensionBlock = function (node, print) {
   this.keyword("for");
   this.push("(");
@@ -919,6 +938,8 @@ exports.ComprehensionExpression = function (node, print) {
 };
 
 },{}],7:[function(require,module,exports){
+"use strict";
+
 var util = require("../../util");
 var t    = require("../../types");
 var _    = require("lodash");
@@ -1065,7 +1086,9 @@ exports.MemberExpression = function (node, print) {
   }
 };
 
-},{"../../types":83,"../../util":85,"lodash":108}],8:[function(require,module,exports){
+},{"../../types":92,"../../util":94,"lodash":117}],8:[function(require,module,exports){
+"use strict";
+
 exports.AnyTypeAnnotation =
 exports.ArrayTypeAnnotation =
 exports.BooleanTypeAnnotation =
@@ -1101,6 +1124,8 @@ exports.VoidTypeAnnotation = function () {
 };
 
 },{}],9:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 var _ = require("lodash");
 
@@ -1180,7 +1205,9 @@ exports.XJSEmptyExpression = function () {
 
 };
 
-},{"../../types":83,"lodash":108}],10:[function(require,module,exports){
+},{"../../types":92,"lodash":117}],10:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports._params = function (node, print) {
@@ -1264,7 +1291,9 @@ exports.ArrowFunctionExpression = function (node, print) {
   print(node.body);
 };
 
-},{"../../types":83}],11:[function(require,module,exports){
+},{"../../types":92}],11:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 var _ = require("lodash");
 
@@ -1362,7 +1391,9 @@ exports.ImportBatchSpecifier = function (node, print) {
   print(node.name);
 };
 
-},{"../../types":83,"lodash":108}],12:[function(require,module,exports){
+},{"../../types":92,"lodash":117}],12:[function(require,module,exports){
+"use strict";
+
 var _ = require("lodash");
 
 _.each(["BindMemberExpression", "BindFunctionExpression"], function (type) {
@@ -1371,7 +1402,9 @@ _.each(["BindMemberExpression", "BindFunctionExpression"], function (type) {
   };
 });
 
-},{"lodash":108}],13:[function(require,module,exports){
+},{"lodash":117}],13:[function(require,module,exports){
+"use strict";
+
 var util = require("../../util");
 var t    = require("../../types");
 
@@ -1541,18 +1574,19 @@ exports.DebuggerStatement = function () {
 exports.VariableDeclaration = function (node, print, parent) {
   this.push(node.kind + " ");
 
-  var inits = 0;
-  var noInits = 0;
-  for (var i = 0; i < node.declarations.length; i++) {
-    if (node.declarations[i].init) {
-      inits++;
-    } else {
-      noInits++;
+  var hasInits = false;
+  // don't add whitespace to loop heads
+  if (!t.isFor(parent)) {
+    for (var i = 0; i < node.declarations.length; i++) {
+      if (node.declarations[i].init) {
+        // has an init so let's split it up over multiple lines
+        hasInits = true;
+      }
     }
   }
 
   var sep = ",";
-  if (inits > noInits) { // more inits than noinits
+  if (hasInits) {
     sep += "\n" + util.repeat(node.kind.length + 1);
   } else {
     sep += " ";
@@ -1581,7 +1615,9 @@ exports.VariableDeclarator = function (node, print) {
   }
 };
 
-},{"../../types":83,"../../util":85}],14:[function(require,module,exports){
+},{"../../types":92,"../../util":94}],14:[function(require,module,exports){
+"use strict";
+
 var _ = require("lodash");
 
 exports.TaggedTemplateExpression = function (node, print) {
@@ -1613,7 +1649,9 @@ exports.TemplateLiteral = function (node, print) {
   this._push("`");
 };
 
-},{"lodash":108}],15:[function(require,module,exports){
+},{"lodash":117}],15:[function(require,module,exports){
+"use strict";
+
 var _ = require("lodash");
 
 exports.Identifier = function (node) {
@@ -1715,7 +1753,9 @@ exports.Literal = function (node) {
   }
 };
 
-},{"lodash":108}],16:[function(require,module,exports){
+},{"lodash":117}],16:[function(require,module,exports){
+"use strict";
+
 module.exports = Node;
 
 var whitespace = require("./whitespace");
@@ -1826,7 +1866,9 @@ _.each(Node, function (fn, key) {
   };
 });
 
-},{"../../types":83,"./parentheses":17,"./whitespace":18,"lodash":108}],17:[function(require,module,exports){
+},{"../../types":92,"./parentheses":17,"./whitespace":18,"lodash":117}],17:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 var _ = require("lodash");
 
@@ -1978,8 +2020,10 @@ exports.ConditionalExpression = function (node, parent) {
     return true;
   }
 
-  if (t.isCallExpression(parent) && parent.callee === node) {
-    return true;
+  if (t.isCallExpression(parent) || t.isNewExpression(parent)) {
+    if (parent.callee === node) {
+      return true;
+    }
   }
 
   if (t.isConditionalExpression(parent) && parent.test === node) {
@@ -1993,7 +2037,9 @@ exports.ConditionalExpression = function (node, parent) {
   return false;
 };
 
-},{"../../types":83,"lodash":108}],18:[function(require,module,exports){
+},{"../../types":92,"lodash":117}],18:[function(require,module,exports){
+"use strict";
+
 var _ = require("lodash");
 var t = require("../../types");
 
@@ -2071,7 +2117,9 @@ _.each({
   });
 });
 
-},{"../../types":83,"lodash":108}],19:[function(require,module,exports){
+},{"../../types":92,"lodash":117}],19:[function(require,module,exports){
+"use strict";
+
 module.exports = Position;
 
 function Position() {
@@ -2101,6 +2149,8 @@ Position.prototype.unshift = function (str) {
 };
 
 },{}],20:[function(require,module,exports){
+"use strict";
+
 module.exports = SourceMap;
 
 var sourceMap = require("source-map");
@@ -2158,7 +2208,9 @@ SourceMap.prototype.mark = function (node, type) {
   });
 };
 
-},{"../types":83,"source-map":151}],21:[function(require,module,exports){
+},{"../types":92,"source-map":161}],21:[function(require,module,exports){
+"use strict";
+
 module.exports = Whitespace;
 
 var _    = require("lodash");
@@ -2268,7 +2320,10 @@ Whitespace.prototype.getNewlinesBetween = function (startToken, endToken) {
 
   return lines;
 };
-},{"lodash":108}],22:[function(require,module,exports){
+
+},{"lodash":117}],22:[function(require,module,exports){
+"use strict";
+
 var t = require("./types");
 var _ = require("lodash");
 
@@ -2323,7 +2378,75 @@ def("BindFunctionExpression")
 
 types.finalize();
 
-},{"./types":83,"ast-types":100,"estraverse":102,"lodash":108}],23:[function(require,module,exports){
+},{"./types":92,"ast-types":109,"estraverse":111,"lodash":117}],23:[function(require,module,exports){
+"use strict";
+
+/**
+ * A trick from Bluebird to force V8 to use fast properties for an object.
+ * Read more: http://stackoverflow.com/questions/24987896/
+ *
+ * Use %HasFastProperties(obj) and --allow-natives-syntax to check whether
+ * a particular object already has fast properties.
+ */
+
+module.exports = function toFastProperties(obj) {
+  /*jshint -W027*/
+  function f() {}
+  f.prototype = obj;
+  return f;
+  eval(obj);
+};
+
+},{}],24:[function(require,module,exports){
+"use strict";
+
+var explode = require("./explode-assignable-expression");
+var t       = require("../../types");
+
+module.exports = function (exports, opts) {
+  var isAssignment = function (node) {
+    return node.operator === opts.operator + "=";
+  };
+
+  var buildAssignment = function (left, right) {
+    return t.assignmentExpression("=", left, right);
+  };
+
+  exports.ExpressionStatement = function (node, parent, scope, context, file) {
+    var expr = node.expression;
+    if (!isAssignment(expr)) return;
+
+    var nodes    = [];
+    var exploded = explode(expr.left, nodes, file, scope, true);
+
+    nodes.push(t.expressionStatement(
+      buildAssignment(exploded.ref, opts.build(exploded.uid, expr.right))
+    ));
+
+    return nodes;
+  };
+
+  exports.AssignmentExpression = function (node, parent, scope, context, file) {
+    if (t.isExpressionStatement(parent)) return;
+    if (!isAssignment(node)) return;
+
+    var nodes    = [];
+    var exploded = explode(node.left, nodes, file, scope);
+    nodes.push(opts.build(exploded.uid, node.right));
+    nodes.push(exploded.ref);
+
+    return t.toSequenceExpression(nodes, scope);
+  };
+
+  exports.BinaryExpression = function (node) {
+    if (node.operator !== opts.operator) return;
+    return opts.build(node.left, node.right);
+  };
+};
+
+},{"../../types":92,"./explode-assignable-expression":27}],25:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 module.exports = function build(node, buildBody) {
@@ -2348,40 +2471,153 @@ module.exports = function build(node, buildBody) {
   );
 };
 
-},{"../../types":83}],24:[function(require,module,exports){
+},{"../../types":92}],26:[function(require,module,exports){
+"use strict";
+
+var explode = require("./explode-assignable-expression");
+var t       = require("../../types");
+
+module.exports = function (exports, opts) {
+  var buildAssignment = function (left, right) {
+    return t.assignmentExpression("=", left, right);
+  };
+
+  exports.ExpressionStatement = function (node, parent, scope, context, file) {
+    var expr = node.expression;
+    if (!opts.is(expr, file)) return;
+
+    var nodes = [];
+
+    var exploded = explode(expr.left, nodes, file, scope);
+
+    nodes.push(t.ifStatement(
+      opts.build(exploded.uid, file),
+      t.expressionStatement(buildAssignment(exploded.ref, expr.right))
+    ));
+
+    return nodes;
+  };
+
+  exports.AssignmentExpression = function (node, parent, scope, context, file) {
+    if (t.isExpressionStatement(parent)) return;
+    if (!opts.is(node, file)) return;
+
+    var nodes    = [];
+    var exploded = explode(node.left, nodes, file, scope);
+
+    nodes.push(t.logicalExpression(
+      "&&",
+      opts.build(exploded.uid, file),
+      buildAssignment(exploded.ref, node.right)
+    ));
+
+    // todo: duplicate expression node
+    nodes.push(exploded.ref);
+
+    return t.toSequenceExpression(nodes, scope);
+  };
+};
+
+},{"../../types":92,"./explode-assignable-expression":27}],27:[function(require,module,exports){
+"use strict";
+
+var t = require("../../types");
+
+var getObjRef = function (node, nodes, file, scope) {
+  var ref;
+  if (t.isIdentifier(node)) {
+    ref = node;
+  } else if (t.isMemberExpression(node)) {
+    ref = node.object;
+  } else {
+    throw new Error("We can't explode this node type " + node.type);
+  }
+
+  var temp = scope.generateUidBasedOnNode(ref, file);
+  nodes.push(t.variableDeclaration("var", [
+    t.variableDeclarator(temp, ref)
+  ]));
+  return temp;
+};
+
+var getPropRef = function (node, nodes, file, scope) {
+  var prop = node.property;
+  var key = t.toComputedKey(node, prop);
+  if (t.isLiteral(key)) return key;
+
+  var temp = scope.generateUidBasedOnNode(prop, file);
+  nodes.push(t.variableDeclaration("var", [
+    t.variableDeclarator(temp, prop)
+  ]));
+  return temp;
+};
+
+module.exports = function (node, nodes, file, scope, allowedSingleIdent) {
+  var obj;
+  if (t.isIdentifier(node) && allowedSingleIdent) {
+    obj = node;
+  } else {
+    obj = getObjRef(node, nodes, file, scope);
+  }
+
+  var ref, uid;
+
+  if (t.isIdentifier(node)) {
+    ref = node;
+    uid = obj;
+  } else {
+    var prop = getPropRef(node, nodes, file, scope);
+    var computed = node.computed || t.isLiteral(prop);
+    uid = ref = t.memberExpression(obj, prop, computed);
+  }
+
+  return {
+    uid: uid,
+    ref: ref
+  };
+};
+
+},{"../../types":92}],28:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var util     = require("../../util");
 var t        = require("../../types");
 
-module.exports = function (node, file, scope) {
+var traverser = {
+  enter: function (node, parent, scope, context, state) {
+    // check if this node is an identifier that matches the same as our function id
+    if (!t.isIdentifier(node, { name: state.id })) return;
+
+    // check if this node is the one referenced
+    if (!t.isReferenced(node, parent)) return;
+
+    // check that we don't have a local variable declared as that removes the need
+    // for the wrapper
+    var localDeclar = scope.get(state.id, true);
+    if (localDeclar !== state.outerDeclar) return;
+
+    state.selfReference = true;
+    context.stop();
+  }
+};
+
+exports.property = function (node, file, scope) {
   var key = t.toComputedKey(node, node.key);
   if (!t.isLiteral(key)) return node; // we can't set a function id with this
 
   var id = t.toIdentifier(key.value);
   key = t.identifier(id);
 
-  var selfReference = false;
-  var outerDeclar = scope.get(id, true);
+  var state = {
+    id: id,
+    selfReference: false,
+    outerDeclar: scope.get(id, true),
+  };
 
-  traverse(node, {
-    enter: function (node, parent, scope) {
-      // check if this node is an identifier that matches the same as our function id
-      if (!t.isIdentifier(node, { name: id })) return;
+  traverse(node, traverser, scope, state);
 
-      // check if this node is the one referenced
-      if (!t.isReferenced(node, parent)) return;
-
-      // check that we don't have a local variable declared as that removes the need
-      // for the wrapper
-      var localDeclar = scope.get(id, true);
-      if (localDeclar !== outerDeclar) return;
-
-      selfReference = true;
-      this.stop();
-    }
-  }, scope);
-
-  if (selfReference) {
+  if (state.selfReference) {
     node.value = util.template("property-method-assignment-wrapper", {
       FUNCTION: node.value,
       FUNCTION_ID: key,
@@ -2393,7 +2629,9 @@ module.exports = function (node, file, scope) {
   }
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85}],25:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94}],29:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var t        = require("../../types");
 
@@ -2402,8 +2640,8 @@ module.exports = function (node, callId) {
   node.generator = true;
 
   traverse(node, {
-    enter: function (node) {
-      if (t.isFunction(node)) this.skip();
+    enter: function (node, parent, scope, context) {
+      if (t.isFunction(node)) context.skip();
 
       if (t.isAwaitExpression(node)) {
         node.type = "YieldExpression";
@@ -2424,7 +2662,257 @@ module.exports = function (node, callId) {
   }
 };
 
-},{"../../traverse":79,"../../types":83}],26:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92}],30:[function(require,module,exports){
+"use strict";
+
+module.exports = ReplaceSupers;
+
+var traverse = require("../../traverse");
+var t        = require("../../types");
+
+/**
+ * Description
+ *
+ * @param {Object} methodNode
+ * @param {Object} className
+ * @param {Object} superName
+ * @param {Boolean} isLoose
+ * @param {File} file
+ */
+
+function ReplaceSupers(methodNode, className, superName, isLoose, file) {
+  this.topLevelThisReference = null;
+  this.methodNode            = methodNode;
+  this.className             = className;
+  this.superName             = superName;
+  this.isLoose               = isLoose;
+  this.file                  = file;
+}
+
+/**
+ * Gets a node representing the super class value of the named property.
+ *
+ * @example
+ *
+ *   _get(Object.getPrototypeOf(CLASS.prototype), "METHOD", this)
+ *
+ * @param {Node} property
+ * @param {boolean} isStatic
+ * @param {boolean} isComputed
+ *
+ * @returns {Node}
+ */
+
+ReplaceSupers.prototype.superProperty = function (property, isStatic, isComputed, thisExpression) {
+  return t.callExpression(
+    this.file.addHelper("get"),
+    [
+      t.callExpression(
+        t.memberExpression(t.identifier("Object"), t.identifier("getPrototypeOf")),
+        [
+          isStatic ? this.className : t.memberExpression(this.className, t.identifier("prototype"))
+        ]
+      ),
+      isComputed ? property : t.literal(property.name),
+      thisExpression
+    ]
+  );
+};
+
+/**
+ * Description
+ *
+ * @param {Object} node
+ * @param {Object} id
+ * @param {Object} parent
+ * @returns {Object}
+ */
+
+ReplaceSupers.prototype.looseSuperProperty = function (methodNode, id, parent) {
+  var methodName = methodNode.key;
+  var superName  = this.superName || t.identifier("Function");
+
+  if (parent.property === id) {
+    return;
+  } else if (t.isCallExpression(parent, { callee: id })) {
+    // super(); -> ClassName.prototype.MethodName.call(this);
+    parent.arguments.unshift(t.thisExpression());
+
+    if (methodName.name === "constructor") {
+      // constructor() { super(); }
+      return t.memberExpression(superName, t.identifier("call"));
+    } else {
+      id = superName;
+
+      // foo() { super(); }
+      if (!methodNode.static) {
+        id = t.memberExpression(id, t.identifier("prototype"));
+      }
+
+      id = t.memberExpression(id, methodName, methodNode.computed);
+      return t.memberExpression(id, t.identifier("call"));
+    }
+  } else if (t.isMemberExpression(parent) && !methodNode.static) {
+    // super.test -> ClassName.prototype.test
+    return t.memberExpression(superName, t.identifier("prototype"));
+  } else {
+    return superName;
+  }
+};
+
+/**
+ * Description
+ */
+
+ReplaceSupers.prototype.replace = function () {
+  this.traverseLevel(this.methodNode.value, true);
+};
+
+/**
+ * Description
+ *
+ * @param {Object} node
+ * @param {Boolean} topLevel
+ */
+
+ReplaceSupers.prototype.traverseLevel = function (node, topLevel) {
+  var self = this;
+
+  traverse(node, {
+    enter: function (node, parent, scope, context) {
+      if (t.isFunction(node) && !t.isArrowFunctionExpression(node)) {
+        // we need to call traverseLevel again so we're context aware
+        self.traverseLevel(node, false);
+        return context.skip();
+      }
+
+      if (t.isProperty(node, { method: true }) || t.isMethodDefinition(node)) {
+        // break on object methods
+        return context.skip();
+      }
+
+      var getThisReference = function () {
+        if (topLevel) {
+          // top level so `this` is the instance
+          return t.thisExpression();
+        } else {
+          // not in the top level so we need to create a reference
+          return self.getThisReference();
+        }
+      };
+
+      var callback = self.specHandle;
+      if (self.isLoose) callback = self.looseHandle;
+      return callback.call(self, getThisReference, node, parent);
+    }
+  });
+};
+
+/**
+ * Description
+ */
+
+ReplaceSupers.prototype.getThisReference = function () {
+  if (this.topLevelThisReference) {
+    return this.topLevelThisReference;
+  } else {
+    var ref = this.topLevelThisReference = this.file.generateUidIdentifier("this");
+    this.methodNode.value.body.body.unshift(t.variableDeclaration("var", [
+      t.variableDeclarator(this.topLevelThisReference, t.thisExpression())
+    ]));
+    return ref;
+  }
+};
+
+/**
+ * Description
+ *
+ * @param {Function} getThisReference
+ * @param {Object} node
+ * @param {Object} parent
+ */
+
+ReplaceSupers.prototype.looseHandle = function (getThisReference, node, parent) {
+  if (t.isIdentifier(node, { name: "super" })) {
+    return this.looseSuperProperty(this.methodNode, node, parent);
+  } else if (t.isCallExpression(node)) {
+    var callee = node.callee;
+    if (!t.isMemberExpression(callee)) return;
+    if (callee.object.name !== "super") return;
+
+    // super.test(); -> ClassName.prototype.MethodName.call(this);
+    t.appendToMemberExpression(callee, t.identifier("call"));
+    node.arguments.unshift(getThisReference());
+  }
+};
+
+/**
+ * Description
+ *
+ * @param {Function} getThisReference
+ * @param {Object} node
+ * @param {Object} parent
+ */
+
+ReplaceSupers.prototype.specHandle = function (getThisReference, node, parent) {
+  var methodNode = this.methodNode;
+  var property;
+  var computed;
+  var args;
+
+  if (t.isIdentifier(node, { name: "super" })) {
+    if (!(t.isMemberExpression(parent) && !parent.computed && parent.property === node)) {
+      throw this.file.errorWithNode(node, "illegal use of bare super");
+    }
+  } else if (t.isCallExpression(node)) {
+    var callee = node.callee;
+    if (t.isIdentifier(callee, { name: "super" })) {
+      // super(); -> _get(Object.getPrototypeOf(ClassName), "MethodName", this).call(this);
+      property = methodNode.key;
+      computed = methodNode.computed;
+      args = node.arguments;
+    } else {
+      if (!t.isMemberExpression(callee)) return;
+      if (callee.object.name !== "super") return;
+
+      // super.test(); -> _get(Object.getPrototypeOf(ClassName.prototype), "test", this).call(this);
+      property = callee.property;
+      computed = callee.computed;
+      args = node.arguments;
+    }
+  } else if (t.isMemberExpression(node)) {
+    if (!t.isIdentifier(node.object, { name: "super" })) return;
+
+    // super.name; -> _get(Object.getPrototypeOf(ClassName.prototype), "name", this);
+    property = node.property;
+    computed = node.computed;
+  }
+
+  if (!property) return;
+
+  var thisReference = getThisReference();
+  var superProperty = this.superProperty(property, methodNode.static, computed, thisReference);
+  if (args) {
+    if (args.length === 1 && t.isSpreadElement(args[0])) {
+      // super(...arguments);
+      return t.callExpression(
+        t.memberExpression(superProperty, t.identifier("apply")),
+        [thisReference, args[0].argument]
+      );
+    } else {
+      return t.callExpression(
+        t.memberExpression(superProperty, t.identifier("call")),
+        [thisReference].concat(args)
+      );
+    }
+  } else {
+    return superProperty;
+  }
+};
+
+},{"../../traverse":88,"../../types":92}],31:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.has = function (node) {
@@ -2445,7 +2933,9 @@ exports.wrap = function (node, callback) {
   }
 };
 
-},{"../../types":83}],27:[function(require,module,exports){
+},{"../../types":92}],32:[function(require,module,exports){
+"use strict";
+
 module.exports = DefaultFormatter;
 
 var traverse = require("../../traverse");
@@ -2464,33 +2954,49 @@ function DefaultFormatter(file) {
   //this.checkCollisions();
 }
 
+var exportsTraverser = {
+  enter: function (node, parent, scope, context, localExports) {
+    var declar = node && node.declaration;
+    if (t.isExportDeclaration(node) && declar && t.isStatement(declar)) {
+      _.extend(localExports, t.getIds(declar, true));
+    }
+  }
+};
+
 DefaultFormatter.prototype.getLocalExports = function () {
   var localExports = {};
-
-  traverse(this.file.ast, {
-    enter: function (node) {
-      var declar = node && node.declaration;
-      if (t.isExportDeclaration(node) && declar && t.isStatement(declar)) {
-        _.extend(localExports, t.getIds(declar, true));
-      }
-    }
-  });
-
+  traverse(this.file.ast, exportsTraverser, null, localExports);
   return localExports;
+};
+
+var importsTraverser = {
+  enter: function (node, parent, scope, context, localImports) {
+    if (t.isImportDeclaration(node)) {
+      _.extend(localImports, t.getIds(node, true));
+    }
+  }
 };
 
 DefaultFormatter.prototype.getLocalImports = function () {
   var localImports = {};
-
-  traverse(this.file.ast, {
-    enter: function (node) {
-      if (t.isImportDeclaration(node)) {
-        _.extend(localImports, t.getIds(node, true));
-      }
-    }
-  });
-
+  traverse(this.file.ast, importsTraverser, null, localImports);
   return localImports;
+};
+
+var collissionsTraverser = {
+  enter: function (node, parent, scope, context, check) {
+    if (t.isAssignmentExpression(node)) {
+
+      var left = node.left;
+      if (t.isMemberExpression(left)) {
+        while (left.object) left = left.object;
+      }
+
+      check(left);
+    } else if (t.isDeclaration(node)) {
+      _.each(t.getIds(node, true), check);
+    }
+  }
 };
 
 DefaultFormatter.prototype.checkCollisions = function () {
@@ -2509,21 +3015,7 @@ DefaultFormatter.prototype.checkCollisions = function () {
     }
   };
 
-  traverse(file.ast, {
-    enter: function (node) {
-      if (t.isAssignmentExpression(node)) {
-
-        var left = node.left;
-        if (t.isMemberExpression(left)) {
-          while (left.object) left = left.object;
-        }
-
-        check(left);
-      } else if (t.isDeclaration(node)) {
-        _.each(t.getIds(node, true), check);
-      }
-    }
-  });
+  traverse(file.ast, collissionsTraverser, null, check);
 };
 
 DefaultFormatter.prototype.remapExportAssignment = function (node) {
@@ -2548,9 +3040,9 @@ DefaultFormatter.prototype.remapAssignments = function () {
   };
 
   traverse(this.file.ast, {
-    enter: function (node, parent, scope) {
+    enter: function (node, parent, scope, context, isLocalReference) {
       if (t.isUpdateExpression(node) && isLocalReference(node.argument, scope)) {
-        this.skip();
+        context.skip();
 
         // expand to long file assignment expression
         var assign = t.assignmentExpression(node.operator[0] + "=", node.argument, t.literal(1));
@@ -2578,11 +3070,11 @@ DefaultFormatter.prototype.remapAssignments = function () {
       }
 
       if (t.isAssignmentExpression(node) && isLocalReference(node.left, scope)) {
-        this.skip();
+        context.skip();
         return self.remapExportAssignment(node);
       }
     }
-  });
+  }, null, isLocalReference);
 };
 
 DefaultFormatter.prototype.getModuleName = function () {
@@ -2717,7 +3209,9 @@ DefaultFormatter.prototype.exportDeclaration = function (node, nodes) {
   }
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85,"lodash":108}],28:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94,"lodash":117}],33:[function(require,module,exports){
+"use strict";
+
 var util = require("../../util");
 
 module.exports = function (Parent) {
@@ -2731,10 +3225,14 @@ module.exports = function (Parent) {
   return Constructor;
 };
 
-},{"../../util":85}],29:[function(require,module,exports){
+},{"../../util":94}],34:[function(require,module,exports){
+"use strict";
+
 module.exports = require("./_strict")(require("./amd"));
 
-},{"./_strict":28,"./amd":30}],30:[function(require,module,exports){
+},{"./_strict":33,"./amd":35}],35:[function(require,module,exports){
+"use strict";
+
 module.exports = AMDFormatter;
 
 var DefaultFormatter = require("./_default");
@@ -2852,10 +3350,14 @@ AMDFormatter.prototype.exportSpecifier = function (specifier, node, nodes) {
   }, specifier, node, nodes);
 };
 
-},{"../../types":83,"../../util":85,"./_default":27,"./common":32,"lodash":108}],31:[function(require,module,exports){
+},{"../../types":92,"../../util":94,"./_default":32,"./common":37,"lodash":117}],36:[function(require,module,exports){
+"use strict";
+
 module.exports = require("./_strict")(require("./common"));
 
-},{"./_strict":28,"./common":32}],32:[function(require,module,exports){
+},{"./_strict":33,"./common":37}],37:[function(require,module,exports){
+"use strict";
+
 module.exports = CommonJSFormatter;
 
 var DefaultFormatter = require("./_default");
@@ -2962,7 +3464,9 @@ CommonJSFormatter.prototype.exportSpecifier = function (specifier, node, nodes) 
   }, specifier, node, nodes);
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85,"./_default":27}],33:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94,"./_default":32}],38:[function(require,module,exports){
+"use strict";
+
 module.exports = IgnoreFormatter;
 
 var t = require("../../types");
@@ -2982,7 +3486,9 @@ IgnoreFormatter.prototype.exportSpecifier = function () {
 
 };
 
-},{"../../types":83}],34:[function(require,module,exports){
+},{"../../types":92}],39:[function(require,module,exports){
+"use strict";
+
 module.exports = SystemFormatter;
 
 var AMDFormatter = require("./amd");
@@ -3048,28 +3554,31 @@ SystemFormatter.prototype.importSpecifier = function (specifier, node, nodes) {
 
 SystemFormatter.prototype.buildRunnerSetters = function (block, hoistDeclarators) {
   return t.arrayExpression(_.map(this.ids, function (uid, source) {
-    var nodes = [];
+    var state = {
+      nodes: [],
+      hoistDeclarators: hoistDeclarators
+    };
 
     traverse(block, {
-      enter: function (node) {
+      enter: function (node, parent, scope, context, state) {
         if (node._importSource === source) {
           if (t.isVariableDeclaration(node)) {
             _.each(node.declarations, function (declar) {
-              hoistDeclarators.push(t.variableDeclarator(declar.id));
-              nodes.push(t.expressionStatement(
+              state.hoistDeclarators.push(t.variableDeclarator(declar.id));
+              state.nodes.push(t.expressionStatement(
                 t.assignmentExpression("=", declar.id, declar.init)
               ));
             });
           } else {
-            nodes.push(node);
+            state.nodes.push(node);
           }
 
-          this.remove();
+          context.remove();
         }
       }
-    });
+    }, null, state);
 
-    return t.functionExpression(null, [uid], t.blockStatement(nodes));
+    return t.functionExpression(null, [uid], t.blockStatement(state.nodes));
   }));
 };
 
@@ -3097,10 +3606,10 @@ SystemFormatter.prototype.transform = function (ast) {
 
   // hoist up all variable declarations
   traverse(block, {
-    enter: function (node, parent, scope) {
+    enter: function (node, parent, scope, context, hoistDeclarators) {
       if (t.isFunction(node)) {
         // nothing inside is accessible
-        return this.skip();
+        return context.skip();
       }
 
       if (t.isVariableDeclaration(node)) {
@@ -3135,7 +3644,8 @@ SystemFormatter.prototype.transform = function (ast) {
         return nodes;
       }
     }
-  });
+  }, null, hoistDeclarators);
+
   if (hoistDeclarators.length) {
     var hoistDeclar = t.variableDeclaration("var", hoistDeclarators);
     hoistDeclar._blockHoist = true;
@@ -3144,15 +3654,15 @@ SystemFormatter.prototype.transform = function (ast) {
 
   // hoist up function declarations for circular references
   traverse(block, {
-    enter: function (node) {
-      if (t.isFunction(node)) this.skip();
+    enter: function (node, parent, scope, context, handlerBody) {
+      if (t.isFunction(node)) context.skip();
 
       if (t.isFunctionDeclaration(node) || node._blockHoist) {
         handlerBody.push(node);
-        this.remove();
+        context.remove();
       }
     }
-  });
+  }, null, handlerBody);
 
   handlerBody.push(returnStatement);
 
@@ -3163,10 +3673,14 @@ SystemFormatter.prototype.transform = function (ast) {
   program.body = [runner];
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85,"../helpers/use-strict":26,"./amd":30,"lodash":108}],35:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94,"../helpers/use-strict":31,"./amd":35,"lodash":117}],40:[function(require,module,exports){
+"use strict";
+
 module.exports = require("./_strict")(require("./umd"));
 
-},{"./_strict":28,"./umd":36}],36:[function(require,module,exports){
+},{"./_strict":33,"./umd":41}],41:[function(require,module,exports){
+"use strict";
+
 module.exports = UMDFormatter;
 
 var AMDFormatter = require("./amd");
@@ -3240,7 +3754,9 @@ UMDFormatter.prototype.transform = function (ast) {
   program.body = [t.expressionStatement(call)];
 };
 
-},{"../../types":83,"../../util":85,"./amd":30,"lodash":108}],37:[function(require,module,exports){
+},{"../../types":92,"../../util":94,"./amd":35,"lodash":117}],42:[function(require,module,exports){
+"use strict";
+
 module.exports = transform;
 
 var Transformer = require("./transformer");
@@ -3287,8 +3803,10 @@ transform.moduleFormatters = {
 _.each({
   specNoForInOfAssignment:   require("./transformers/spec-no-for-in-of-assignment"),
   specSetters:               require("./transformers/spec-setters"),
+  specBlockScopedFunctions:  require("./transformers/spec-block-scoped-functions"),
 
   // playground
+  malletOperator:            require("./transformers/playground-mallet-operator"),
   methodBinding:             require("./transformers/playground-method-binding"),
   memoizationOperator:       require("./transformers/playground-memoization-operator"),
   objectGetterMemoization:   require("./transformers/playground-object-getter-memoization"),
@@ -3310,19 +3828,20 @@ _.each({
   templateLiterals:          require("./transformers/es6-template-literals"),
   propertyMethodAssignment:  require("./transformers/es6-property-method-assignment"),
   computedPropertyNames:     require("./transformers/es6-computed-property-names"),
-  destructuring:             require("./transformers/es6-destructuring"),
   defaultParameters:         require("./transformers/es6-default-parameters"),
+  restParameters:            require("./transformers/es6-rest-parameters"),
+  destructuring:             require("./transformers/es6-destructuring"),
   forOf:                     require("./transformers/es6-for-of"),
   unicodeRegex:              require("./transformers/es6-unicode-regex"),
   abstractReferences:        require("./transformers/es7-abstract-references"),
 
   constants:                 require("./transformers/es6-constants"),
   letScoping:                require("./transformers/es6-let-scoping"),
+  blockScopingTDZ:           require("./transformers/optional-block-scoping-tdz"),
 
   _blockHoist:               require("./transformers/_block-hoist"),
 
   generators:                require("./transformers/es6-generators"),
-  restParameters:            require("./transformers/es6-rest-parameters"),
 
   protoToAssign:             require("./transformers/optional-proto-to-assign"),
 
@@ -3336,6 +3855,7 @@ _.each({
   typeofSymbol:              require("./transformers/optional-typeof-symbol"),
   coreAliasing:              require("./transformers/optional-core-aliasing"),
   undefinedToVoid:           require("./transformers/optional-undefined-to-void"),
+  undeclaredVariableCheck:   require("./transformers/optional-undeclared-variable-check"),
 
   // spec
   specPropertyLiterals:         require("./transformers/spec-property-literals"),
@@ -3344,12 +3864,33 @@ _.each({
   transform.transformers[key] = new Transformer(key, transformer);
 });
 
-},{"../file":1,"../util":85,"./modules/amd":30,"./modules/amd-strict":29,"./modules/common":32,"./modules/common-strict":31,"./modules/ignore":33,"./modules/system":34,"./modules/umd":36,"./modules/umd-strict":35,"./transformer":38,"./transformers/_alias-functions":39,"./transformers/_block-hoist":40,"./transformers/_declarations":41,"./transformers/_module-formatter":42,"./transformers/es6-arrow-functions":43,"./transformers/es6-classes":44,"./transformers/es6-computed-property-names":45,"./transformers/es6-constants":46,"./transformers/es6-default-parameters":47,"./transformers/es6-destructuring":48,"./transformers/es6-for-of":49,"./transformers/es6-generators":50,"./transformers/es6-let-scoping":51,"./transformers/es6-modules":52,"./transformers/es6-property-method-assignment":53,"./transformers/es6-property-name-shorthand":54,"./transformers/es6-rest-parameters":55,"./transformers/es6-spread":56,"./transformers/es6-template-literals":57,"./transformers/es6-unicode-regex":58,"./transformers/es7-abstract-references":59,"./transformers/es7-array-comprehension":60,"./transformers/es7-exponentiation-operator":61,"./transformers/es7-generator-comprehension":62,"./transformers/es7-object-spread":63,"./transformers/optional-async-to-generator":64,"./transformers/optional-bluebird-coroutines":65,"./transformers/optional-core-aliasing":66,"./transformers/optional-proto-to-assign":67,"./transformers/optional-typeof-symbol":68,"./transformers/optional-undefined-to-void":69,"./transformers/playground-memoization-operator":70,"./transformers/playground-method-binding":71,"./transformers/playground-object-getter-memoization":72,"./transformers/react":73,"./transformers/spec-member-expression-literals":74,"./transformers/spec-no-for-in-of-assignment":75,"./transformers/spec-property-literals":76,"./transformers/spec-setters":77,"./transformers/use-strict":78,"lodash":108}],38:[function(require,module,exports){
+},{"../file":1,"../util":94,"./modules/amd":35,"./modules/amd-strict":34,"./modules/common":37,"./modules/common-strict":36,"./modules/ignore":38,"./modules/system":39,"./modules/umd":41,"./modules/umd-strict":40,"./transformer":43,"./transformers/_alias-functions":44,"./transformers/_block-hoist":45,"./transformers/_declarations":46,"./transformers/_module-formatter":47,"./transformers/es6-arrow-functions":48,"./transformers/es6-classes":49,"./transformers/es6-computed-property-names":50,"./transformers/es6-constants":51,"./transformers/es6-default-parameters":52,"./transformers/es6-destructuring":53,"./transformers/es6-for-of":54,"./transformers/es6-generators":55,"./transformers/es6-let-scoping":56,"./transformers/es6-modules":57,"./transformers/es6-property-method-assignment":58,"./transformers/es6-property-name-shorthand":59,"./transformers/es6-rest-parameters":60,"./transformers/es6-spread":61,"./transformers/es6-template-literals":62,"./transformers/es6-unicode-regex":63,"./transformers/es7-abstract-references":64,"./transformers/es7-array-comprehension":65,"./transformers/es7-exponentiation-operator":66,"./transformers/es7-generator-comprehension":67,"./transformers/es7-object-spread":68,"./transformers/optional-async-to-generator":69,"./transformers/optional-block-scoping-tdz":70,"./transformers/optional-bluebird-coroutines":71,"./transformers/optional-core-aliasing":72,"./transformers/optional-proto-to-assign":73,"./transformers/optional-typeof-symbol":74,"./transformers/optional-undeclared-variable-check":75,"./transformers/optional-undefined-to-void":76,"./transformers/playground-mallet-operator":77,"./transformers/playground-memoization-operator":78,"./transformers/playground-method-binding":79,"./transformers/playground-object-getter-memoization":80,"./transformers/react":81,"./transformers/spec-block-scoped-functions":82,"./transformers/spec-member-expression-literals":83,"./transformers/spec-no-for-in-of-assignment":84,"./transformers/spec-property-literals":85,"./transformers/spec-setters":86,"./transformers/use-strict":87,"lodash":117}],43:[function(require,module,exports){
+"use strict";
+
 module.exports = Transformer;
 
 var traverse = require("../traverse");
 var t        = require("../types");
 var _        = require("lodash");
+
+function noop() { }
+
+function enter(node, parent, scope, context, args) {
+  var fns = args[1][node.type];
+  if (!fns) return;
+  return fns.enter(node, parent, scope, context, args[0]);
+}
+
+function exit(node, parent, scope, context, args) {
+  var fns = args[1][node.type];
+  if (!fns) return;
+  return fns.exit(node, parent, scope, context, args[0]);
+}
+
+var traverseOpts = {
+  enter: enter,
+  exit: exit
+};
 
 function Transformer(key, transformer, opts) {
   this.manipulateOptions = transformer.manipulateOptions;
@@ -3379,6 +3920,9 @@ Transformer.prototype.normalise = function (transformer) {
 
     if (!_.isObject(fns)) return;
 
+    if (!fns.enter) fns.enter = noop;
+    if (!fns.exit) fns.exit = noop;
+
     transformer[type] = fns;
 
     var aliases = t.FLIPPED_ALIAS_KEYS[type];
@@ -3401,28 +3945,8 @@ Transformer.prototype.astRun = function (file, key) {
 };
 
 Transformer.prototype.transform = function (file) {
-  var transformer = this.transformer;
-
-  var build = function (exit) {
-    return function (node, parent, scope) {
-      var fns = transformer[node.type];
-      if (!fns) return;
-
-      var fn = fns.enter;
-      if (exit) fn = fns.exit;
-      if (!fn) return;
-
-      return fn.call(this, node, parent, file, scope);
-    };
-  };
-
   this.astRun(file, "before");
-
-  traverse(file.ast, {
-    enter: build(),
-    exit:  build(true)
-  });
-
+  traverse(file.ast, traverseOpts, null, [file, this.transformer]);
   this.astRun(file, "after");
 };
 
@@ -3444,61 +3968,68 @@ Transformer.prototype.canRun = function (file) {
   return true;
 };
 
-},{"../traverse":79,"../types":83,"lodash":108}],39:[function(require,module,exports){
+},{"../traverse":88,"../types":92,"lodash":117}],44:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var t        = require("../../types");
+
+var functionChildrenTraverser = {
+  enter: function (node, parent, scope, context, state) {
+    if (t.isFunction(node) && !node._aliasFunction) {
+      return context.skip();
+    }
+
+    if (node._ignoreAliasFunctions) return context.skip();
+
+    var getId;
+
+    if (t.isIdentifier(node) && node.name === "arguments") {
+      getId = state.getArgumentsId;
+    } else if (t.isThisExpression(node)) {
+      getId = state.getThisId;
+    } else {
+      return;
+    }
+
+    if (t.isReferenced(node, parent)) return getId();
+  }
+};
+
+var functionTraverser = {
+  enter: function (node, parent, scope, context, state) {
+    if (!node._aliasFunction) {
+      if (t.isFunction(node)) {
+        // stop traversal of this node as it'll be hit again by this transformer
+        return context.skip();
+      } else {
+        return;
+      }
+    }
+
+    // traverse all child nodes of this function and find `arguments` and `this`
+    traverse(node, functionChildrenTraverser, null, state);
+
+    return context.skip();
+  }
+};
 
 var go = function (getBody, node, file, scope) {
   var argumentsId;
   var thisId;
 
-  var getArgumentsId = function () {
-    return argumentsId = argumentsId || file.generateUidIdentifier("arguments", scope);
-  };
-
-  var getThisId = function () {
-    return thisId = thisId || file.generateUidIdentifier("this", scope);
+  var state = {
+    getArgumentsId: function () {
+      return argumentsId = argumentsId || file.generateUidIdentifier("arguments", scope);
+    },
+    getThisId: function () {
+      return thisId = thisId || file.generateUidIdentifier("this", scope);
+    }
   };
 
   // traverse the function and find all alias functions so we can alias
   // `arguments` and `this` if necessary
-  traverse(node, {
-    enter: function (node) {
-      if (!node._aliasFunction) {
-        if (t.isFunction(node)) {
-          // stop traversal of this node as it'll be hit again by this transformer
-          return this.skip();
-        } else {
-          return;
-        }
-      }
-
-      // traverse all child nodes of this function and find `arguments` and `this`
-      traverse(node, {
-        enter: function (node, parent) {
-          if (t.isFunction(node) && !node._aliasFunction) {
-            return this.skip();
-          }
-
-          if (node._ignoreAliasFunctions) return this.skip();
-
-          var getId;
-
-          if (t.isIdentifier(node) && node.name === "arguments") {
-            getId = getArgumentsId;
-          } else if (t.isThisExpression(node)) {
-            getId = getThisId;
-          } else {
-            return;
-          }
-
-          if (t.isReferenced(node, parent)) return getId();
-        }
-      });
-
-      return this.skip();
-    }
-  });
+  traverse(node, functionTraverser, null, state);
 
   var body;
 
@@ -3518,21 +4049,23 @@ var go = function (getBody, node, file, scope) {
   }
 };
 
-exports.Program = function (node, parent, file, scope) {
+exports.Program = function (node, parent, scope, context, file) {
   go(function () {
     return node.body;
   }, node, file, scope);
 };
 
 exports.FunctionDeclaration =
-exports.FunctionExpression = function (node, parent, file, scope) {
+exports.FunctionExpression = function (node, parent, scope, context, file) {
   go(function () {
     t.ensureBlock(node);
     return node.body.body;
   }, node, file, scope);
 };
 
-},{"../../traverse":79,"../../types":83}],40:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92}],45:[function(require,module,exports){
+"use strict";
+
 var useStrict = require("../helpers/use-strict");
 var _         = require("lodash");
 
@@ -3566,7 +4099,9 @@ exports.Program = {
   }
 };
 
-},{"../helpers/use-strict":26,"lodash":108}],41:[function(require,module,exports){
+},{"../helpers/use-strict":31,"lodash":117}],46:[function(require,module,exports){
+"use strict";
+
 var useStrict = require("../helpers/use-strict");
 var t         = require("../../types");
 
@@ -3602,7 +4137,9 @@ exports.Program = function (node) {
   node._declarations = null;
 };
 
-},{"../../types":83,"../helpers/use-strict":26}],42:[function(require,module,exports){
+},{"../../types":92,"../helpers/use-strict":31}],47:[function(require,module,exports){
+"use strict";
+
 var transform = require("../transform");
 
 exports.ast = {
@@ -3615,7 +4152,9 @@ exports.ast = {
   }
 };
 
-},{"../transform":37}],43:[function(require,module,exports){
+},{"../transform":42}],48:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.ArrowFunctionExpression = function (node) {
@@ -3628,17 +4167,19 @@ exports.ArrowFunctionExpression = function (node) {
   return node;
 };
 
-},{"../../types":83}],44:[function(require,module,exports){
-var nameMethod = require("../helpers/name-method");
-var traverse   = require("../../traverse");
-var util       = require("../../util");
-var t          = require("../../types");
+},{"../../types":92}],49:[function(require,module,exports){
+"use strict";
 
-exports.ClassDeclaration = function (node, parent, file, scope) {
+var ReplaceSupers = require("../helpers/replace-supers");
+var nameMethod    = require("../helpers/name-method");
+var util          = require("../../util");
+var t             = require("../../types");
+
+exports.ClassDeclaration = function (node, parent, scope, context, file) {
   return new Class(node, file, scope, true).run();
 };
 
-exports.ClassExpression = function (node, parent, file, scope) {
+exports.ClassExpression = function (node, parent, scope, context, file) {
   if (!node.id) {
     if (t.isProperty(parent) && parent.value === node && !parent.computed && t.isIdentifier(parent.key)) {
       // var o = { foo: class {} };
@@ -3766,7 +4307,8 @@ Class.prototype.buildBody = function () {
   for (var i = 0; i < classBody.length; i++) {
     var node = classBody[i];
     if (t.isMethodDefinition(node)) {
-      this.replaceSuperReferences(node);
+      var replaceSupers = new ReplaceSupers(node, this.className, this.superName, this.isLoose, this.file);
+      replaceSupers.replace();
 
       if (node.key.name === "constructor") {
         this.pushConstructor(node);
@@ -3825,7 +4367,7 @@ Class.prototype.pushMethod = function (node) {
   var kind = node.kind;
 
   if (kind === "") {
-    nameMethod(node, this.file, this.scope);
+    nameMethod.property(node, this.file, this.scope);
 
     if (this.isLoose) {
       // use assignments instead of define properties for loose classes
@@ -3855,198 +4397,6 @@ Class.prototype.pushMethod = function (node) {
 };
 
 /**
- * Gets a node representing the super class value of the named property.
- *
- * @example
- *
- *   _get(Object.getPrototypeOf(CLASS.prototype), "METHOD", this)
- *
- * @param {Node} property
- * @param {boolean} isStatic
- * @param {boolean} isComputed
- *
- * @returns {Node}
- */
-
-Class.prototype.superProperty = function (property, isStatic, isComputed, thisExpression) {
-  return t.callExpression(
-    this.file.addHelper("get"),
-    [
-      t.callExpression(
-        t.memberExpression(t.identifier("Object"), t.identifier("getPrototypeOf")),
-        [
-          isStatic ? this.className : t.memberExpression(this.className, t.identifier("prototype"))
-        ]
-      ),
-      isComputed ? property : t.literal(property.name),
-      thisExpression
-    ]
-  );
-};
-
-/**
- * Description
- *
- * @param {Object} node
- * @param {Object} id
- * @param {Object} parent
- * @returns {Object}
- */
-
-Class.prototype.looseSuperProperty = function (methodNode, id, parent) {
-  var methodName = methodNode.key;
-  var superName  = this.superName || t.identifier("Function");
-
-  if (parent.property === id) {
-    return;
-  } else if (t.isCallExpression(parent, { callee: id })) {
-    // super(); -> ClassName.prototype.MethodName.call(this);
-    parent.arguments.unshift(t.thisExpression());
-
-    if (methodName.name === "constructor") {
-      // constructor() { super(); }
-      return t.memberExpression(superName, t.identifier("call"));
-    } else {
-      id = superName;
-
-      // foo() { super(); }
-      if (!methodNode.static) {
-        id = t.memberExpression(id, t.identifier("prototype"));
-      }
-
-      id = t.memberExpression(id, methodName, methodNode.computed);
-      return t.memberExpression(id, t.identifier("call"));
-    }
-  } else if (t.isMemberExpression(parent) && !methodNode.static) {
-    // super.test -> ClassName.prototype.test
-    return t.memberExpression(superName, t.identifier("prototype"));
-  } else {
-    return superName;
-  }
-};
-
-/**
- * Replace all `super` references with a reference to our `superClass`.
- *
- * @param {Node} methodNode MethodDefinition
- */
-
-Class.prototype.replaceSuperReferences = function (methodNode) {
-  var method = methodNode.value;
-  var self   = this;
-
-  var topLevelThisReference;
-
-  traverseLevel(method, true);
-
-  if (topLevelThisReference) {
-    method.body.body.unshift(t.variableDeclaration("var", [
-      t.variableDeclarator(topLevelThisReference, t.thisExpression())
-    ]));
-  }
-
-  function traverseLevel(node, topLevel) {
-    traverse(node, {
-      enter: function (node, parent) {
-        if (t.isFunction(node) && !t.isArrowFunctionExpression(node)) {
-          // we need to call traverseLevel again so we're context aware
-          traverseLevel(node, false);
-          return this.skip();
-        }
-
-        if (t.isProperty(node, { method: true }) || t.isMethodDefinition(node)) {
-          // break on object methods
-          return this.skip();
-        }
-
-        var getThisReference = function () {
-          if (topLevel) {
-            // top level so `this` is the instance
-            return t.thisExpression();
-          } else {
-            // not in the top level so we need to create a reference
-            return topLevelThisReference = topLevelThisReference || self.file.generateUidIdentifier("this");
-          }
-        };
-
-        var callback = specHandle;
-        if (self.isLoose) callback = looseHandle;
-        return callback(getThisReference, node, parent);
-      }
-    });
-  }
-
-  function looseHandle(getThisReference, node, parent) {
-    if (t.isIdentifier(node, { name: "super" })) {
-      return self.looseSuperProperty(methodNode, node, parent);
-    } else if (t.isCallExpression(node)) {
-      var callee = node.callee;
-      if (!t.isMemberExpression(callee)) return;
-      if (callee.object.name !== "super") return;
-
-      // super.test(); -> ClassName.prototype.MethodName.call(this);
-      t.appendToMemberExpression(callee, t.identifier("call"));
-      node.arguments.unshift(getThisReference());
-    }
-  }
-
-  function specHandle(getThisReference, node, parent) {
-    var property;
-    var computed;
-    var args;
-
-    if (t.isIdentifier(node, { name: "super" })) {
-      if (!(t.isMemberExpression(parent) && !parent.computed && parent.property === node)) {
-        throw self.file.errorWithNode(node, "illegal use of bare super");
-      }
-    } else if (t.isCallExpression(node)) {
-      var callee = node.callee;
-      if (t.isIdentifier(callee, { name: "super" })) {
-        // super(); -> _get(Object.getPrototypeOf(ClassName), "MethodName", this).call(this);
-        property = methodNode.key;
-        computed = methodNode.computed;
-        args = node.arguments;
-      } else {
-        if (!t.isMemberExpression(callee)) return;
-        if (callee.object.name !== "super") return;
-
-        // super.test(); -> _get(Object.getPrototypeOf(ClassName.prototype), "test", this).call(this);
-        property = callee.property;
-        computed = callee.computed;
-        args = node.arguments;
-      }
-    } else if (t.isMemberExpression(node)) {
-      if (!t.isIdentifier(node.object, { name: "super" })) return;
-
-      // super.name; -> _get(Object.getPrototypeOf(ClassName.prototype), "name", this);
-      property = node.property;
-      computed = node.computed;
-    }
-
-    if (!property) return;
-
-    var thisReference = getThisReference();
-    var superProperty = self.superProperty(property, methodNode.static, computed, thisReference);
-    if (args) {
-      if (args.length === 1 && t.isSpreadElement(args[0])) {
-        // super(...arguments);
-        return t.callExpression(
-          t.memberExpression(superProperty, t.identifier("apply")),
-          [thisReference, args[0].argument]
-        );
-      } else {
-        return t.callExpression(
-          t.memberExpression(superProperty, t.identifier("call")),
-          [thisReference].concat(args)
-        );
-      }
-    } else {
-      return superProperty;
-    }
-  }
-};
-
-/**
  * Replace the constructor body of our class.
  *
  * @param {Node} method MethodDefinition
@@ -4072,10 +4422,12 @@ Class.prototype.pushConstructor = function (method) {
   construct.rest                  = fn.rest;
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85,"../helpers/name-method":24}],45:[function(require,module,exports){
+},{"../../types":92,"../../util":94,"../helpers/name-method":28,"../helpers/replace-supers":30}],50:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
-exports.ObjectExpression = function (node, parent, file, scope) {
+exports.ObjectExpression = function (node, parent, scope, context, file) {
   var hasComputed = false;
 
   for (var i = 0; i < node.properties.length; i++) {
@@ -4197,7 +4549,9 @@ var spec = function (node, body, objId, initProps, file) {
   }
 };
 
-},{"../../types":83}],46:[function(require,module,exports){
+},{"../../types":92}],51:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var t        = require("../../types");
 var _        = require("lodash");
@@ -4206,7 +4560,7 @@ exports.Program =
 exports.BlockStatement =
 exports.ForInStatement =
 exports.ForOfStatement =
-exports.ForStatement = function (node, parent, file) {
+exports.ForStatement = function (node, parent, scope, context, file) {
   var hasConstants = false;
   var constants = {};
 
@@ -4269,24 +4623,31 @@ exports.ForStatement = function (node, parent, file) {
 
   if (!hasConstants) return;
 
+  var state = {
+    check: check,
+    getIds: getIds
+  };
+
   traverse(node, {
-    enter: function (child, parent, scope) {
+    enter: function (child, parent, scope, context, state) {
       if (child._ignoreConstant) return;
       if (t.isVariableDeclaration(child)) return;
 
       if (t.isVariableDeclarator(child) || t.isDeclaration(child) || t.isAssignmentExpression(child)) {
-        check(parent, getIds(child), scope);
+        state.check(parent, state.getIds(child), scope);
       }
     }
-  });
+  }, null, state);
 };
 
-},{"../../traverse":79,"../../types":83,"lodash":108}],47:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"lodash":117}],52:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var util     = require("../../util");
 var t        = require("../../types");
 
-exports.Function = function (node, parent, file, scope) {
+exports.Function = function (node, parent, scope, context, file) {
   if (!node.defaults || !node.defaults.length) return;
   t.ensureBlock(node);
 
@@ -4297,9 +4658,9 @@ exports.Function = function (node, parent, file, scope) {
   var iife = false;
   var def;
 
-  var checkTDZ = function (ids) {
+  var checkTDZ = function (param, def, ids) {
     var check = function (node, parent) {
-      if (!t.isIdentifier(node) || !t.isReferenced(node, parent)) return;
+      if (!t.isReferencedIdentifier(node, parent)) return;
 
       if (ids.indexOf(node.name) >= 0) {
         throw file.errorWithNode(node, "Temporal dead zone - accessing a variable before it's initialized");
@@ -4311,7 +4672,10 @@ exports.Function = function (node, parent, file, scope) {
     };
 
     check(def, node);
-    traverse(def, { enter: check });
+
+    if (!t.isPattern(param)) {
+      traverse(def, { enter: check });
+    }
   };
 
   for (var i = 0; i < node.defaults.length; i++) {
@@ -4324,7 +4688,7 @@ exports.Function = function (node, parent, file, scope) {
     // are to the right - ie. uninitialized parameters
     var rightIds = ids.slice(i);
     for (var i2 = 0; i2 < rightIds.length; i2++) {
-      checkTDZ(rightIds[i2]);
+      checkTDZ(param, def, rightIds[i2]);
     }
 
     // we're accessing a variable that's already defined within this function
@@ -4348,12 +4712,14 @@ exports.Function = function (node, parent, file, scope) {
       continue;
     }
 
-    body.push(util.template("default-parameter", {
+    var defNode = util.template("default-parameter", {
       VARIABLE_NAME: node.params[i],
       DEFAULT_VALUE: def,
       ARGUMENT_KEY:  t.literal(+i),
       ARGUMENTS:     argsIdentifier
-    }, true));
+    }, true);
+    defNode._blockHoist = node.defaults.length - i;
+    body.push(defNode);
   }
 
   // we need to cut off all trailing default parameters
@@ -4373,7 +4739,9 @@ exports.Function = function (node, parent, file, scope) {
   node.defaults = [];
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85}],48:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94}],53:[function(require,module,exports){
+"use strict";
+
 // TODO: Clean up
 
 var t = require("../../types");
@@ -4382,13 +4750,27 @@ var buildVariableAssign = function (opts, id, init) {
   var op = opts.operator;
   if (t.isMemberExpression(id)) op = "=";
 
+  var node;
+
   if (op) {
-    return t.expressionStatement(t.assignmentExpression("=", id, init));
+    node = t.expressionStatement(t.assignmentExpression(op, id, init));
   } else {
-    return t.variableDeclaration(opts.kind, [
+    node = t.variableDeclaration(opts.kind, [
       t.variableDeclarator(id, init)
     ]);
   }
+
+  node._blockHoist = opts.blockHoist;
+
+  return node;
+};
+
+var buildVariableDeclar = function (opts, id, init) {
+  var declar = t.variableDeclaration("var", [
+    t.variableDeclarator(id, init)
+  ]);
+  declar._blockHoist = opts.blockHoist;
+  return declar;
 };
 
 var push = function (opts, nodes, elem, parentId) {
@@ -4474,9 +4856,7 @@ var pushArrayPattern = function (opts, nodes, pattern, parentId) {
   var toArray = opts.file.toArray(parentId, !hasSpreadElement && pattern.elements.length);
 
   var _parentId = opts.scope.generateUidBasedOnNode(parentId, opts.file);
-  nodes.push(t.variableDeclaration("var", [
-    t.variableDeclarator(_parentId, toArray)
-  ]));
+  nodes.push(buildVariableDeclar(opts, _parentId, toArray));
   parentId = _parentId;
 
   for (i = 0; i < pattern.elements.length; i++) {
@@ -4512,11 +4892,7 @@ var pushPattern = function (opts) {
 
   if (!t.isArrayExpression(parentId) && !t.isMemberExpression(parentId) && !t.isIdentifier(parentId)) {
     var key = scope.generateUidBasedOnNode(parentId, file);
-
-    nodes.push(t.variableDeclaration("var", [
-      t.variableDeclarator(key, parentId)
-    ]));
-
+    nodes.push(buildVariableDeclar(opts, key, parentId));
     parentId = key;
   }
 
@@ -4524,7 +4900,7 @@ var pushPattern = function (opts) {
 };
 
 exports.ForInStatement =
-exports.ForOfStatement = function (node, parent, file, scope) {
+exports.ForOfStatement = function (node, parent, scope, context, file) {
   var declar = node.left;
   if (!t.isVariableDeclaration(declar)) return;
 
@@ -4550,24 +4926,25 @@ exports.ForOfStatement = function (node, parent, file, scope) {
   block.body = nodes.concat(block.body);
 };
 
-exports.Function = function (node, parent, file, scope) {
+exports.Function = function (node, parent, scope, context, file) {
   var nodes = [];
 
   var hasDestructuring = false;
 
-  node.params = node.params.map(function (pattern) {
+  node.params = node.params.map(function (pattern, i) {
     if (!t.isPattern(pattern)) return pattern;
 
     hasDestructuring = true;
     var parentId = file.generateUidIdentifier("ref", scope);
 
     pushPattern({
-      kind:    "var",
-      nodes:   nodes,
-      pattern: pattern,
-      id:      parentId,
-      file:    file,
-      scope:   scope
+      blockHoist: node.params.length - i,
+      pattern:    pattern,
+      nodes:      nodes,
+      scope:      scope,
+      file:       file,
+      kind:       "var",
+      id:         parentId
     });
 
     return parentId;
@@ -4581,7 +4958,7 @@ exports.Function = function (node, parent, file, scope) {
   block.body = nodes.concat(block.body);
 };
 
-exports.CatchClause = function (node, parent, file, scope) {
+exports.CatchClause = function (node, parent, scope, context, file) {
   var pattern = node.param;
   if (!t.isPattern(pattern)) return;
 
@@ -4599,7 +4976,7 @@ exports.CatchClause = function (node, parent, file, scope) {
   node.body.body = nodes.concat(node.body.body);
 };
 
-exports.ExpressionStatement = function (node, parent, file, scope) {
+exports.ExpressionStatement = function (node, parent, scope, context, file) {
   var expr = node.expression;
   if (expr.type !== "AssignmentExpression") return;
 
@@ -4621,14 +4998,13 @@ exports.ExpressionStatement = function (node, parent, file, scope) {
   return nodes;
 };
 
-exports.AssignmentExpression = function (node, parent, file, scope) {
+exports.AssignmentExpression = function (node, parent, scope, context, file) {
   if (parent.type === "ExpressionStatement") return;
   if (!t.isPattern(node.left)) return;
 
-  var tempName = file.generateUid("temp", scope);
-  var ref = t.identifier(tempName);
+  var ref = file.generateUidIdentifier("temp", scope);
   scope.push({
-    key: tempName,
+    key: ref.name,
     id: ref
   });
 
@@ -4646,7 +5022,7 @@ exports.AssignmentExpression = function (node, parent, file, scope) {
   return t.toSequenceExpression(nodes, scope);
 };
 
-exports.VariableDeclaration = function (node, parent, file, scope) {
+exports.VariableDeclaration = function (node, parent, scope, context, file) {
   if (t.isForInStatement(parent) || t.isForOfStatement(parent)) return;
 
   var nodes = [];
@@ -4669,12 +5045,12 @@ exports.VariableDeclaration = function (node, parent, file, scope) {
     var patternId = declar.init;
     var pattern   = declar.id;
     var opts = {
-      kind:    node.kind,
-      nodes:   nodes,
       pattern: pattern,
-      id:      patternId,
+      nodes:   nodes,
+      scope:   scope,
+      kind:    node.kind,
       file:    file,
-      scope:   scope
+      id:      patternId,
     };
 
     if (t.isPattern(pattern) && patternId) {
@@ -4710,15 +5086,17 @@ exports.VariableDeclaration = function (node, parent, file, scope) {
   return nodes;
 };
 
-},{"../../types":83}],49:[function(require,module,exports){
+},{"../../types":92}],54:[function(require,module,exports){
+"use strict";
+
 var util = require("../../util");
 var t    = require("../../types");
 
-exports.ForOfStatement = function (node, parent, file, scope) {
+exports.ForOfStatement = function (node, parent, scope, context, file) {
   var callback = spec;
   if (file.isLoose("forOf")) callback = loose;
 
-  var build  = callback(node, parent, file, scope);
+  var build  = callback(node, parent, scope, context, file);
   var declar = build.declar;
   var loop   = build.loop;
   var block  = loop.body;
@@ -4741,10 +5119,13 @@ exports.ForOfStatement = function (node, parent, file, scope) {
   // push the rest of the original loop body onto our new body
   block.body = block.body.concat(node.body.body);
 
+  // todo: find out why this is necessary? #538
+  loop._scopeInfo = node._scopeInfo;
+
   return loop;
 };
 
-var loose = function (node, parent, file, scope) {
+var loose = function (node, parent, scope, context, file) {
   var left = node.left;
   var declar, id;
 
@@ -4776,7 +5157,7 @@ var loose = function (node, parent, file, scope) {
   };
 };
 
-var spec = function (node, parent, file, scope) {
+var spec = function (node, parent, scope, context, file) {
   var left = node.left;
   var declar;
 
@@ -4807,7 +5188,9 @@ var spec = function (node, parent, file, scope) {
   };
 };
 
-},{"../../types":83,"../../util":85}],50:[function(require,module,exports){
+},{"../../types":92,"../../util":94}],55:[function(require,module,exports){
+"use strict";
+
 var regenerator = require("regenerator");
 
 exports.ast = {
@@ -4818,7 +5201,9 @@ exports.ast = {
   }
 };
 
-},{"regenerator":116}],51:[function(require,module,exports){
+},{"regenerator":125}],56:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var util     = require("../../util");
 var t        = require("../../types");
@@ -4855,7 +5240,7 @@ exports.VariableDeclaration = function (node, parent) {
   isLet(node, parent);
 };
 
-exports.Loop = function (node, parent, file, scope) {
+exports.Loop = function (node, parent, scope, context, file) {
   var init = node.left || node.init;
   if (isLet(init, node)) {
     t.ensureBlock(node);
@@ -4867,7 +5252,7 @@ exports.Loop = function (node, parent, file, scope) {
     node.label = parent.label;
   }
 
-  var letScoping = new LetScoping(node, node.body, parent, file, scope);
+  var letScoping = new LetScoping(node, node.body, parent, scope, file);
   letScoping.run();
 
   if (node.label && !t.isLabeledStatement(parent)) {
@@ -4876,9 +5261,10 @@ exports.Loop = function (node, parent, file, scope) {
   }
 };
 
-exports.BlockStatement = function (block, parent, file, scope) {
+exports.Program =
+exports.BlockStatement = function (block, parent, scope, context, file) {
   if (!t.isLoop(parent)) {
-    var letScoping = new LetScoping(false, block, parent, file, scope);
+    var letScoping = new LetScoping(false, block, parent, scope, file);
     letScoping.run();
   }
 };
@@ -4889,19 +5275,21 @@ exports.BlockStatement = function (block, parent, file, scope) {
  * @param {Boolean|Node} loopParent
  * @param {Node} block
  * @param {Node} parent
- * @param {File} file
  * @param {Scope} scope
+ * @param {File} file
  */
 
-function LetScoping(loopParent, block, parent, file, scope) {
+function LetScoping(loopParent, block, parent, scope, file) {
   this.loopParent = loopParent;
   this.parent     = parent;
   this.scope      = scope;
   this.block      = block;
   this.file       = file;
 
-  this.letReferences = {};
-  this.body          = [];
+  this.outsideLetReferences = {};
+  this.hasLetReferences     = false;
+  this.letReferences        = block._letReferences = {};
+  this.body                 = [];
 }
 
 /**
@@ -4910,27 +5298,98 @@ function LetScoping(loopParent, block, parent, file, scope) {
 
 LetScoping.prototype.run = function () {
   var block = this.block;
-
   if (block._letDone) return;
   block._letDone = true;
 
-  this.info = this.getInfo();
+  var needsClosure = this.getLetReferences();
 
-  // remap all let references that exist in upper scopes to their uid
-  this.remap();
+  // this is a block within a `Function/Program` so we can safely leave it be
+  if (t.isFunction(this.parent) || t.isProgram(this.block)) return;
 
-  // this is a block within a `Function` so we can safely leave it be
-  if (t.isFunction(this.parent)) return this.noClosure();
+  // we can skip everything
+  if (!this.hasLetReferences) return;
 
-  // this block has no let references so let's clean up
-  if (!this.info.keys.length) return this.noClosure();
+  if (needsClosure) {
+    this.needsClosure();
+  } else {
+    this.remap();
+  }
+};
 
-  // returns whether or not there are any outside let references within any
-  // functions
-  var referencesInClosure = this.getLetReferences();
+/**
+ * Description
+ */
 
-  // no need for a closure so let's clean up
-  if (!referencesInClosure) return this.noClosure();
+LetScoping.prototype.remap = function () {
+  var hasRemaps = false;
+  var letRefs   = this.letReferences;
+  var scope     = this.scope;
+  var file      = this.file;
+
+  // alright, so since we aren't wrapping this block in a closure
+  // we have to check if any of our let variables collide with
+  // those in upper scopes and then if they do, generate a uid
+  // for them and replace all references with it
+  var remaps = {};
+
+  for (var key in letRefs) {
+    // just an Identifier node we collected in `getLetReferences`
+    // this is the defining identifier of a declaration
+    var ref = letRefs[key];
+
+    if (scope.parentHas(key)) {
+      var uid = file.generateUidIdentifier(ref.name, scope).name;
+      ref.name = uid;
+
+      hasRemaps = true;
+      remaps[key] = remaps[uid] = {
+        node: ref,
+        uid: uid
+      };
+    }
+  }
+
+  if (!hasRemaps) return;
+
+  //
+
+  var replace = function (node, parent, scope, context, remaps) {
+    if (!t.isReferencedIdentifier(node, parent)) return;
+
+    var remap = remaps[node.name];
+    if (!remap) return;
+
+    var own = scope.get(node.name, true);
+    if (own === remap.node) {
+      node.name = remap.uid;
+    } else {
+      // scope already has it's own declaration that doesn't
+      // match the one we have a stored replacement for
+      if (context) context.skip();
+    }
+  };
+
+  var traverseReplace = function (node, parent) {
+    replace(node, parent, scope, null, remaps);
+    traverse(node, { enter: replace }, scope, remaps);
+  };
+
+  var loopParent = this.loopParent;
+  if (loopParent) {
+    traverseReplace(loopParent.right, loopParent);
+    traverseReplace(loopParent.test, loopParent);
+    traverseReplace(loopParent.update, loopParent);
+  }
+
+  traverse(this.block, { enter: replace }, scope, remaps);
+};
+
+/**
+ * Description
+ */
+
+LetScoping.prototype.needsClosure = function () {
+  var block = this.block;
 
   // if we're inside of a for loop then we search to see if there are any
   // `break`s, `continue`s, `return`s etc
@@ -4939,21 +5398,15 @@ LetScoping.prototype.run = function () {
   // hoist var references to retain scope
   this.hoistVarDeclarations();
 
-  // set let references to plain var references
-  standardiseLets(this.info.declarators);
-
-  // turn letReferences into an array
-  var letReferences = _.values(this.letReferences);
+  // turn outsideLetReferences into an array
+  var params = _.values(this.outsideLetReferences);
 
   // build the closure that we're going to wrap the block with
-  var fn = t.functionExpression(null, letReferences, t.blockStatement(block.body));
+  var fn = t.functionExpression(null, params, t.blockStatement(block.body));
   fn._aliasFunction = true;
 
   // replace the current block body with the one we're going to build
   block.body = this.body;
-
-  // change upper scope references with their uid if they have one
-  var params = this.getParams(letReferences);
 
   // build a call and a unique id that we can assign the return value to
   var call = t.callExpression(fn, params);
@@ -4969,116 +5422,77 @@ LetScoping.prototype.run = function () {
 };
 
 /**
- * There are no let references accessed within a closure so we can just turn the
- * lets into vars.
- */
-
-LetScoping.prototype.noClosure = function () {
-  standardiseLets(this.info.declarators);
-};
-
-/**
- * Traverse through block and replace all references that exist in a higher
- * scope to their uids.
- */
-
-LetScoping.prototype.remap = function () {
-  var replacements = this.info.duplicates;
-  var block        = this.block;
-
-  if (!this.info.hasDuplicates) return;
-
-  var replace = function (node, parent, scope) {
-    if (!t.isIdentifier(node)) return;
-    if (!t.isReferenced(node, parent)) return;
-    if (scope && scope.hasOwn(node.name)) return;
-    node.name = replacements[node.name] || node.name;
-  };
-
-  var traverseReplace = function (node, parent) {
-    replace(node, parent);
-    traverse(node, { enter: replace });
-  };
-
-  var loopParent = this.loopParent;
-  if (loopParent) {
-    traverseReplace(loopParent.right, loopParent);
-    traverseReplace(loopParent.test, loopParent);
-    traverseReplace(loopParent.update, loopParent);
-  }
-
-  traverse(block, { enter: replace });
-};
-
-/**
  * Description
- *
- * @returns {Object}
  */
 
-LetScoping.prototype.getInfo = function () {
+LetScoping.prototype.getLetReferences = function () {
   var block = this.block;
-  var scope = this.scope;
-  var file  = this.file;
 
-  var opts = {
-    // array of `Identifier` names of let variables that appear lexically out of
-    // this scope but should be accessible - eg. `ForOfStatement`.left
-    outsideKeys: [],
-
-    // array of let `VariableDeclarator`s that are a part of this block
-    declarators: block._letDeclars || [],
-
-    // object of duplicate ids and their aliases - if there's an `Identifier`
-    // name that's used in an upper scope we generate a unique id and replace
-    // all references with it
-    duplicates:  {},
-
-    hasDuplicates: false,
-
-    // array of `Identifier` names of let variables that are accessible within
-    // the current block
-    keys:        []
-  };
-
-  var duplicates = function (id, key) {
-    var has = scope.parentGet(key);
-
-    if (has && has !== id) {
-      // there's a variable with this exact name in an upper scope so we need
-      // to generate a new name
-      opts.duplicates[key] = id.name = file.generateUid(key, scope);
-      opts.hasDuplicates = true;
-    }
-  };
-
+  var declarators = block._letDeclars || [];
   var declar;
 
-  for (var i = 0; i < opts.declarators.length; i++) {
-    declar = opts.declarators[i];
-
-    var keys = t.getIds(declar, true);
-    _.each(keys, duplicates);
-    keys = Object.keys(keys);
-
-    opts.outsideKeys = opts.outsideKeys.concat(keys);
-    opts.keys = opts.keys.concat(keys);
+  //
+  for (var i = 0; i < declarators.length; i++) {
+    declar = declarators[i];
+    _.extend(this.outsideLetReferences, t.getIds(declar, true));
   }
 
+  //
   if (block.body) {
     for (i = 0; i < block.body.length; i++) {
       declar = block.body[i];
-      if (!isLet(declar, block)) continue;
-
-      var declars = t.getIds(declar, true);
-      for (var key in declars) {
-        duplicates(declars[key], key);
-        opts.keys.push(key);
+      if (isLet(declar, block)) {
+        declarators = declarators.concat(declar.declarations);
       }
     }
   }
 
-  return opts;
+  //
+  for (i = 0; i < declarators.length; i++) {
+    declar = declarators[i];
+    var keys = t.getIds(declar, true);
+    _.extend(this.letReferences, keys);
+    this.hasLetReferences = true;
+  }
+
+  // no let references so we can just quit
+  if (!this.hasLetReferences) return;
+
+  // set let references to plain var references
+  standardiseLets(declarators);
+
+  var state = {
+    letReferences: this.letReferences,
+    closurify:     false
+  };
+
+  // traverse through this block, stopping on functions and checking if they
+  // contain any local let references
+  traverse(this.block, {
+    enter: function (node, parent, scope, context, state) {
+      if (t.isFunction(node)) {
+        traverse(node, {
+          enter: function (node, parent) {
+            // not a direct reference
+            if (!t.isReferencedIdentifier(node, parent)) return;
+
+            // this scope has a variable with the same name so it couldn't belong
+            // to our let scope
+            if (scope.hasOwn(node.name, true)) return;
+
+            // not a part of our scope
+            if (!state.letReferences[node.name]) return;
+
+            state.closurify = true;
+          }
+        }, scope, state);
+
+        return context.skip();
+      }
+    }
+  }, this.scope, state);
+
+  return state.closurify;
 };
 
 /**
@@ -5098,11 +5512,11 @@ LetScoping.prototype.checkLoop = function () {
   };
 
   traverse(this.block, {
-    enter: function (node, parent) {
+    enter: function (node, parent, scope, context) {
       var replace;
 
       if (t.isFunction(node) || t.isLoop(node)) {
-        return this.skip();
+        return context.skip();
       }
 
       if (node && !node.label) {
@@ -5126,7 +5540,7 @@ LetScoping.prototype.checkLoop = function () {
 
       if (replace) return t.inherits(replace, node);
     }
-  });
+  }, this.scope, has);
 
   return has;
 };
@@ -5137,9 +5551,8 @@ LetScoping.prototype.checkLoop = function () {
  */
 
 LetScoping.prototype.hoistVarDeclarations = function () {
-  var self = this;
   traverse(this.block, {
-    enter: function (node, parent) {
+    enter: function (node, parent, scope, context, self) {
       if (t.isForStatement(node)) {
         if (isVar(node.init, node)) {
           node.init = t.sequenceExpression(self.pushDeclar(node.init));
@@ -5151,71 +5564,10 @@ LetScoping.prototype.hoistVarDeclarations = function () {
       } else if (isVar(node, parent)) {
         return self.pushDeclar(node).map(t.expressionStatement);
       } else if (t.isFunction(node)) {
-        return this.skip();
+        return context.skip();
       }
     }
-  });
-};
-
-/**
- * Build up a parameter list that we'll call our closure wrapper with, replacing
- * all duplicate ids with their uid.
- *
- * @param {Array} params
- * @returns {Array}
- */
-
-LetScoping.prototype.getParams = function (params) {
-  var info = this.info;
-  params = _.cloneDeep(params);
-  _.each(params, function (param) {
-    param.name = info.duplicates[param.name] || param.name;
-  });
-  return params;
-};
-
-/**
- * Get all let references within this block. Stopping whenever we reach another
- * block.
- */
-
-LetScoping.prototype.getLetReferences = function () {
-  var closurify = false;
-  var self = this;
-
-  // traverse through this block, stopping on functions and checking if they
-  // contain any outside let references
-  traverse(this.block, {
-    enter: function (node, parent, scope) {
-      if (t.isFunction(node)) {
-        traverse(node, {
-          enter: function (node, parent) {
-            // not an identifier so we have no use
-            if (!t.isIdentifier(node)) return;
-
-            // not a direct reference
-            if (!t.isReferenced(node, parent)) return;
-
-            // this scope has a variable with the same name so it couldn't belong
-            // to our let scope
-            if (scope.hasOwn(node.name, true)) return;
-
-            closurify = true;
-
-            // this key doesn't appear just outside our scope
-            if (!_.contains(self.info.outsideKeys, node.name)) return;
-
-            // push this badboy
-            self.letReferences[node.name] = node;
-          }
-        });
-
-        return this.skip();
-      }
-    }
-  });
-
-  return closurify;
+  }, this.scope, this);
 };
 
 /**
@@ -5317,7 +5669,9 @@ LetScoping.prototype.buildHas = function (ret, call) {
   }
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85,"lodash":108}],52:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94,"lodash":117}],57:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.ast = {
@@ -5326,7 +5680,7 @@ exports.ast = {
   }
 };
 
-exports.ImportDeclaration = function (node, parent, file) {
+exports.ImportDeclaration = function (node, parent, scope, context, file) {
   var nodes = [];
 
   if (node.specifiers.length) {
@@ -5346,7 +5700,7 @@ exports.ImportDeclaration = function (node, parent, file) {
   return nodes;
 };
 
-exports.ExportDeclaration = function (node, parent, file) {
+exports.ExportDeclaration = function (node, parent, scope, context, file) {
   var nodes = [];
 
   if (node.declaration) {
@@ -5367,17 +5721,19 @@ exports.ExportDeclaration = function (node, parent, file) {
   return nodes;
 };
 
-},{"../../types":83}],53:[function(require,module,exports){
+},{"../../types":92}],58:[function(require,module,exports){
+"use strict";
+
 var nameMethod = require("../helpers/name-method");
 var util       = require("../../util");
 var t          = require("../../types");
 
-exports.Property = function (node, parent, file, scope) {
+exports.Property = function (node, parent, scope, context, file) {
   if (!node.method) return;
 
   node.method = false;
 
-  nameMethod(node, file, scope);
+  nameMethod.property(node, file, scope);
 };
 
 exports.ObjectExpression = function (node) {
@@ -5402,7 +5758,9 @@ exports.ObjectExpression = function (node) {
   );
 };
 
-},{"../../types":83,"../../util":85,"../helpers/name-method":24}],54:[function(require,module,exports){
+},{"../../types":92,"../../util":94,"../helpers/name-method":28}],59:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 var _ = require("lodash");
 
@@ -5412,15 +5770,17 @@ exports.Property = function (node) {
   node.key = t.removeComments(_.clone(node.key));
 };
 
-},{"../../types":83,"lodash":108}],55:[function(require,module,exports){
+},{"../../types":92,"lodash":117}],60:[function(require,module,exports){
+"use strict";
+
 var util = require("../../util");
 var t    = require("../../types");
 
-exports.Function = function (node, parent, file) {
+exports.Function = function (node, parent, scope, context, file) {
   if (!node.rest) return;
 
   var rest = node.rest;
-  delete node.rest;
+  node.rest = null;
 
   t.ensureBlock(node);
 
@@ -5442,14 +5802,32 @@ exports.Function = function (node, parent, file) {
     arrKey = t.binaryExpression("-", key, start);
 
     // we need to work out the size of the array that we're
-    // going to store all the rest parameters in, if there
-    // are less arguments than params then the array can be
-    // constructed with <1 which will cause an error
+    // going to store all the rest parameters
+    //
+    // we need to add a check to avoid constructing the array
+    // with <0 if there are less arguments than params as it'll
+    // cause an error
     arrLen = t.conditionalExpression(
       t.binaryExpression(">", len, start),
       t.binaryExpression("-", len, start),
       t.literal(0)
     );
+  }
+
+  // support patterns
+  if (t.isPattern(rest)) {
+    var pattern = rest;
+    rest = file.generateUidIdentifier("ref", scope);
+
+    // let the destructuring transformer handle this
+    var restDeclar = t.variableDeclaration("var", [
+      t.variableDeclarator(pattern, rest)
+    ]);
+
+    // retain evaluation position
+    restDeclar._blockHoist = node.params.length + 1;
+
+    node.body.body.unshift(restDeclar);
   }
 
   node.body.body.unshift(
@@ -5465,7 +5843,9 @@ exports.Function = function (node, parent, file) {
   );
 };
 
-},{"../../types":83,"../../util":85}],56:[function(require,module,exports){
+},{"../../types":92,"../../util":94}],61:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 var _ = require("lodash");
 
@@ -5508,7 +5888,7 @@ var build = function (props, file) {
   return nodes;
 };
 
-exports.ArrayExpression = function (node, parent, file) {
+exports.ArrayExpression = function (node, parent, scope, context, file) {
   var elements = node.elements;
   if (!hasSpread(elements)) return;
 
@@ -5523,7 +5903,7 @@ exports.ArrayExpression = function (node, parent, file) {
   return t.callExpression(t.memberExpression(first, t.identifier("concat")), nodes);
 };
 
-exports.CallExpression = function (node, parent, file, scope) {
+exports.CallExpression = function (node, parent, scope, context, file) {
   var args = node.arguments;
   if (!hasSpread(args)) return;
 
@@ -5563,7 +5943,7 @@ exports.CallExpression = function (node, parent, file, scope) {
   node.arguments.unshift(contextLiteral);
 };
 
-exports.NewExpression = function (node, parent, file) {
+exports.NewExpression = function (node, parent, scope, context, file) {
   var args = node.arguments;
   if (!hasSpread(args)) return;
 
@@ -5596,14 +5976,16 @@ exports.NewExpression = function (node, parent, file) {
   }
 };
 
-},{"../../types":83,"lodash":108}],57:[function(require,module,exports){
+},{"../../types":92,"lodash":117}],62:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 var buildBinaryExpression = function (left, right) {
   return t.binaryExpression("+", left, right);
 };
 
-exports.TaggedTemplateExpression = function (node, parent, file) {
+exports.TaggedTemplateExpression = function (node, parent, scope, context, file) {
   var args = [];
   var quasi = node.quasi;
 
@@ -5658,7 +6040,9 @@ exports.TemplateLiteral = function (node) {
   }
 };
 
-},{"../../types":83}],58:[function(require,module,exports){
+},{"../../types":92}],63:[function(require,module,exports){
+"use strict";
+
 var rewritePattern = require("regexpu/rewrite-pattern");
 var _              = require("lodash");
 
@@ -5674,7 +6058,9 @@ exports.Literal = function (node) {
   regex.flags   = flags.join("");
 };
 
-},{"lodash":108,"regexpu/rewrite-pattern":150}],59:[function(require,module,exports){
+},{"lodash":117,"regexpu/rewrite-pattern":160}],64:[function(require,module,exports){
+"use strict";
+
 // https://github.com/zenparsing/es-abstract-refs
 
 var util = require("../../util");
@@ -5698,7 +6084,7 @@ var container = function (parent, call, ret) {
   }
 };
 
-exports.AssignmentExpression = function (node, parent, file, scope) {
+exports.AssignmentExpression = function (node, parent, scope, context, file) {
   var left = node.left;
   if (!t.isVirtualPropertyExpression(left)) return;
 
@@ -5751,7 +6137,7 @@ exports.UnaryExpression = function (node, parent) {
   return container(parent, call, t.literal(true));
 };
 
-exports.CallExpression = function (node, parent, file, scope) {
+exports.CallExpression = function (node, parent, scope, context, file) {
   var callee = node.callee;
   if (!t.isVirtualPropertyExpression(callee)) return;
 
@@ -5787,7 +6173,9 @@ exports.PrivateDeclaration = function (node) {
   }));
 };
 
-},{"../../types":83,"../../util":85}],60:[function(require,module,exports){
+},{"../../types":92,"../../util":94}],65:[function(require,module,exports){
+"use strict";
+
 var buildComprehension = require("../helpers/build-comprehension");
 var traverse           = require("../../traverse");
 var util               = require("../../util");
@@ -5795,7 +6183,7 @@ var t                  = require("../../types");
 
 exports.experimental = true;
 
-var build = function (node, parent, file, scope) {
+var build = function (node, parent, scope, context, file) {
   var uid = scope.generateUidBasedOnNode(parent, file);
 
   var container = util.template("array-comprehension-container", {
@@ -5824,33 +6212,35 @@ var build = function (node, parent, file, scope) {
   return container;
 };
 
-exports.ComprehensionExpression = function (node, parent, file, scope) {
+exports.ComprehensionExpression = function (node, parent, scope, context, file) {
   if (node.generator) return;
 
-  return build(node, parent, file, scope);
+  return build(node, parent, scope, context, file);
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85,"../helpers/build-comprehension":23}],61:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94,"../helpers/build-comprehension":25}],66:[function(require,module,exports){
+"use strict";
+
 // https://github.com/rwaldron/exponentiation-operator
 
 exports.experimental = true;
 
-var t = require("../../types");
-var pow = t.memberExpression(t.identifier("Math"), t.identifier("pow"));
+var build = require("../helpers/build-binary-assignment-operator-transformer");
+var t     = require("../../types");
 
-exports.AssignmentExpression = function (node) {
-  if (node.operator !== "**=") return;
-  node.operator = "=";
-  node.right = t.callExpression(pow, [node.left, node.right]);
-};
+var MATH_POW = t.memberExpression(t.identifier("Math"), t.identifier("pow"));
 
-exports.BinaryExpression = function (node) {
-  if (node.operator !== "**") return;
+build(exports, {
+  operator: "**",
 
-  return t.callExpression(pow, [node.left, node.right]);
-};
+  build: function (left, right) {
+    return t.callExpression(MATH_POW, [left, right]);
+  }
+});
 
-},{"../../types":83}],62:[function(require,module,exports){
+},{"../../types":92,"../helpers/build-binary-assignment-operator-transformer":24}],67:[function(require,module,exports){
+"use strict";
+
 var buildComprehension = require("../helpers/build-comprehension");
 var t                  = require("../../types");
 
@@ -5870,14 +6260,16 @@ exports.ComprehensionExpression = function (node) {
   return t.callExpression(container, []);
 };
 
-},{"../../types":83,"../helpers/build-comprehension":23}],63:[function(require,module,exports){
+},{"../../types":92,"../helpers/build-comprehension":25}],68:[function(require,module,exports){
+"use strict";
+
 // https://github.com/sebmarkbage/ecmascript-rest-spread
 
 var t = require("../../types");
 
 exports.experimental = true;
 
-exports.ObjectExpression = function (node, parent, file) {
+exports.ObjectExpression = function (node, parent, scope, context, file) {
   var hasSpread = false;
   var i;
   var prop;
@@ -5918,7 +6310,9 @@ exports.ObjectExpression = function (node, parent, file) {
   return t.callExpression(file.addHelper("extends"), args);
 };
 
-},{"../../types":83}],64:[function(require,module,exports){
+},{"../../types":92}],69:[function(require,module,exports){
+"use strict";
+
 var remapAsyncToGenerator = require("../helpers/remap-async-to-generator");
 var bluebirdCoroutines    = require("./optional-bluebird-coroutines");
 
@@ -5926,13 +6320,63 @@ exports.optional = true;
 
 exports.manipulateOptions = bluebirdCoroutines.manipulateOptions;
 
-exports.Function = function (node, parent, file) {
+exports.Function = function (node, parent, scope, context, file) {
   if (!node.async || node.generator) return;
 
   return remapAsyncToGenerator(node, file.addHelper("async-to-generator"));
 };
 
-},{"../helpers/remap-async-to-generator":25,"./optional-bluebird-coroutines":65}],65:[function(require,module,exports){
+},{"../helpers/remap-async-to-generator":29,"./optional-bluebird-coroutines":71}],70:[function(require,module,exports){
+var traverse = require("../../traverse");
+var t        = require("../../types");
+
+exports.optional = true;
+
+exports.Loop =
+exports.Program =
+exports.BlockStatement = function (node, parent, scope, context, file) {
+  var letRefs = node._letReferences;
+  if (!letRefs) return;
+
+  var state = {
+    letRefs: letRefs,
+    file: file
+  };
+
+  traverse(node, {
+    enter: function (node, parent, scope, context, state) {
+      if (!t.isReferencedIdentifier(node, parent)) return;
+
+      var declared = state.letRefs[node.name];
+      if (!declared) return;
+
+      // declared node is different in this scope
+      if (scope.get(node.name, true) !== declared) return;
+
+      var declaredLoc  = declared.loc;
+      var referenceLoc = node.loc;
+
+      if (!declaredLoc || !referenceLoc) return;
+
+      // does this reference appear on a line before the declaration?
+      var before = referenceLoc.start.line < declaredLoc.start.line;
+
+      if (referenceLoc.start.line === declaredLoc.start.line) {
+        // this reference appears on the same line
+        // check it appears before the declaration
+        before = referenceLoc.start.col < declaredLoc.start.col;
+      }
+
+      if (before) {
+        throw state.file.errorWithNode(node, "Temporal dead zone - accessing a variable before it's initialized");
+      }
+    }
+  }, scope, state);
+};
+
+},{"../../traverse":88,"../../types":92}],71:[function(require,module,exports){
+"use strict";
+
 var remapAsyncToGenerator = require("../helpers/remap-async-to-generator");
 var t                     = require("../../types");
 
@@ -5944,7 +6388,7 @@ exports.manipulateOptions = function (opts) {
 exports.optional = true;
 
 
-exports.Function = function (node, parent, file) {
+exports.Function = function (node, parent, scope, context, file) {
   if (!node.async || node.generator) return;
 
   return remapAsyncToGenerator(
@@ -5953,7 +6397,9 @@ exports.Function = function (node, parent, file) {
   );
 };
 
-},{"../../types":83,"../helpers/remap-async-to-generator":25}],66:[function(require,module,exports){
+},{"../../types":92,"../helpers/remap-async-to-generator":29}],72:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var util     = require("../../util");
 var core     = require("core-js/library");
@@ -5982,7 +6428,7 @@ exports.ast = {
 
   exit: function (ast, file) {
     traverse(ast, {
-      enter: function (node, parent) {
+      enter: function (node, parent, scope, context) {
         var prop;
 
         if (t.isMemberExpression(node) && t.isReferenced(node, parent)) {
@@ -5993,10 +6439,10 @@ exports.ast = {
           if (!t.isReferenced(obj, node)) return;
 
           if (!node.computed && coreHas(obj) && _.has(core[obj.name], prop.name)) {
-            this.skip();
+            context.skip();
             return t.prependToMemberExpression(node, file._coreId);
           }
-        } else if (t.isIdentifier(node) && !t.isMemberExpression(parent) && t.isReferenced(node, parent) && _.contains(ALIASABLE_CONSTRUCTORS, node.name)) {
+        } else if (t.isReferencedIdentifier(node, parent) && !t.isMemberExpression(parent) && _.contains(ALIASABLE_CONSTRUCTORS, node.name) && !scope.get(node.name, true)) {
           // Symbol() -> _core.Symbol(); new Promise -> new _core.Promise
           return t.memberExpression(file._coreId, node);
         } else if (t.isCallExpression(node)) {
@@ -6022,7 +6468,9 @@ exports.ast = {
   }
 };
 
-},{"../../traverse":79,"../../types":83,"../../util":85,"core-js/library":101,"lodash":108}],67:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92,"../../util":94,"core-js/library":110,"lodash":117}],73:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 var _ = require("lodash");
 
@@ -6042,7 +6490,7 @@ var buildDefaultsCallExpression = function (expr, ref, file) {
 exports.optional = true;
 exports.secondPass = true;
 
-exports.AssignmentExpression = function (node, parent, file, scope) {
+exports.AssignmentExpression = function (node, parent, scope, context, file) {
   if (t.isExpressionStatement(parent)) return;
   if (!isProtoAssignmentExpression(node)) return;
 
@@ -6057,7 +6505,7 @@ exports.AssignmentExpression = function (node, parent, file, scope) {
   return t.toSequenceExpression(nodes);
 };
 
-exports.ExpressionStatement = function (node, parent, file) {
+exports.ExpressionStatement = function (node, parent, scope, context, file) {
   var expr = node.expression;
   if (!t.isAssignmentExpression(expr, { operator: "=" })) return;
 
@@ -6066,7 +6514,7 @@ exports.ExpressionStatement = function (node, parent, file) {
   }
 };
 
-exports.ObjectExpression = function (node, parent, file) {
+exports.ObjectExpression = function (node, parent, scope, context, file) {
   var proto;
 
   for (var i = 0; i < node.properties.length; i++) {
@@ -6085,13 +6533,15 @@ exports.ObjectExpression = function (node, parent, file) {
   }
 };
 
-},{"../../types":83,"lodash":108}],68:[function(require,module,exports){
+},{"../../types":92,"lodash":117}],74:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.optional = true;
 
-exports.UnaryExpression = function (node, parent, file) {
-  this.skip();
+exports.UnaryExpression = function (node, parent, scope, context, file) {
+  context.skip();
 
   if (node.operator === "typeof") {
     var call = t.callExpression(file.addHelper("typeof"), [node.argument]);
@@ -6108,7 +6558,18 @@ exports.UnaryExpression = function (node, parent, file) {
   }
 };
 
-},{"../../types":83}],69:[function(require,module,exports){
+},{"../../types":92}],75:[function(require,module,exports){
+exports.optional = true;
+
+exports.Identifier = function (node, parent, scope, context, file) {
+  if (!scope.has(node.name, true)) {
+    throw file.errorWithNode(node, "Reference to undeclared variable");
+  }
+};
+
+},{}],76:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.optional = true;
@@ -6119,100 +6580,60 @@ exports.Identifier = function (node, parent) {
   }
 };
 
-},{"../../types":83}],70:[function(require,module,exports){
-var t = require("../../types");
+},{"../../types":92}],77:[function(require,module,exports){
+"use strict";
 
-var isMemo = function (node) {
-  var is = t.isAssignmentExpression(node) && node.operator === "?=";
-  if (is) t.assertMemberExpression(node.left);
-  return is;
-};
+var build = require("../helpers/build-conditional-assignment-operator-transformer");
+var t      = require("../../types");
 
-var getPropRef = function (nodes, member, file, scope) {
-  var prop = member.property;
-  var key = t.toComputedKey(member, member.property);
-  if (t.isLiteral(key)) {
-    return key;
-  } else {
-    var temp = scope.generateUidBasedOnNode(prop, file);
-    nodes.push(t.variableDeclaration("var", [
-      t.variableDeclarator(temp, prop)
-    ]));
-    return temp;
+build(exports, {
+  is: function (node, file) {
+    var is = t.isAssignmentExpression(node) && node.operator === "||=";
+    if (is) {
+      var left = node.left;
+      if (!t.isMemberExpression(left) && !t.isIdentifier(left)) {
+        throw file.errorWithNode(left, "Expected type MemeberExpression or Identifier");
+      }
+      return true;
+    }
+  },
+
+  build: function (node) {
+    return t.unaryExpression("!", node, true);
   }
-};
+});
 
-var getObjRef = function (nodes, obj, file, scope) {
-  var temp = scope.generateUidBasedOnNode(obj, file);
-  nodes.push(t.variableDeclaration("var", [
-    t.variableDeclarator(temp, obj)
-  ]));
-  return temp;
-};
+},{"../../types":92,"../helpers/build-conditional-assignment-operator-transformer":26}],78:[function(require,module,exports){
+"use strict";
 
-var buildHasOwn = function (obj, prop, file) {
-  return t.unaryExpression(
-    "!",
-    t.callExpression(
-      t.memberExpression(file.addHelper("has-own"), t.identifier("call")),
-      [obj, prop]
-    ),
-    true
-  );
-};
+var build = require("../helpers/build-conditional-assignment-operator-transformer");
+var t     = require("../../types");
 
-var buildAbsoluteRef = function (left, obj, prop) {
-  var computed = left.computed || t.isLiteral(prop);
-  return t.memberExpression(obj, prop, computed);
-};
+build(exports, {
+  is: function (node) {
+    var is = t.isAssignmentExpression(node) && node.operator === "?=";
+    if (is) t.assertMemberExpression(node.left);
+    return is;
+  },
 
-var buildAssignment = function (expr, obj, prop) {
-  return t.assignmentExpression("=", buildAbsoluteRef(expr.left, obj, prop), expr.right);
-};
+  build: function (node, file) {
+    return t.unaryExpression(
+      "!",
+      t.callExpression(
+        t.memberExpression(file.addHelper("has-own"), t.identifier("call")),
+        [node.object, node.property]
+      ),
+      true
+    );
+  }
+});
 
-exports.ExpressionStatement = function (node, parent, file, scope) {
-  var expr = node.expression;
-  if (!isMemo(expr)) return;
+},{"../../types":92,"../helpers/build-conditional-assignment-operator-transformer":26}],79:[function(require,module,exports){
+"use strict";
 
-  var nodes = [];
-
-  var left = expr.left;
-  var obj  = getObjRef(nodes, left.object, file, scope);
-  var prop = getPropRef(nodes, left, file, scope);
-
-  nodes.push(t.ifStatement(
-    buildHasOwn(obj, prop, file),
-    t.expressionStatement(buildAssignment(expr, obj, prop))
-  ));
-
-  return nodes;
-};
-
-exports.AssignmentExpression = function (node, parent, file, scope) {
-  if (t.isExpressionStatement(parent)) return;
-  if (!isMemo(node)) return;
-
-  var nodes = [];
-
-  var left = node.left;
-  var obj  = getObjRef(nodes, left.object, file, scope);
-  var prop = getPropRef(nodes, left, file, scope);
-
-  nodes.push(t.logicalExpression(
-    "&&",
-    buildHasOwn(obj, prop, file),
-    buildAssignment(node, obj, prop)
-  ));
-
-  nodes.push(buildAbsoluteRef(left, obj, prop));
-
-  return t.toSequenceExpression(nodes, scope);
-};
-
-},{"../../types":83}],71:[function(require,module,exports){
 var t = require("../../types");
 
-exports.BindMemberExpression = function (node, parent, file, scope) {
+exports.BindMemberExpression = function (node, parent, scope, context, file) {
   var object = node.object;
   var prop   = node.property;
 
@@ -6234,7 +6655,7 @@ exports.BindMemberExpression = function (node, parent, file, scope) {
   }
 };
 
-exports.BindFunctionExpression = function (node, parent, file, scope) {
+exports.BindFunctionExpression = function (node, parent, scope, context, file) {
   var buildCall = function (args) {
     var param = file.generateUidIdentifier("val", scope);
     return t.functionExpression(null, [param], t.blockStatement([
@@ -6252,12 +6673,14 @@ exports.BindFunctionExpression = function (node, parent, file, scope) {
   ]);
 };
 
-},{"../../types":83}],72:[function(require,module,exports){
+},{"../../types":92}],80:[function(require,module,exports){
+"use strict";
+
 var traverse = require("../../traverse");
 var t        = require("../../types");
 
 exports.Property =
-exports.MethodDefinition = function (node, parent, file) {
+exports.MethodDefinition = function (node, parent, scope, context, file) {
   if (node.kind !== "memo") return;
   node.kind = "get";
 
@@ -6285,7 +6708,9 @@ exports.MethodDefinition = function (node, parent, file) {
   });
 };
 
-},{"../../traverse":79,"../../types":83}],73:[function(require,module,exports){
+},{"../../traverse":88,"../../types":92}],81:[function(require,module,exports){
+"use strict";
+
 // Based upon the excellent jsx-transpiler by Ingvar Stepanyan (RReverser)
 // https://github.com/RReverser/jsx-transpiler
 
@@ -6303,7 +6728,7 @@ exports.XJSIdentifier = function (node) {
   }
 };
 
-exports.XJSNamespacedName = function (node, parent, file) {
+exports.XJSNamespacedName = function (node, parent, scope, context, file) {
   throw file.errorWithNode(node, "Namespace tags are not supported. ReactJSX is not XML.");
 };
 
@@ -6325,12 +6750,12 @@ exports.XJSAttribute = {
   }
 };
 
-var isTag = function(tagName) {
-  return (/^[a-z]|\-/).test(tagName);
+var isCompatTag = function(tagName) {
+  return /^[a-z]|\-/.test(tagName);
 };
 
 exports.XJSOpeningElement = {
-  exit: function (node, parent, file) {
+  exit: function (node, parent, scope, context, file) {
     var reactCompat = file.opts.reactCompat;
     var tagExpr = node.name;
     var args = [];
@@ -6343,7 +6768,7 @@ exports.XJSOpeningElement = {
     }
 
     if (!reactCompat) {
-      if (tagName && isTag(tagName)) {
+      if (tagName && isCompatTag(tagName)) {
         args.push(t.literal(tagName));
       } else {
         args.push(tagExpr);
@@ -6352,48 +6777,7 @@ exports.XJSOpeningElement = {
 
     var attribs = node.attributes;
     if (attribs.length) {
-      var _props = [];
-      var objs = [];
-
-      // so basically in order to support spread elements we
-      // loop over all the attributes, breaking on spreads
-      // we then push a new object containing all prior attributes
-      // to an array for later processing
-
-      var pushProps = function () {
-        if (!_props.length) return;
-
-        objs.push(t.objectExpression(_props));
-        _props = [];
-      };
-
-      while (attribs.length) {
-        var prop = attribs.shift();
-        if (t.isXJSSpreadAttribute(prop)) {
-          pushProps();
-          objs.push(prop.argument);
-        } else {
-          _props.push(prop);
-        }
-      }
-
-      pushProps();
-
-      if (objs.length === 1) {
-        // only one object
-        attribs = objs[0];
-      } else {
-        // looks like we have multiple objects
-        if (!t.isObjectExpression(objs[0])) {
-          objs.unshift(t.objectExpression([]));
-        }
-
-        // spread it
-        attribs = t.callExpression(
-          t.memberExpression(t.identifier("React"), t.identifier("__spread")),
-          objs
-        );
-      }
+      attribs = buildXJSOpeningElementAttributes(attribs);
     } else {
       attribs = t.literal(null);
     }
@@ -6401,7 +6785,7 @@ exports.XJSOpeningElement = {
     args.push(attribs);
 
     if (reactCompat) {
-      if (tagName && isTag(tagName)) {
+      if (tagName && isCompatTag(tagName)) {
         return t.callExpression(
           t.memberExpression(
             t.memberExpression(t.identifier("React"), t.identifier("DOM")),
@@ -6419,6 +6803,55 @@ exports.XJSOpeningElement = {
   }
 };
 
+/**
+ * The logic for this is quite terse. It's because we need to
+ * support spread elements. We loop over all attributes,
+ * breaking on spreads, we then push a new object containg
+ * all prior attributes to an array for later processing.
+ */
+
+var buildXJSOpeningElementAttributes = function (attribs) {
+  var _props = [];
+  var objs = [];
+
+  var pushProps = function () {
+    if (!_props.length) return;
+
+    objs.push(t.objectExpression(_props));
+    _props = [];
+  };
+
+  while (attribs.length) {
+    var prop = attribs.shift();
+    if (t.isXJSSpreadAttribute(prop)) {
+      pushProps();
+      objs.push(prop.argument);
+    } else {
+      _props.push(prop);
+    }
+  }
+
+  pushProps();
+
+  if (objs.length === 1) {
+    // only one object
+    attribs = objs[0];
+  } else {
+    // looks like we have multiple objects
+    if (!t.isObjectExpression(objs[0])) {
+      objs.unshift(t.objectExpression([]));
+    }
+
+    // spread it
+    attribs = t.callExpression(
+      t.memberExpression(t.identifier("React"), t.identifier("__spread")),
+      objs
+    );
+  }
+
+  return attribs;
+};
+
 exports.XJSElement = {
   exit: function (node) {
     var callExpr = node.openingElement;
@@ -6427,32 +6860,7 @@ exports.XJSElement = {
       var child = node.children[i];
 
       if (t.isLiteral(child) && _.isString(child.value)) {
-        var lines = child.value.split(/\r\n|\n|\r/);
-
-        for (var i2 = 0; i2 < lines.length; i2++) {
-          var line = lines[i2];
-
-          var isFirstLine = i2 === 0;
-          var isLastLine = i2 === lines.length - 1;
-
-          // replace rendered whitespace tabs with spaces
-          var trimmedLine = line.replace(/\t/g, " ");
-
-          // trim whitespace touching a newline
-          if (!isFirstLine) {
-            trimmedLine = trimmedLine.replace(/^[ ]+/, "");
-          }
-
-          // trim whitespace touching an endline
-          if (!isLastLine) {
-            trimmedLine = trimmedLine.replace(/[ ]+$/, "");
-          }
-
-          if (trimmedLine) {
-            callExpr.arguments.push(t.literal(trimmedLine));
-          }
-        }
-
+        cleanXJSElementLiteralChild(child, callExpr.arguments);
         continue;
       } else if (t.isXJSEmptyExpression(child)) {
         continue;
@@ -6469,35 +6877,69 @@ exports.XJSElement = {
   }
 };
 
+var cleanXJSElementLiteralChild = function (child, args) {
+  var lines = child.value.split(/\r\n|\n|\r/);
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+
+    var isFirstLine = i === 0;
+    var isLastLine = i === lines.length - 1;
+
+    // replace rendered whitespace tabs with spaces
+    var trimmedLine = line.replace(/\t/g, " ");
+
+    // trim whitespace touching a newline
+    if (!isFirstLine) {
+      trimmedLine = trimmedLine.replace(/^[ ]+/, "");
+    }
+
+    // trim whitespace touching an endline
+    if (!isLastLine) {
+      trimmedLine = trimmedLine.replace(/[ ]+$/, "");
+    }
+
+    if (trimmedLine) {
+      args.push(t.literal(trimmedLine));
+    }
+  }
+};
+
 // display names
 
-var addDisplayName = function (id, call) {
-  if (!call || !t.isCallExpression(call)) return;
+var isCreateClass = function (call) {
+  if (!call || !t.isCallExpression(call)) return false;
 
   var callee = call.callee;
-  if (!t.isMemberExpression(callee)) return;
+  if (!t.isMemberExpression(callee)) return false;
 
-  // not React
+  // not React call member object
   var obj = callee.object;
-  if (!t.isIdentifier(obj, { name: "React" })) return;
+  if (!t.isIdentifier(obj, { name: "React" })) return false;
 
-  // not createClass
+  // not createClass call member property
   var prop = callee.property;
-  if (!t.isIdentifier(prop, { name: "createClass" })) return;
+  if (!t.isIdentifier(prop, { name: "createClass" })) return false;
 
-  // no arguments
+  // no call arguments
   var args = call.arguments;
-  if (args.length !== 1) return;
+  if (args.length !== 1) return false;
 
-  // not an object
+  // first call arg is not an object
   var first = args[0];
   if (!t.isObjectExpression(first)) return;
 
-  var props = first.properties;
+  return true;
+};
+
+var addDisplayName = function (id, call) {
+  if (!isCreateClass(call)) return;
+
+  var props = call.arguments[0].properties;
   var safe = true;
 
   for (var i = 0; i < props.length; i++) {
-    prop = props[i];
+    var prop = props[i];
     if (t.isIdentifier(prop.key, { name: "displayName" })) {
       safe = false;
       break;
@@ -6534,7 +6976,35 @@ exports.VariableDeclarator = function (node) {
   }
 };
 
-},{"../../types":83,"esutils":106,"lodash":108}],74:[function(require,module,exports){
+},{"../../types":92,"esutils":115,"lodash":117}],82:[function(require,module,exports){
+"use strict";
+
+var t = require("../../types");
+
+exports.FunctionDeclaration = function (node, parent) {
+  if (t.isProgram(parent) || t.isExportDeclaration(parent)) {
+    return;
+  }
+
+  // this is to avoid triggering the TDZ detection
+  node.id.loc = null;
+
+  var declar = t.variableDeclaration("let", [
+    t.variableDeclarator(node.id, t.toExpression(node))
+  ]);
+
+  // hoist it up above everything else
+  declar._blockHoist = 2;
+
+  // todo: name this
+  node.id = null;
+
+  return declar;
+};
+
+},{"../../types":92}],83:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.MemberExpression = function (node) {
@@ -6549,11 +7019,13 @@ exports.MemberExpression = function (node) {
   }
 };
 
-},{"../../types":83}],75:[function(require,module,exports){
+},{"../../types":92}],84:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.ForInStatement =
-exports.ForOfStatement = function (node, parent, file) {
+exports.ForOfStatement = function (node, parent, scope, context, file) {
   var left = node.left;
   if (t.isVariableDeclaration(left)) {
     var declar = left.declarations[0];
@@ -6561,7 +7033,9 @@ exports.ForOfStatement = function (node, parent, file) {
   }
 };
 
-},{"../../types":83}],76:[function(require,module,exports){
+},{"../../types":92}],85:[function(require,module,exports){
+"use strict";
+
 var t = require("../../types");
 
 exports.Property = function (node) {
@@ -6576,15 +7050,19 @@ exports.Property = function (node) {
   }
 };
 
-},{"../../types":83}],77:[function(require,module,exports){
+},{"../../types":92}],86:[function(require,module,exports){
+"use strict";
+
 exports.MethodDefinition =
-exports.Property = function (node, parent, file) {
+exports.Property = function (node, parent, scope, context, file) {
   if (node.kind === "set" && node.value.params.length !== 1) {
     throw file.errorWithNode(node.value, "Setters must have only one parameter");
   }
 };
 
-},{}],78:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
+"use strict";
+
 var useStrict = require("../helpers/use-strict");
 var t         = require("../../types");
 
@@ -6596,42 +7074,51 @@ exports.ast = {
   }
 };
 
-},{"../../types":83,"../helpers/use-strict":26}],79:[function(require,module,exports){
+},{"../../types":92,"../helpers/use-strict":31}],88:[function(require,module,exports){
+"use strict";
+
 module.exports = traverse;
+
+/* jshint maxparams:7 */
 
 var Scope = require("./scope");
 var t     = require("../types");
 var _     = require("lodash");
 
-function TraversalContext(previousContext) {
-  this.didSkip = false;
-  this.didRemove = false;
-  this.didStop = false;
-  this.didFlatten = previousContext ? previousContext.didFlatten : false;
+function noop() { }
+
+function TraversalContext() {
+  this.shouldFlatten = false;
+  this.shouldRemove  = false;
+  this.shouldSkip    = false;
+  this.shouldStop    = false;
 }
 
 TraversalContext.prototype.flatten = function () {
-  this.didFlatten = true;
+  this.shouldFlatten = true;
 };
 
 TraversalContext.prototype.remove = function () {
-  this.didRemove = true;
-  this.skip();
+  this.shouldRemove = true;
+  this.shouldSkip   = true;
 };
 
 TraversalContext.prototype.skip = function () {
-  this.didSkip = true;
+  this.shouldSkip = true;
 };
 
 TraversalContext.prototype.stop = function () {
-  this.didStop = true;
-  this.skip();
+  this.shouldStop = true;
+  this.shouldSkip = true;
 };
 
-TraversalContext.prototype.maybeReplace = function (result, obj, key, node) {
-  if (result === false) return node;
-  if (result == null) return node;
+TraversalContext.prototype.reset = function () {
+  this.shouldRemove = false;
+  this.shouldSkip   = false;
+  this.shouldStop   = false;
+};
 
+function replaceNode(obj, key, node, result) {
   var isArray = Array.isArray(result);
 
   // inherit comments from original node to the first replacement node
@@ -6640,7 +7127,7 @@ TraversalContext.prototype.maybeReplace = function (result, obj, key, node) {
   if (inheritTo) t.inheritsComments(inheritTo, node);
 
   // replace the node
-  node = obj[key] = result;
+  obj[key] = result;
 
   // we're replacing a statement or block node with an array of statements so we better
   // ensure that it's a block
@@ -6649,104 +7136,138 @@ TraversalContext.prototype.maybeReplace = function (result, obj, key, node) {
   }
 
   if (isArray) {
-    this.flatten();
+    return true;
+  }
+}
+
+TraversalContext.prototype.enterNode = function (obj, key, node, enter, parent, scope, state) {
+  var result = enter(node, parent, scope, this, state);
+  var flatten = false;
+
+  if (result) {
+    flatten = replaceNode(obj, key, node, result);
+    node = result;
+
+    if (flatten) {
+      this.shouldFlatten = true;
+    }
+  }
+
+  if (this.shouldRemove) {
+    obj[key] = null;
+    this.shouldFlatten = true;
   }
 
   return node;
 };
 
-TraversalContext.prototype.visit = function (obj, key, opts, scope, parent) {
+TraversalContext.prototype.exitNode = function (obj, key, node, exit, parent, scope, state) {
+  var result = exit(node, parent, scope, this, state);
+  var flatten = false;
+
+  if (result) {
+    flatten = replaceNode(obj, key, node, result);
+    node = result;
+
+    if (flatten) {
+      this.shouldFlatten = true;
+    }
+  }
+
+  return node;
+};
+
+TraversalContext.prototype.visitNode = function (obj, key, opts, scope, parent, state) {
+  this.reset();
+
   var node = obj[key];
-  if (!node) return;
 
   // type is blacklisted
   if (opts.blacklist && opts.blacklist.indexOf(node.type) > -1) return;
 
-  var result;
   var ourScope = scope;
-  if (t.isScope(node)) ourScope = new Scope(node, scope);
-
-  // enter
-  if (opts.enter) {
-    result = opts.enter.call(this, node, parent, ourScope);
-    node = this.maybeReplace(result, obj, key, node);
-
-    if (this.didRemove) {
-      obj[key] = null;
-      this.flatten();
-    }
-
-    // stop traversal
-    if (this.didSkip) return;
+  if (t.isScope(node)) {
+    ourScope = new Scope(node, scope);
   }
 
-  // traverse node
-  traverse(node, opts, ourScope);
+  node = this.enterNode(obj, key, node, opts.enter, parent, ourScope, state);
 
-  // exit
-  if (opts.exit) {
-    result = opts.exit.call(this, node, parent, ourScope);
-    node = this.maybeReplace(result, obj, key, node);
-  }
+  if (this.shouldSkip) return this.shouldStop;
+
+  traverseNode(node, opts, ourScope, state);
+  this.exitNode(obj, key, node, opts.exit, parent, ourScope, state);
+
+  return this.shouldStop;
 };
 
-function traverse(parent, opts, scope) {
-  // falsy node
-  if (!parent) return;
+TraversalContext.prototype.visit = function (node, key, opts, scope, state) {
+  var nodes = node[key];
+  if (!nodes) return;
 
-  // array of nodes
-  if (Array.isArray(parent)) {
-    for (var i = 0; i < parent.length; i++)
-      traverse(parent[i], opts, scope);
+  if (!Array.isArray(nodes)) {
+    return this.visitNode(node, key, opts, scope, node, state);
+  }
+
+  if (nodes.length === 0) {
     return;
   }
 
-  // unknown node type to traverse
-  var keys = t.VISITOR_KEYS[parent.type];
+  for (var k = 0; k < nodes.length; k++) {
+    if (nodes[k] && this.visitNode(nodes, k, opts, scope, node, state))
+      return true;
+  }
+
+  if (this.shouldFlatten) {
+    node[key] = _.flatten(node[key]);
+
+    if (key === "body") {
+      // we can safely compact this
+      node[key] = _.compact(node[key]);
+    }
+  }
+};
+
+function traverseNode(node, opts, scope, state) {
+  var keys = t.VISITOR_KEYS[node.type];
   if (!keys) return;
 
-  opts = opts || {};
-  var context = null;
-
+  var context = new TraversalContext();
   for (var j = 0; j < keys.length; j++) {
-    var key = keys[j];
-    var nodes = parent[key];
-    if (!nodes) continue;
-
-    if (Array.isArray(nodes)) {
-      for (var k = 0; k < nodes.length; k++) {
-        context = new TraversalContext(context);
-        context.visit(nodes, k, opts, scope, parent);
-        if (context.didStop) return;
-      }
-
-      if (context && context.didFlatten) {
-        parent[key] = _.flatten(parent[key]);
-
-        if (key === "body") {
-          // we can safely compact this
-          parent[key] = _.compact(parent[key]);
-        }
-      }
-    } else {
-      context = new TraversalContext(context);
-      context.visit(parent, key, opts, scope, parent);
-      if (context.didStop) return;
+    if (context.visit(node, keys[j], opts, scope, state)) {
+      return;
     }
+  }
+}
+
+function traverse(parent, opts, scope, state) {
+  // falsy node
+  if (!parent) return;
+
+  if (!opts) opts = {};
+  if (!opts.enter) opts.enter = noop;
+  if (!opts.exit) opts.exit = noop;
+
+  // array of nodes
+  if (Array.isArray(parent)) {
+    for (var i = 0; i < parent.length; i++) {
+      traverseNode(parent[i], opts, scope, state);
+    }
+  } else {
+    traverseNode(parent, opts, scope, state);
   }
 }
 
 traverse.removeProperties = function (tree) {
   var clear = function (node) {
-    delete node._declarations;
-    delete node.extendedRange;
-    delete node._scopeInfo;
-    delete node.tokens;
-    delete node.range;
-    delete node.start;
-    delete node.end;
-    delete node.loc;
-    delete node.raw;
+    node._declarations = null;
+    node.extendedRange = null;
+    node._scopeInfo = null;
+    node.tokens = null;
+    node.range = null;
+    node.start = null;
+    node.end = null;
+    node.loc = null;
+    node.raw = null;
 
     clearComments(node.trailingComments);
     clearComments(node.leadingComments);
@@ -6765,28 +7286,32 @@ traverse.removeProperties = function (tree) {
 traverse.hasType = function (tree, type, blacklistTypes) {
   blacklistTypes = [].concat(blacklistTypes || []);
 
-  var has = false;
-
   // the node we're searching in is blacklisted
   if (_.contains(blacklistTypes, tree.type)) return false;
 
   // the type we're looking for is the same as the passed node
   if (tree.type === type) return true;
 
+  var state = {
+    has: false
+  };
+
   traverse(tree, {
     blacklist: blacklistTypes,
-    enter: function (node) {
+    enter: function (node, parent, scope, context, state) {
       if (node.type === type) {
-        has = true;
-        this.skip();
+        state.has = true;
+        context.skip();
       }
     }
-  });
+  }, null, state);
 
-  return has;
+  return state.has;
 };
 
-},{"../types":83,"./scope":80,"lodash":108}],80:[function(require,module,exports){
+},{"../types":92,"./scope":89,"lodash":117}],89:[function(require,module,exports){
+"use strict";
+
 module.exports = Scope;
 
 var traverse = require("./index");
@@ -6907,6 +7432,7 @@ Scope.prototype.generateTempBasedOnNode = function (node, file) {
 };
 
 Scope.prototype.getInfo = function () {
+  var parent = this.parent;
   var block = this.block;
   if (block._scopeInfo) return block._scopeInfo;
 
@@ -6919,15 +7445,21 @@ Scope.prototype.getInfo = function () {
     if (!reference) Scope.add(node, declarations);
   };
 
+  if (parent && t.isBlockStatement(block) && t.isFor(parent.block)) {
+    return info;
+  }
+
   // ForStatement - left, init
 
   if (t.isFor(block)) {
     _.each(FOR_KEYS, function (key) {
       var node = block[key];
-      if (t.isLet(node)) add(node);
+      if (t.isBlockScoped(node)) add(node);
     });
 
-    block = block.body;
+    if (t.isBlockStatement(block.body)) {
+      block = block.body;
+    }
   }
 
   // Program, BlockStatement - let variables
@@ -6935,7 +7467,7 @@ Scope.prototype.getInfo = function () {
   if (t.isBlockStatement(block) || t.isProgram(block)) {
     _.each(block.body, function (node) {
       // check for non-var `VariableDeclaration`s
-      if (t.isLet(node)) add(node);
+      if (t.isBlockScoped(node)) add(node);
     });
   }
 
@@ -6945,11 +7477,22 @@ Scope.prototype.getInfo = function () {
     add(block.param);
   }
 
+  // ComprehensionExpression - blocks
+
+  if (t.isComprehensionExpression(block)) {
+    add(block);
+  }
+
   // Program, Function - var variables
 
   if (t.isProgram(block) || t.isFunction(block)) {
+    var state = {
+      blockId: block.id,
+      add: add
+    };
+
     traverse(block, {
-      enter: function (node, parent, scope) {
+      enter: function (node, parent, scope, context, state) {
         if (t.isFor(node)) {
           _.each(FOR_KEYS, function (key) {
             var declar = node[key];
@@ -6959,22 +7502,22 @@ Scope.prototype.getInfo = function () {
 
         // this block is a function so we'll stop since none of the variables
         // declared within are accessible
-        if (t.isFunction(node)) return this.skip();
+        if (t.isFunction(node)) return context.skip();
 
         // function identifier doesn't belong to this scope
-        if (block.id && node === block.id) return;
+        if (state.blockId && node === state.blockId) return;
 
         if (t.isIdentifier(node) && t.isReferenced(node, parent) && !scope.has(node.name)) {
-          add(node, true);
+          state.add(node, true);
         }
 
         // we've ran into a declaration!
         // we'll let the BlockStatement scope deal with `let` declarations unless
-        if (t.isDeclaration(node) && !t.isLet(node)) {
-          add(node);
+        if (t.isDeclaration(node) && !t.isBlockScoped(node)) {
+          state.add(node);
         }
       }
-    }, this);
+    }, this, state);
   }
 
   // Function - params, rest
@@ -7097,7 +7640,7 @@ Scope.prototype.parentHas = function (id, decl) {
   return this.parent && this.parent.has(id, decl);
 };
 
-},{"../types":83,"./index":79,"jshint/src/vars":107,"lodash":108}],81:[function(require,module,exports){
+},{"../types":92,"./index":88,"jshint/src/vars":116,"lodash":117}],90:[function(require,module,exports){
 module.exports={
   "ExpressionStatement": ["Statement"],
   "BreakStatement":      ["Statement"],
@@ -7116,6 +7659,7 @@ module.exports={
   "VariableDeclaration": ["Statement", "Declaration"],
   "ExportDeclaration":   ["Statement", "Declaration"],
   "ImportDeclaration":   ["Statement", "Declaration"],
+  "PrivateDeclaration":  ["Statement", "Declaration"],
 
   "ArrowFunctionExpression": ["Scope", "Function", "Expression"],
   "FunctionDeclaration":     ["Statement", "Declaration", "Scope", "Function"],
@@ -7152,7 +7696,7 @@ module.exports={
   "BindFunctionExpression": ["Expression"],
   "BindMemberExpression": ["Expression"],
   "CallExpression": ["Expression"],
-  "ComprehensionExpression": ["Expression"],
+  "ComprehensionExpression": ["Expression", "Scope"],
   "ConditionalExpression": ["Expression"],
   "Identifier": ["Expression"],
   "Literal": ["Expression"],
@@ -7169,7 +7713,7 @@ module.exports={
   "YieldExpression": ["Expression"]
 }
 
-},{}],82:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 module.exports={
   "ArrayExpression":         ["elements"],
   "ArrowFunctionExpression": ["params", "body"],
@@ -7204,9 +7748,12 @@ module.exports={
   "YieldExpression":         ["argument", "delegate"]
 }
 
-},{}],83:[function(require,module,exports){
-var esutils = require("esutils");
-var _       = require("lodash");
+},{}],92:[function(require,module,exports){
+"use strict";
+
+var toFastProperties = require("../to-fast-properties");
+var esutils          = require("esutils");
+var _                = require("lodash");
 
 var t = exports;
 
@@ -7221,6 +7768,7 @@ t.NATIVE_TYPE_NAMES = ["Array", "Object", "Number", "Boolean", "Date", "Array", 
  * @param {String} type
  * @param {Boolean?} skipAliasCheck
  */
+
 function registerType(type, skipAliasCheck) {
   var is = t["is" + type] = function (node, opts) {
     return t.is(type, node, opts, skipAliasCheck);
@@ -7271,6 +7819,7 @@ _.each(t.FLIPPED_ALIAS_KEYS, function (types, type) {
  * @param {Boolean?} skipAliasCheck
  * @returns {Boolean} isOfType
  */
+
 t.is = function (type, node, opts, skipAliasCheck) {
   if (!node) return;
 
@@ -7463,6 +8012,18 @@ t.isReferenced = function (node, parent) {
   if (!isMemberExpression || isComputedProperty || isObject) return true;
 
   return false;
+};
+
+/**
+ * Description
+ *
+ * @param {Object} node
+ * @param {Object} parent
+ * @returns {Boolean}
+ */
+
+t.isReferencedIdentifier = function (node, parent) {
+  return t.isIdentifier(node) && t.isReferenced(node, parent);
 };
 
 /**
@@ -7676,10 +8237,14 @@ t.getIds.nodes = {
   ClassDeclaration: ["id"],
   MemeberExpression: ["object"],
   SpreadElement: ["argument"],
-  Property: ["value"]
+  Property: ["value"],
+  ComprehensionBlock: ["left"],
+  AssignmentPattern: ["left"]
 };
 
 t.getIds.arrays = {
+  PrivateDeclaration: ["declarations"],
+  ComprehensionExpression: ["blocks"],
   ExportDeclaration: ["specifiers", "declaration"],
   ImportDeclaration: ["specifiers"],
   VariableDeclaration: ["declarations"],
@@ -7696,6 +8261,17 @@ t.getIds.arrays = {
 
 t.isLet = function (node) {
   return t.isVariableDeclaration(node) && (node.kind !== "var" || node._let);
+};
+
+/**
+ * Description
+ *
+ * @param {Object} node
+ * @returns {Boolean}
+ */
+
+t.isBlockScoped = function (node) {
+  return t.isFunctionDeclaration(node) || t.isLet(node);
 };
 
 /**
@@ -7751,10 +8327,10 @@ t.inheritsComments = function (child, parent) {
  */
 
 t.inherits = function (child, parent) {
-  child.loc   = parent.loc;
-  child.end   = parent.end;
   child.range = parent.range;
   child.start = parent.start;
+  child.loc   = parent.loc;
+  child.end   = parent.end;
   t.inheritsComments(child, parent);
   return child;
 };
@@ -7781,7 +8357,10 @@ t.isSpecifierDefault = function (specifier) {
   return t.isIdentifier(specifier.id) && specifier.id.name === "default";
 };
 
-},{"./alias-keys":81,"./builder-keys":82,"./visitor-keys":84,"esutils":106,"lodash":108}],84:[function(require,module,exports){
+toFastProperties(t);
+toFastProperties(t.VISITOR_KEYS);
+
+},{"../to-fast-properties":23,"./alias-keys":90,"./builder-keys":91,"./visitor-keys":93,"esutils":115,"lodash":117}],93:[function(require,module,exports){
 module.exports={
   "ArrayExpression":           ["elements"],
   "ArrayPattern":              ["elements"],
@@ -7897,8 +8476,10 @@ module.exports={
   "XJSSpreadAttribute":        ["argument"]
 }
 
-},{}],85:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 (function (Buffer,__dirname){
+"use strict";
+
 require("./patch");
 
 var estraverse = require("estraverse");
@@ -8030,6 +8611,14 @@ exports.buildDefineProperties = function (mutatorMap) {
   return objExpr;
 };
 
+var templateTraverser = {
+  enter: function (node, parent, scope, context, nodes) {
+    if (t.isIdentifier(node) && _.has(nodes, node.name)) {
+      return nodes[node.name];
+    }
+  }
+};
+
 exports.template = function (name, nodes, keepExpression) {
   var template = exports.templates[name];
   if (!template) throw new ReferenceError("unknown template " + name);
@@ -8042,13 +8631,7 @@ exports.template = function (name, nodes, keepExpression) {
   template = _.cloneDeep(template);
 
   if (!_.isEmpty(nodes)) {
-    traverse(template, {
-      enter: function (node) {
-        if (t.isIdentifier(node) && _.has(nodes, node.name)) {
-          return nodes[node.name];
-        }
-      }
-    });
+    traverse(template, templateTraverser, null, nodes);
   }
 
   var node = template.body[0];
@@ -8194,8 +8777,8 @@ try {
   exports.templates = loadTemplates();
 }
 
-}).call(this,require("buffer").Buffer,"/../node_modules/6to5/lib/6to5")
-},{"../../templates.json":161,"./patch":22,"./traverse":79,"./types":83,"acorn-6to5":86,"buffer":173,"estraverse":102,"fs":169,"lodash":108,"path":178,"util":200}],86:[function(require,module,exports){
+}).call(this,require("buffer").Buffer,"/node_modules/6to5/lib/6to5")
+},{"../../templates.json":172,"./patch":22,"./traverse":88,"./types":92,"acorn-6to5":95,"buffer":187,"estraverse":111,"fs":184,"lodash":117,"path":194,"util":215}],95:[function(require,module,exports){
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
 //
 // Acorn was written by Marijn Haverbeke and various contributors and
@@ -8667,7 +9250,7 @@ try {
 
   // '*' may be multiply or have special meaning in ES6
   var _star = {binop: 10, beforeExpr: true};
-  var _exponent = {binop: 11, beforeExpr: true};
+  var _exponent = {binop: 11, beforeExpr: true, rightAssociative: true};
 
   // '<', '>' may be relational or have special meaning in JSX
   var _lt = {binop: 7, beforeExpr: true}, _gt = {binop: 7, beforeExpr: true};
@@ -8978,7 +9561,10 @@ switch(str.length){case 5:switch(str){case "break":case "catch":case "throw":cas
 
   function readToken_pipe_amp(code) { // '|&'
     var next = input.charCodeAt(tokPos + 1);
-    if (next === code) return finishOp(code === 124 ? _logicalOR : _logicalAND, 2);
+    if (next === code) {
+      if (options.playground && input.charCodeAt(tokPos + 2) === 61) return finishOp(_assign, 3);
+      return finishOp(code === 124 ? _logicalOR : _logicalAND, 2);
+    }
     if (next === 61) return finishOp(_assign, 2);
     return finishOp(code === 124 ? _bitwiseOR : _bitwiseAND, 1);
   }
@@ -10685,7 +11271,7 @@ switch(str.length){case 5:switch(str){case "break":case "catch":case "throw":cas
         var op = tokType;
         next();
         var start = storeCurrentPos();
-        node.right = parseExprOp(parseMaybeUnary(), start, prec, noIn);
+        node.right = parseExprOp(parseMaybeUnary(), start, op.rightAssociative ? (prec - 1) : prec, noIn);
         finishNode(node, (op === _logicalOR || op === _logicalAND) ? "LogicalExpression" : "BinaryExpression");
         return parseExprOp(node, leftStart, minPrec, noIn);
       }
@@ -11205,6 +11791,7 @@ switch(str.length){case 5:switch(str){case "break":case "catch":case "throw":cas
             defaults.push(null);
           }
         }
+
         if (!eat(_comma)) {
           expect(_parenR);
           break;
@@ -11220,10 +11807,11 @@ switch(str.length){case 5:switch(str){case "break":case "catch":case "throw":cas
   }
 
   function parseFunctionParam(param) {
+    if (eat(_question)) {
+      param.optional = true;
+    }
     if (tokType === _colon) {
       param.typeAnnotation = parseTypeAnnotation();
-    } else if (eat(_question)) {
-      param.optional = true;
     }
     finishNode(param, param.type);
   }
@@ -12520,7 +13108,7 @@ switch(str.length){case 5:switch(str){case "break":case "catch":case "throw":cas
   }
 });
 
-},{}],87:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 var types = require("../lib/types");
 var Type = types.Type;
 var def = Type.def;
@@ -12544,7 +13132,11 @@ def("Printable")
 
 def("Node")
     .bases("Printable")
-    .field("type", isString);
+    .field("type", isString)
+    .field("comments", or(
+        [def("Comment")],
+        null
+    ), defaults["null"], true);
 
 def("SourceLocation")
     .build("start", "end", "source")
@@ -12560,11 +13152,7 @@ def("Position")
 def("Program")
     .bases("Node")
     .build("body")
-    .field("body", [def("Statement")])
-    .field("comments", or(
-        [or(def("Block"), def("Line"))],
-        null
-    ), defaults["null"], true);
+    .field("body", [def("Statement")]);
 
 def("Function")
     .bases("Node")
@@ -12738,7 +13326,8 @@ def("Property")
     .build("kind", "key", "value")
     .field("kind", or("init", "get", "set"))
     .field("key", or(def("Literal"), def("Identifier")))
-    .field("value", def("Expression"));
+    // esprima allows Pattern
+    .field("value", or(def("Expression"), def("Pattern")));
 
 def("SequenceExpression")
     .bases("Expression")
@@ -12840,7 +13429,8 @@ def("ObjectPattern")
     .bases("Pattern")
     .build("properties")
     // TODO File a bug to get PropertyPattern added to the interfaces API.
-    .field("properties", [def("PropertyPattern")]);
+    // esprima uses Property
+    .field("properties", [or(def("PropertyPattern"), def("Property"))]);
 
 def("PropertyPattern")
     .bases("Pattern")
@@ -12877,19 +13467,31 @@ def("Literal")
         isRegExp
     ));
 
-// Block comment. Not a Node.
+// Abstract (non-buildable) comment supertype. Not a Node.
+def("Comment")
+    .bases("Printable")
+    .field("value", isString)
+    // A .leading comment comes before the node, whereas a .trailing
+    // comment comes after it. These two fields should not both be true,
+    // but they might both be false when the comment falls inside a node
+    // and the node has no children for the comment to lead or trail,
+    // e.g. { /*dangling*/ }.
+    .field("leading", isBoolean, defaults["true"])
+    .field("trailing", isBoolean, defaults["false"]);
+
+// Block comment. The .type really should be BlockComment rather than
+// Block, but that's what we're stuck with for now.
 def("Block")
-    .bases("Printable")
-    .build("loc", "value")
-    .field("value", isString);
+    .bases("Comment")
+    .build("value", /*optional:*/ "leading", "trailing");
 
-// Single line comment. Not a Node.
+// Single line comment. The .type really should be LineComment rather than
+// Line, but that's what we're stuck with for now.
 def("Line")
-    .bases("Printable")
-    .build("loc", "value")
-    .field("value", isString);
+    .bases("Comment")
+    .build("value", /*optional:*/ "leading", "trailing");
 
-},{"../lib/shared":98,"../lib/types":99}],88:[function(require,module,exports){
+},{"../lib/shared":107,"../lib/types":108}],97:[function(require,module,exports){
 require("./core");
 var types = require("../lib/types");
 var def = types.Type.def;
@@ -12978,7 +13580,7 @@ def("XMLProcessingInstruction")
     .field("target", isString)
     .field("contents", or(isString, null));
 
-},{"../lib/types":99,"./core":87}],89:[function(require,module,exports){
+},{"../lib/types":108,"./core":96}],98:[function(require,module,exports){
 require("./core");
 var types = require("../lib/types");
 var def = types.Type.def;
@@ -13012,7 +13614,7 @@ def("ArrowFunctionExpression")
     .field("id", null, defaults["null"])
     // The current spec forbids arrow generators, so I have taken the
     // liberty of enforcing that. TODO Report this.
-    .field("generator", false);
+    .field("generator", false, defaults["false"]);
 
 def("YieldExpression")
     .bases("Expression")
@@ -13083,6 +13685,14 @@ def("SpreadElementPattern")
     .bases("Pattern")
     .build("argument")
     .field("argument", def("Pattern"));
+
+def("ArrayPattern")
+    .field("elements", [or(
+        def("Pattern"),
+        null,
+        // used by esprima
+        def("SpreadElement")
+    )]);
 
 var ClassBodyElement = or(
     def("MethodDefinition"),
@@ -13209,7 +13819,7 @@ def("TemplateElement")
     .field("value", {"cooked": isString, "raw": isString})
     .field("tail", isBoolean);
 
-},{"../lib/shared":98,"../lib/types":99,"./core":87}],90:[function(require,module,exports){
+},{"../lib/shared":107,"../lib/types":108,"./core":96}],99:[function(require,module,exports){
 require("./core");
 var types = require("../lib/types");
 var def = types.Type.def;
@@ -13237,7 +13847,10 @@ def("SpreadPropertyPattern")
 def("ObjectPattern")
     .field("properties", [or(
         def("PropertyPattern"),
-        def("SpreadPropertyPattern")
+        def("SpreadPropertyPattern"),
+        // used by esprima
+        def("Property"),
+        def("SpreadProperty")
     )]);
 
 def("AwaitExpression")
@@ -13246,7 +13859,7 @@ def("AwaitExpression")
     .field("argument", or(def("Expression"), null))
     .field("all", isBoolean, defaults["false"]);
 
-},{"../lib/shared":98,"../lib/types":99,"./core":87}],91:[function(require,module,exports){
+},{"../lib/shared":107,"../lib/types":108,"./core":96}],100:[function(require,module,exports){
 require("./core");
 var types = require("../lib/types");
 var def = types.Type.def;
@@ -13399,6 +14012,11 @@ def("FunctionTypeParam")
   .field("name", def("Identifier"))
   .field("typeAnnotation", def("Type"))
   .field("optional", isBoolean);
+  
+def("ArrayTypeAnnotation")
+  .bases("Type")
+  .build("elementType")
+  .field("elementType", def("Type"));
 
 def("ObjectTypeAnnotation")
   .bases("Type")
@@ -13505,6 +14123,12 @@ def("TypeAlias")
   .field("id", def("Identifier"))
   .field("typeParameters", or(def("TypeParameterDeclaration"), null))
   .field("right", def("Type"));
+  
+def("TypeCastExpression")
+  .bases("Expression")
+  .build("expression", "typeAnnotation")
+  .field("expression", def("Expression"))
+  .field("typeAnnotation", def("TypeAnnotation"));
 
 def("TupleTypeAnnotation")
   .bases("Type")
@@ -13531,7 +14155,7 @@ def("DeclareModule")
   .field("id", or(def("Identifier"), def("Literal")))
   .field("body", def("BlockStatement"));
 
-},{"../lib/shared":98,"../lib/types":99,"./core":87}],92:[function(require,module,exports){
+},{"../lib/shared":107,"../lib/types":108,"./core":96}],101:[function(require,module,exports){
 require("./core");
 var types = require("../lib/types");
 var def = types.Type.def;
@@ -13572,7 +14196,7 @@ def("GraphIndexExpression")
     .build("index")
     .field("index", geq(0));
 
-},{"../lib/shared":98,"../lib/types":99,"./core":87}],93:[function(require,module,exports){
+},{"../lib/shared":107,"../lib/types":108,"./core":96}],102:[function(require,module,exports){
 var assert = require("assert");
 var types = require("../main");
 var getFieldNames = types.getFieldNames;
@@ -13752,7 +14376,7 @@ function objectsAreEquivalent(a, b, problemPath) {
 
 module.exports = astNodesAreEquivalent;
 
-},{"../main":100,"assert":170}],94:[function(require,module,exports){
+},{"../main":109,"assert":185}],103:[function(require,module,exports){
 var assert = require("assert");
 var types = require("./types");
 var n = types.namedTypes;
@@ -14203,11 +14827,11 @@ function cleanUpIfStatementAfterPrune(ifStatement) {
 
 module.exports = NodePath;
 
-},{"./path":96,"./scope":97,"./types":99,"assert":170,"util":200}],95:[function(require,module,exports){
+},{"./path":105,"./scope":106,"./types":108,"assert":185,"util":215}],104:[function(require,module,exports){
 var assert = require("assert");
 var types = require("./types");
 var NodePath = require("./node-path");
-var Node = types.namedTypes.Node;
+var Printable = types.namedTypes.Printable;
 var isArray = types.builtInTypes.array;
 var isObject = types.builtInTypes.object;
 var isFunction = types.builtInTypes.function;
@@ -14219,7 +14843,12 @@ function PathVisitor() {
 
     // Permanent state.
     this._reusableContextStack = [];
+
     this._methodNameTable = computeMethodNameTable(this);
+    this._shouldVisitComments =
+        hasOwn.call(this._methodNameTable, "Block") ||
+        hasOwn.call(this._methodNameTable, "Line");
+
     this.Context = makeContextConstructor(this);
 
     // State reset every time PathVisitor.prototype.visit is called.
@@ -14306,6 +14935,7 @@ PVp.visit = function() {
     // Private state that needs to be reset before every traversal.
     this._visiting = true;
     this._changeReported = false;
+    this._abortRequested = false;
 
     var argc = arguments.length;
     var args = new Array(argc)
@@ -14321,10 +14951,41 @@ PVp.visit = function() {
     this.reset.apply(this, args);
 
     try {
-        return this.visitWithoutReset(args[0]);
+        var root = this.visitWithoutReset(args[0]);
+        var didNotThrow = true;
     } finally {
         this._visiting = false;
+
+        if (!didNotThrow && this._abortRequested) {
+            // If this.visitWithoutReset threw an exception and
+            // this._abortRequested was set to true, return the root of
+            // the AST instead of letting the exception propagate, so that
+            // client code does not have to provide a try-catch block to
+            // intercept the AbortRequest exception.  Other kinds of
+            // exceptions will propagate without being intercepted and
+            // rethrown by a catch block, so their stacks will accurately
+            // reflect the original throwing context.
+            return args[0].value;
+        }
     }
+
+    return root;
+};
+
+PVp.AbortRequest = function AbortRequest() {};
+PVp.abort = function() {
+    var visitor = this;
+    visitor._abortRequested = true;
+    var request = new visitor.AbortRequest();
+
+    // If you decide to catch this exception and stop it from propagating,
+    // make sure to call its cancel method to avoid silencing other
+    // exceptions that might be thrown later in the traversal.
+    request.cancel = function() {
+        visitor._abortRequested = false;
+    };
+
+    throw request;
 };
 
 PVp.reset = function(path/*, additional arguments */) {
@@ -14342,7 +15003,7 @@ PVp.visitWithoutReset = function(path) {
     assert.ok(path instanceof NodePath);
     var value = path.value;
 
-    var methodName = Node.check(value) && this._methodNameTable[value.type];
+    var methodName = Printable.check(value) && this._methodNameTable[value.type];
     if (methodName) {
         var context = this.acquireContext(path);
         try {
@@ -14370,6 +15031,16 @@ function visitChildren(path, visitor) {
         // No children to visit.
     } else {
         var childNames = types.getFieldNames(value);
+
+        // The .comments field of the Node type is hidden, so we only
+        // visit it if the visitor defines visitBlock or visitLine, and
+        // value.comments is defined.
+        if (visitor._shouldVisitComments &&
+            value.comments &&
+            childNames.indexOf("comments") < 0) {
+            childNames.push("comments");
+        }
+
         var childCount = childNames.length;
         var childPaths = [];
 
@@ -14521,9 +15192,14 @@ sharedContextProtoMethods.reportChanged = function reportChanged() {
     this.visitor.reportChanged();
 };
 
+sharedContextProtoMethods.abort = function abort() {
+    this.needToCallTraverse = false;
+    this.visitor.abort();
+};
+
 module.exports = PathVisitor;
 
-},{"./node-path":94,"./types":99,"assert":170}],96:[function(require,module,exports){
+},{"./node-path":103,"./types":108,"assert":185}],105:[function(require,module,exports){
 var assert = require("assert");
 var Op = Object.prototype;
 var hasOwn = Op.hasOwnProperty;
@@ -14873,7 +15549,7 @@ Pp.replace = function replace(replacement) {
 
 module.exports = Path;
 
-},{"./types":99,"assert":170}],97:[function(require,module,exports){
+},{"./types":108,"assert":185}],106:[function(require,module,exports){
 var assert = require("assert");
 var types = require("./types");
 var Type = types.Type;
@@ -15102,9 +15778,41 @@ function addPattern(patternPath, bindings) {
             bindings[pattern.name] = [patternPath];
         }
 
-    } else if (namedTypes.SpreadElement &&
-               namedTypes.SpreadElement.check(pattern)) {
-        addPattern(patternPath.get("argument"), bindings);
+    } else if (namedTypes.ObjectPattern &&
+               namedTypes.ObjectPattern.check(pattern)) {
+        patternPath.get('properties').each(function(propertyPath) {
+            var property = propertyPath.value;
+            if (namedTypes.Pattern.check(property)) {
+                addPattern(propertyPath, bindings);
+            } else  if (namedTypes.Property.check(property)) {
+                addPattern(propertyPath.get('value'), bindings);
+            } else if (namedTypes.SpreadProperty &&
+                       namedTypes.SpreadProperty.check(property)) {
+                addPattern(propertyPath.get('argument'), bindings);
+            }
+        });
+
+    } else if (namedTypes.ArrayPattern &&
+               namedTypes.ArrayPattern.check(pattern)) {
+        patternPath.get('elements').each(function(elementPath) {
+            var element = elementPath.value;
+            if (namedTypes.Pattern.check(element)) {
+                addPattern(elementPath, bindings);
+            } else if (namedTypes.SpreadElement &&
+                       namedTypes.SpreadElement.check(element)) {
+                addPattern(elementPath.get("argument"), bindings);
+            }
+        });
+
+    } else if (namedTypes.PropertyPattern &&
+               namedTypes.PropertyPattern.check(pattern)) {
+        addPattern(patternPath.get('pattern'), bindings);
+
+    } else if ((namedTypes.SpreadElementPattern &&
+                namedTypes.SpreadElementPattern.check(pattern)) ||
+               (namedTypes.SpreadPropertyPattern &&
+                namedTypes.SpreadPropertyPattern.check(pattern))) {
+        addPattern(patternPath.get('argument'), bindings);
     }
 }
 
@@ -15124,7 +15832,7 @@ Sp.getGlobalScope = function() {
 
 module.exports = Scope;
 
-},{"./node-path":94,"./types":99,"assert":170}],98:[function(require,module,exports){
+},{"./node-path":103,"./types":108,"assert":185}],107:[function(require,module,exports){
 var types = require("../lib/types");
 var Type = types.Type;
 var builtin = types.builtInTypes;
@@ -15167,7 +15875,7 @@ exports.isPrimitive = new Type(function(value) {
              type === "function");
 }, naiveIsPrimitive.toString());
 
-},{"../lib/types":99}],99:[function(require,module,exports){
+},{"../lib/types":108}],108:[function(require,module,exports){
 var assert = require("assert");
 var Ap = Array.prototype;
 var slice = Ap.slice;
@@ -15899,7 +16607,7 @@ exports.finalize = function() {
     });
 };
 
-},{"assert":170}],100:[function(require,module,exports){
+},{"assert":185}],109:[function(require,module,exports){
 var types = require("./lib/types");
 
 // This core module of AST types captures ES5 as it is parsed today by
@@ -15932,10 +16640,9 @@ exports.NodePath = require("./lib/node-path");
 exports.PathVisitor = require("./lib/path-visitor");
 exports.visit = exports.PathVisitor.visit;
 
-},{"./def/core":87,"./def/e4x":88,"./def/es6":89,"./def/es7":90,"./def/fb-harmony":91,"./def/mozilla":92,"./lib/equiv":93,"./lib/node-path":94,"./lib/path-visitor":95,"./lib/types":99}],101:[function(require,module,exports){
-(function (global){
+},{"./def/core":96,"./def/e4x":97,"./def/es6":98,"./def/es7":99,"./def/fb-harmony":100,"./def/mozilla":101,"./lib/equiv":102,"./lib/node-path":103,"./lib/path-visitor":104,"./lib/types":108}],110:[function(require,module,exports){
 /**
- * Core.js 0.4.4
+ * Core.js 0.4.5
  * https://github.com/zloirock/core-js
  * License: http://rock.mit-license.org
  * © 2015 Denis Pushkarev
@@ -16097,8 +16804,8 @@ function invoke(fn, args, that){
                       : fn.call(that, args[0], args[1], args[2], args[3], args[4]);
   } return              fn.apply(that, args);
 }
-function construct(target, argumentsList){
-  var instance = create(target[PROTOTYPE])
+function construct(target, argumentsList /*, newTarget*/){
+  var instance = create((arguments.length < 3 ? target : assertFunction(arguments[2]))[PROTOTYPE])
     , result   = apply.call(target, instance, argumentsList);
   return isObject(result) ? result : instance;
 }
@@ -16400,12 +17107,12 @@ function iterResult(done, value){
 function isIterable(it){
   var O      = Object(it)
     , Symbol = global[SYMBOL]
-    , hasExt = !!(Symbol && Symbol[ITERATOR] && Symbol[ITERATOR] in O);
+    , hasExt = (Symbol && Symbol[ITERATOR] || FF_ITERATOR) in O;
   return hasExt || SYMBOL_ITERATOR in O || has(Iterators, classof(O));
 }
 function getIterator(it){
   var Symbol  = global[SYMBOL]
-    , ext     = Symbol && Symbol[ITERATOR] && it[Symbol[ITERATOR]]
+    , ext     = it[Symbol && Symbol[ITERATOR] || FF_ITERATOR]
     , getIter = ext || it[SYMBOL_ITERATOR] || Iterators[classof(it)];
   return assertObject(getIter.call(it));
 }
@@ -16424,6 +17131,7 @@ var NODE = cof(process) == PROCESS
   , core = {}
   , path = framework ? global : core
   , old  = global.core
+  , exportGlobal
   // type bitmap
   , FORCED = 1
   , GLOBAL = 2
@@ -16465,9 +17173,10 @@ function $define(type, name, source){
 // CommonJS export
 if(typeof module != 'undefined' && module.exports)module.exports = core;
 // RequireJS export
-if(isFunction(define) && define.amd)define(function(){return core});
+else if(isFunction(define) && define.amd)define(function(){return core});
 // Export to global object
-if(!NODE || framework){
+else exportGlobal = true;
+if(exportGlobal || framework){
   core.noConflict = function(){
     global.core = old;
     return core;
@@ -16559,8 +17268,8 @@ $define(GLOBAL + FORCED, {global: global});
         return !isObject(it) && isFinite(it) && floor(it) === it;
       }
       // 20.2.2.28 Math.sign(x)
-    , sign = Math.sign || function sign(it){
-        return (it = +it) == 0 || it != it ? it : it < 0 ? -1 : 1;
+    , sign = Math.sign || function sign(x){
+        return (x = +x) == 0 || x != x ? x : x < 0 ? -1 : 1;
       }
     , pow  = Math.pow
     , abs  = Math.abs
@@ -16628,17 +17337,17 @@ $define(GLOBAL + FORCED, {global: global});
   $define(STATIC, MATH, {
     // 20.2.2.3 Math.acosh(x)
     acosh: function(x){
-      return x < 1 ? NaN : log(x + sqrt(x * x - 1));
+      return (x = +x) < 1 ? NaN : log(x + sqrt(x * x - 1));
     },
     // 20.2.2.5 Math.asinh(x)
     asinh: asinh,
     // 20.2.2.7 Math.atanh(x)
     atanh: function(x){
-      return x == 0 ? +x : log((1 + +x) / (1 - x)) / 2;
+      return (x = +x) == 0 ? x : log((1 + x) / (1 - x)) / 2;
     },
     // 20.2.2.9 Math.cbrt(x)
     cbrt: function(x){
-      return sign(x) * pow(abs(x), 1 / 3);
+      return sign(x = +x) * pow(abs(x), 1 / 3);
     },
     // 20.2.2.11 Math.clz32(x)
     clz32: function(x){
@@ -16646,11 +17355,11 @@ $define(GLOBAL + FORCED, {global: global});
     },
     // 20.2.2.12 Math.cosh(x)
     cosh: function(x){
-      return (exp(x) + exp(-x)) / 2;
+      return (exp(x = +x) + exp(-x)) / 2;
     },
     // 20.2.2.14 Math.expm1(x)
     expm1: function(x){
-      return x == 0 ? +x : x > -1e-6 && x < 1e-6 ? +x + x * x / 2 : exp(x) - 1;
+      return (x = +x) == 0 ? x : x > -1e-6 && x < 1e-6 ? x + x * x / 2 : exp(x) - 1;
     },
     // 20.2.2.16 Math.fround(x)
     // TODO: fallback for IE9-
@@ -16658,17 +17367,21 @@ $define(GLOBAL + FORCED, {global: global});
       return new Float32Array([x])[0];
     },
     // 20.2.2.17 Math.hypot([value1[, value2[, … ]]])
-    // TODO: work with very large & small numbers
     hypot: function(value1, value2){
-      var sum    = 0
-        , length = arguments.length
-        , value;
-      while(length--){
-        value = +arguments[length];
-        if(value == Infinity || value == -Infinity)return Infinity;
-        sum += value * value;
+      var sum  = 0
+        , len1 = arguments.length
+        , len2 = len1
+        , args = Array(len1)
+        , larg = -Infinity
+        , arg;
+      while(len1--){
+        arg = args[len1] = +arguments[len1];
+        if(arg == Infinity || arg == -Infinity)return Infinity;
+        if(arg > larg)larg = arg;
       }
-      return sqrt(sum);
+      larg = arg || 1;
+      while(len2--)sum += pow(args[len2] / larg, 2);
+      return larg * sqrt(sum);
     },
     // 20.2.2.18 Math.imul(x, y)
     imul: function(x, y){
@@ -16681,7 +17394,7 @@ $define(GLOBAL + FORCED, {global: global});
     },
     // 20.2.2.20 Math.log1p(x)
     log1p: function(x){
-      return x > -1e-8 && x < 1e-8 ? x - x * x / 2 : log(1 + +x);
+      return (x = +x) > -1e-8 && x < 1e-8 ? x - x * x / 2 : log(1 + x);
     },
     // 20.2.2.21 Math.log10(x)
     log10: function(x){
@@ -16695,11 +17408,11 @@ $define(GLOBAL + FORCED, {global: global});
     sign: sign,
     // 20.2.2.30 Math.sinh(x)
     sinh: function(x){
-      return x == 0 ? +x : (exp(x) - exp(-x)) / 2;
+      return (x = +x) == 0 ? x : (exp(x) - exp(-x)) / 2;
     },
     // 20.2.2.33 Math.tanh(x)
     tanh: function(x){
-      return isFinite(x) ? x == 0 ? +x : (exp(x) - exp(-x)) / (exp(x) + exp(-x)) : sign(x);
+      return isFinite(x = +x) ? x == 0 ? x : (exp(x) - exp(-x)) / (exp(x) + exp(-x)) : sign(x);
     },
     // 20.2.2.34 Math.trunc(x)
     trunc: trunc
@@ -16910,10 +17623,6 @@ $define(GLOBAL + FORCED, {global: global});
   wrapObjectMethod('keys');
   wrapObjectMethod('getOwnPropertyNames');
   
-  function WrappedRegExp(pattern, flags){
-    return new RegExp(cof(pattern) == REGEXP && flags !== undefined
-      ? pattern.source : pattern, flags);
-  }
   if(framework){
     // 19.1.3.6 Object.prototype.toString()
     tmp[SYMBOL_TAG] = DOT;
@@ -16935,6 +17644,11 @@ $define(GLOBAL + FORCED, {global: global});
       }
     });
     
+    var _RegExp = RegExp;
+    var WrappedRegExp = function RegExp(pattern, flags){
+      return new _RegExp(cof(pattern) == REGEXP && flags !== undefined
+        ? pattern.source : pattern, flags);
+    }
     // RegExp allows a regex with flags as the pattern
     if(DESC && !function(){try{return RegExp(/a/g, 'i') == '/a/i'}catch(e){}}()){
       forEach.call(getNames(RegExp), function(key){
@@ -17465,7 +18179,7 @@ $define(GLOBAL + BIND, {
   var reflect = {
     // 26.1.1 Reflect.apply(target, thisArgument, argumentsList)
     apply: ctx(call, apply, 3),
-    // 26.1.2 Reflect.construct(target, argumentsList)
+    // 26.1.2 Reflect.construct(target, argumentsList [, newTarget])
     construct: construct,
     // 26.1.3 Reflect.defineProperty(target, propertyKey, attributes)
     defineProperty: wrap(defineProperty),
@@ -18027,9 +18741,8 @@ if(framework)ArrayUnscopables.turn = true;
   };
   core.addLocale = addLocale;
 }(/\b\w\w?\b/g, /:(.*)\|(.*)$/, {}, 'en', 'Seconds', 'Minutes', 'Hours', 'Month', 'FullYear');
-}(typeof window != 'undefined' && window.Math === Math ? window : global, false);
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],102:[function(require,module,exports){
+}(typeof self != 'undefined' && self.Math === Math ? self : Function('return this')(), false);
+},{}],111:[function(require,module,exports){
 /*
   Copyright (C) 2012-2013 Yusuke Suzuki <utatane.tea@gmail.com>
   Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
@@ -18069,7 +18782,7 @@ if(framework)ArrayUnscopables.turn = true;
     } else {
         factory((root.estraverse = {}));
     }
-}(this, function (exports) {
+}(this, function clone(exports) {
     'use strict';
 
     var Syntax,
@@ -18188,6 +18901,7 @@ if(framework)ArrayUnscopables.turn = true;
         ArrayExpression: 'ArrayExpression',
         ArrayPattern: 'ArrayPattern',
         ArrowFunctionExpression: 'ArrowFunctionExpression',
+        AwaitExpression: 'AwaitExpression', // CAUTION: It's deferred to ES7.
         BlockStatement: 'BlockStatement',
         BinaryExpression: 'BinaryExpression',
         BreakStatement: 'BreakStatement',
@@ -18256,6 +18970,7 @@ if(framework)ArrayUnscopables.turn = true;
         ArrayExpression: ['elements'],
         ArrayPattern: ['elements'],
         ArrowFunctionExpression: ['params', 'defaults', 'rest', 'body'],
+        AwaitExpression: ['argument'], // CAUTION: It's deferred to ES7.
         BlockStatement: ['body'],
         BinaryExpression: ['left', 'right'],
         BreakStatement: ['label'],
@@ -18858,7 +19573,7 @@ if(framework)ArrayUnscopables.turn = true;
         return tree;
     }
 
-    exports.version = '1.8.0';
+    exports.version = '1.8.1-dev';
     exports.Syntax = Syntax;
     exports.traverse = traverse;
     exports.replace = replace;
@@ -18866,10 +19581,13 @@ if(framework)ArrayUnscopables.turn = true;
     exports.VisitorKeys = VisitorKeys;
     exports.VisitorOption = VisitorOption;
     exports.Controller = Controller;
+    exports.cloneEnvironment = function () { return clone({}); };
+
+    return exports;
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],103:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 /*
   Copyright (C) 2013 Yusuke Suzuki <utatane.tea@gmail.com>
 
@@ -19015,7 +19733,7 @@ if(framework)ArrayUnscopables.turn = true;
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],104:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 /*
   Copyright (C) 2013-2014 Yusuke Suzuki <utatane.tea@gmail.com>
   Copyright (C) 2014 Ivan Nikulin <ifaaan@gmail.com>
@@ -19118,7 +19836,7 @@ if(framework)ArrayUnscopables.turn = true;
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],105:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 /*
   Copyright (C) 2013 Yusuke Suzuki <utatane.tea@gmail.com>
 
@@ -19257,7 +19975,7 @@ if(framework)ArrayUnscopables.turn = true;
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{"./code":104}],106:[function(require,module,exports){
+},{"./code":113}],115:[function(require,module,exports){
 /*
   Copyright (C) 2013 Yusuke Suzuki <utatane.tea@gmail.com>
 
@@ -19292,7 +20010,7 @@ if(framework)ArrayUnscopables.turn = true;
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{"./ast":103,"./code":104,"./keyword":105}],107:[function(require,module,exports){
+},{"./ast":112,"./code":113,"./keyword":114}],116:[function(require,module,exports){
 // jshint -W001
 
 "use strict";
@@ -19374,6 +20092,7 @@ exports.browser = {
   CustomEvent          : false,
   DOMParser            : false,
   defaultStatus        : false,
+  Document             : false,
   document             : false,
   Element              : false,
   ElementTimeControl   : false,
@@ -19440,6 +20159,7 @@ exports.browser = {
   HTMLVideoElement     : false,
   history              : false,
   Image                : false,
+  Intl                 : false,
   length               : false,
   localStorage         : false,
   location             : false,
@@ -19642,6 +20362,17 @@ exports.browser = {
   TimeEvent            : false,
   top                  : false,
   URL                  : false,
+  WebGLActiveInfo      : false,
+  WebGLBuffer          : false,
+  WebGLContextEvent    : false,
+  WebGLFramebuffer     : false,
+  WebGLProgram         : false,
+  WebGLRenderbuffer    : false,
+  WebGLRenderingContext: false,
+  WebGLShader          : false,
+  WebGLShaderPrecisionFormat: false,
+  WebGLTexture         : false,
+  WebGLUniformLocation : false,
   WebSocket            : false,
   window               : false,
   Worker               : false,
@@ -19980,7 +20711,7 @@ exports.jasmine = {
   waits       : false
 };
 
-},{}],108:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -26768,8 +27499,8 @@ exports.jasmine = {
   }
 }.call(this));
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],109:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],118:[function(require,module,exports){
 "use strict";
 
 var originalObject = Object;
@@ -26900,7 +27631,7 @@ function makeAccessor(secretCreatorFn) {
 
 defProp(exports, "makeAccessor", makeAccessor);
 
-},{}],110:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -28091,7 +28822,7 @@ Ep.explodeExpression = function(path, ignoreResult) {
   }
 };
 
-},{"./leap":112,"./meta":113,"./util":114,"assert":170,"recast":141}],111:[function(require,module,exports){
+},{"./leap":121,"./meta":122,"./util":123,"assert":185,"recast":152}],120:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -28246,7 +28977,7 @@ exports.hoist = function(funPath) {
   return b.variableDeclaration("var", declarations);
 };
 
-},{"assert":170,"recast":141}],112:[function(require,module,exports){
+},{"assert":185,"recast":152}],121:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -28423,7 +29154,7 @@ LMp.getContinueLoc = function(label) {
   return this._findLeapLocation("continueLoc", label);
 };
 
-},{"./emit":110,"assert":170,"recast":141,"util":200}],113:[function(require,module,exports){
+},{"./emit":119,"assert":185,"recast":152,"util":215}],122:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -28525,7 +29256,7 @@ for (var type in leapTypes) {
 exports.hasSideEffects = makePredicate("hasSideEffects", sideEffectTypes);
 exports.containsLeap = makePredicate("containsLeap", leapTypes);
 
-},{"assert":170,"private":109,"recast":141}],114:[function(require,module,exports){
+},{"assert":185,"private":118,"recast":152}],123:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -28627,7 +29358,7 @@ exports.isReference = function(path, name) {
   }
 };
 
-},{"assert":170,"recast":141}],115:[function(require,module,exports){
+},{"assert":185,"recast":152}],124:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -28658,7 +29389,9 @@ var runtimeAsyncMethod = runtimeProperty("async");
 exports.transform = function transform(node, options) {
   options = options || {};
 
-  node = recast.visit(node, visitor);
+  var path = node instanceof NodePath ? node : new NodePath(node);
+  visitor.visit(path, options);
+  node = path.value;
 
   if (options.includeRuntime === true ||
       (options.includeRuntime === 'if used' && visitor.wasChangeReported())) {
@@ -28686,13 +29419,18 @@ function injectRuntime(program) {
 }
 
 var visitor = types.PathVisitor.fromMethodsObject({
+  reset: function(node, options) {
+    this.options = options;
+  },
+
   visitFunction: function(path) {
     // Calling this.traverse(path) first makes for a post-order traversal.
     this.traverse(path);
 
     var node = path.value;
+    var shouldTransformAsync = node.async && !this.options.disableAsync;
 
-    if (!node.generator && !node.async) {
+    if (!node.generator && !shouldTransformAsync) {
       return;
     }
 
@@ -28708,7 +29446,7 @@ var visitor = types.PathVisitor.fromMethodsObject({
       ]);
     }
 
-    if (node.async) {
+    if (shouldTransformAsync) {
       awaitVisitor.visit(path.get("body"));
     }
 
@@ -28742,7 +29480,7 @@ var visitor = types.PathVisitor.fromMethodsObject({
       emitter.getContextFunction(innerFnId),
       // Async functions don't care about the outer function because they
       // don't need it to be marked and don't inherit from its .prototype.
-      node.async ? b.literal(null) : outerFnId,
+      shouldTransformAsync ? b.literal(null) : outerFnId,
       b.thisExpression()
     ];
 
@@ -28752,14 +29490,14 @@ var visitor = types.PathVisitor.fromMethodsObject({
     }
 
     var wrapCall = b.callExpression(
-      node.async ? runtimeAsyncMethod : runtimeWrapMethod,
+      shouldTransformAsync ? runtimeAsyncMethod : runtimeWrapMethod,
       wrapArgs
     );
 
     outerBody.push(b.returnStatement(wrapCall));
     node.body = b.blockStatement(outerBody);
 
-    if (node.async) {
+    if (shouldTransformAsync) {
       node.async = false;
       return;
     }
@@ -29012,7 +29750,7 @@ var awaitVisitor = types.PathVisitor.fromMethodsObject({
   }
 });
 
-},{"..":116,"./emit":110,"./hoist":111,"./util":114,"assert":170,"fs":169,"recast":141}],116:[function(require,module,exports){
+},{"..":125,"./emit":119,"./hoist":120,"./util":123,"assert":185,"fs":184,"recast":152}],125:[function(require,module,exports){
 (function (__dirname){
 /**
  * Copyright (c) 2014, Facebook, Inc.
@@ -29172,8 +29910,8 @@ exports.compile = compile;
 // To modify an AST directly, call require("regenerator").transform(ast).
 exports.transform = transform;
 
-}).call(this,"/../node_modules/6to5/node_modules/regenerator")
-},{"./lib/util":114,"./lib/visit":115,"./runtime":144,"assert":170,"defs":117,"esprima-fb":131,"fs":169,"path":178,"recast":141,"through":143}],117:[function(require,module,exports){
+}).call(this,"/node_modules/6to5/node_modules/regenerator")
+},{"./lib/util":123,"./lib/visit":124,"./runtime":154,"assert":185,"defs":126,"esprima-fb":141,"fs":184,"path":194,"recast":152,"through":153}],126:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -29855,7 +30593,7 @@ function run(src, config) {
 
 module.exports = run;
 
-},{"./error":118,"./jshint_globals/vars.js":119,"./options":120,"./scope":121,"./stats":122,"alter":123,"assert":170,"ast-traverse":125,"breakable":126,"simple-fmt":127,"simple-is":128,"stringmap":129,"stringset":130}],118:[function(require,module,exports){
+},{"./error":127,"./jshint_globals/vars.js":128,"./options":129,"./scope":130,"./stats":131,"alter":132,"assert":185,"ast-traverse":134,"breakable":135,"simple-fmt":137,"simple-is":138,"stringmap":139,"stringset":140}],127:[function(require,module,exports){
 "use strict";
 
 var fmt = require("simple-fmt");
@@ -29885,7 +30623,7 @@ error.reset();
 
 module.exports = error;
 
-},{"assert":170,"simple-fmt":127}],119:[function(require,module,exports){
+},{"assert":185,"simple-fmt":137}],128:[function(require,module,exports){
 // jshint -W001
 
 "use strict";
@@ -30282,7 +31020,7 @@ exports.yui = {
 };
 
 
-},{}],120:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 // default configuration
 
 module.exports = {
@@ -30292,7 +31030,7 @@ module.exports = {
     parse: require("esprima-fb").parse,
 };
 
-},{"esprima-fb":131}],121:[function(require,module,exports){
+},{"esprima-fb":136}],130:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -30518,7 +31256,7 @@ Scope.prototype.traverse = function(options) {
 
 module.exports = Scope;
 
-},{"./error":118,"./options":120,"assert":170,"simple-fmt":127,"simple-is":128,"stringmap":129,"stringset":130}],122:[function(require,module,exports){
+},{"./error":127,"./options":129,"assert":185,"simple-fmt":137,"simple-is":138,"stringmap":139,"stringset":140}],131:[function(require,module,exports){
 var fmt = require("simple-fmt");
 var is = require("simple-is");
 var assert = require("assert");
@@ -30570,7 +31308,7 @@ Stats.prototype.toString = function() {
 
 module.exports = Stats;
 
-},{"assert":170,"simple-fmt":127,"simple-is":128}],123:[function(require,module,exports){
+},{"assert":185,"simple-fmt":137,"simple-is":138}],132:[function(require,module,exports){
 // alter.js
 // MIT licensed, see LICENSE file
 // Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
@@ -30617,7 +31355,7 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     module.exports = alter;
 }
 
-},{"assert":170,"stable":124}],124:[function(require,module,exports){
+},{"assert":185,"stable":133}],133:[function(require,module,exports){
 //! stable.js 0.1.5, https://github.com/Two-Screen/stable
 //! © 2014 Angry Bytes and contributors. MIT licensed.
 
@@ -30730,7 +31468,7 @@ else {
 
 })();
 
-},{}],125:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 function traverse(root, options) {
     "use strict";
 
@@ -30779,7 +31517,7 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     module.exports = traverse;
 }
 
-},{}],126:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 // breakable.js
 // MIT licensed, see LICENSE file
 // Copyright (c) 2013-2014 Olov Lassus <olov.lassus@gmail.com>
@@ -30817,529 +31555,7 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     module.exports = breakable;
 }
 
-},{}],127:[function(require,module,exports){
-// simple-fmt.js
-// MIT licensed, see LICENSE file
-// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
-
-var fmt = (function() {
-    "use strict";
-
-    function fmt(str, var_args) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        return str.replace(/\{(\d+)\}/g, function(s, match) {
-            return (match in args ? args[match] : s);
-        });
-    }
-
-    function obj(str, obj) {
-        return str.replace(/\{([_$a-zA-Z0-9][_$a-zA-Z0-9]*)\}/g, function(s, match) {
-            return (match in obj ? obj[match] : s);
-        });
-    }
-
-    function repeat(str, n) {
-        return (new Array(n + 1)).join(str);
-    }
-
-    fmt.fmt = fmt;
-    fmt.obj = obj;
-    fmt.repeat = repeat;
-    return fmt;
-})();
-
-if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
-    module.exports = fmt;
-}
-
-},{}],128:[function(require,module,exports){
-// simple-is.js
-// MIT licensed, see LICENSE file
-// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
-
-var is = (function() {
-    "use strict";
-
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-    var toString = Object.prototype.toString;
-    var _undefined = void 0;
-
-    return {
-        nan: function(v) {
-            return v !== v;
-        },
-        boolean: function(v) {
-            return typeof v === "boolean";
-        },
-        number: function(v) {
-            return typeof v === "number";
-        },
-        string: function(v) {
-            return typeof v === "string";
-        },
-        fn: function(v) {
-            return typeof v === "function";
-        },
-        object: function(v) {
-            return v !== null && typeof v === "object";
-        },
-        primitive: function(v) {
-            var t = typeof v;
-            return v === null || v === _undefined ||
-                t === "boolean" || t === "number" || t === "string";
-        },
-        array: Array.isArray || function(v) {
-            return toString.call(v) === "[object Array]";
-        },
-        finitenumber: function(v) {
-            return typeof v === "number" && isFinite(v);
-        },
-        someof: function(v, values) {
-            return values.indexOf(v) >= 0;
-        },
-        noneof: function(v, values) {
-            return values.indexOf(v) === -1;
-        },
-        own: function(obj, prop) {
-            return hasOwnProperty.call(obj, prop);
-        },
-    };
-})();
-
-if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
-    module.exports = is;
-}
-
-},{}],129:[function(require,module,exports){
-// stringmap.js
-// MIT licensed, see LICENSE file
-// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
-
-var StringMap = (function() {
-    "use strict";
-
-    // to save us a few characters
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-    var create = (function() {
-        function hasOwnEnumerableProps(obj) {
-            for (var prop in obj) {
-                if (hasOwnProperty.call(obj, prop)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        // FF <= 3.6:
-        // o = {}; o.hasOwnProperty("__proto__" or "__count__" or "__parent__") => true
-        // o = {"__proto__": null}; Object.prototype.hasOwnProperty.call(o, "__proto__" or "__count__" or "__parent__") => false
-        function hasOwnPollutedProps(obj) {
-            return hasOwnProperty.call(obj, "__count__") || hasOwnProperty.call(obj, "__parent__");
-        }
-
-        var useObjectCreate = false;
-        if (typeof Object.create === "function") {
-            if (!hasOwnEnumerableProps(Object.create(null))) {
-                useObjectCreate = true;
-            }
-        }
-        if (useObjectCreate === false) {
-            if (hasOwnEnumerableProps({})) {
-                throw new Error("StringMap environment error 0, please file a bug at https://github.com/olov/stringmap/issues");
-            }
-        }
-        // no throw yet means we can create objects without own enumerable props (safe-guard against VMs and shims)
-
-        var o = (useObjectCreate ? Object.create(null) : {});
-        var useProtoClear = false;
-        if (hasOwnPollutedProps(o)) {
-            o.__proto__ = null;
-            if (hasOwnEnumerableProps(o) || hasOwnPollutedProps(o)) {
-                throw new Error("StringMap environment error 1, please file a bug at https://github.com/olov/stringmap/issues");
-            }
-            useProtoClear = true;
-        }
-        // no throw yet means we can create objects without own polluted props (safe-guard against VMs and shims)
-
-        return function() {
-            var o = (useObjectCreate ? Object.create(null) : {});
-            if (useProtoClear) {
-                o.__proto__ = null;
-            }
-            return o;
-        };
-    })();
-
-    // stringmap ctor
-    function stringmap(optional_object) {
-        // use with or without new
-        if (!(this instanceof stringmap)) {
-            return new stringmap(optional_object);
-        }
-        this.obj = create();
-        this.hasProto = false; // false (no __proto__ key) or true (has __proto__ key)
-        this.proto = undefined; // value for __proto__ key when hasProto is true, undefined otherwise
-
-        if (optional_object) {
-            this.setMany(optional_object);
-        }
-    };
-
-    // primitive methods that deals with data representation
-    stringmap.prototype.has = function(key) {
-        // The type-check of key in has, get, set and delete is important because otherwise an object
-        // {toString: function() { return "__proto__"; }} can avoid the key === "__proto__" test.
-        // The alternative to type-checking would be to force string conversion, i.e. key = String(key);
-        if (typeof key !== "string") {
-            throw new Error("StringMap expected string key");
-        }
-        return (key === "__proto__" ?
-            this.hasProto :
-            hasOwnProperty.call(this.obj, key));
-    };
-
-    stringmap.prototype.get = function(key) {
-        if (typeof key !== "string") {
-            throw new Error("StringMap expected string key");
-        }
-        return (key === "__proto__" ?
-            this.proto :
-            (hasOwnProperty.call(this.obj, key) ? this.obj[key] : undefined));
-    };
-
-    stringmap.prototype.set = function(key, value) {
-        if (typeof key !== "string") {
-            throw new Error("StringMap expected string key");
-        }
-        if (key === "__proto__") {
-            this.hasProto = true;
-            this.proto = value;
-        } else {
-            this.obj[key] = value;
-        }
-    };
-
-    stringmap.prototype.remove = function(key) {
-        if (typeof key !== "string") {
-            throw new Error("StringMap expected string key");
-        }
-        var didExist = this.has(key);
-        if (key === "__proto__") {
-            this.hasProto = false;
-            this.proto = undefined;
-        } else {
-            delete this.obj[key];
-        }
-        return didExist;
-    };
-
-    // alias remove to delete but beware:
-    // sm.delete("key"); // OK in ES5 and later
-    // sm['delete']("key"); // OK in all ES versions
-    // sm.remove("key"); // OK in all ES versions
-    stringmap.prototype['delete'] = stringmap.prototype.remove;
-
-    stringmap.prototype.isEmpty = function() {
-        for (var key in this.obj) {
-            if (hasOwnProperty.call(this.obj, key)) {
-                return false;
-            }
-        }
-        return !this.hasProto;
-    };
-
-    stringmap.prototype.size = function() {
-        var len = 0;
-        for (var key in this.obj) {
-            if (hasOwnProperty.call(this.obj, key)) {
-                ++len;
-            }
-        }
-        return (this.hasProto ? len + 1 : len);
-    };
-
-    stringmap.prototype.keys = function() {
-        var keys = [];
-        for (var key in this.obj) {
-            if (hasOwnProperty.call(this.obj, key)) {
-                keys.push(key);
-            }
-        }
-        if (this.hasProto) {
-            keys.push("__proto__");
-        }
-        return keys;
-    };
-
-    stringmap.prototype.values = function() {
-        var values = [];
-        for (var key in this.obj) {
-            if (hasOwnProperty.call(this.obj, key)) {
-                values.push(this.obj[key]);
-            }
-        }
-        if (this.hasProto) {
-            values.push(this.proto);
-        }
-        return values;
-    };
-
-    stringmap.prototype.items = function() {
-        var items = [];
-        for (var key in this.obj) {
-            if (hasOwnProperty.call(this.obj, key)) {
-                items.push([key, this.obj[key]]);
-            }
-        }
-        if (this.hasProto) {
-            items.push(["__proto__", this.proto]);
-        }
-        return items;
-    };
-
-
-    // methods that rely on the above primitives
-    stringmap.prototype.setMany = function(object) {
-        if (object === null || (typeof object !== "object" && typeof object !== "function")) {
-            throw new Error("StringMap expected Object");
-        }
-        for (var key in object) {
-            if (hasOwnProperty.call(object, key)) {
-                this.set(key, object[key]);
-            }
-        }
-        return this;
-    };
-
-    stringmap.prototype.merge = function(other) {
-        var keys = other.keys();
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            this.set(key, other.get(key));
-        }
-        return this;
-    };
-
-    stringmap.prototype.map = function(fn) {
-        var keys = this.keys();
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            keys[i] = fn(this.get(key), key); // re-use keys array for results
-        }
-        return keys;
-    };
-
-    stringmap.prototype.forEach = function(fn) {
-        var keys = this.keys();
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            fn(this.get(key), key);
-        }
-    };
-
-    stringmap.prototype.clone = function() {
-        var other = stringmap();
-        return other.merge(this);
-    };
-
-    stringmap.prototype.toString = function() {
-        var self = this;
-        return "{" + this.keys().map(function(key) {
-            return JSON.stringify(key) + ":" + JSON.stringify(self.get(key));
-        }).join(",") + "}";
-    };
-
-    return stringmap;
-})();
-
-if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
-    module.exports = StringMap;
-}
-
-},{}],130:[function(require,module,exports){
-// stringset.js
-// MIT licensed, see LICENSE file
-// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
-
-var StringSet = (function() {
-    "use strict";
-
-    // to save us a few characters
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-    var create = (function() {
-        function hasOwnEnumerableProps(obj) {
-            for (var prop in obj) {
-                if (hasOwnProperty.call(obj, prop)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // FF <= 3.6:
-        // o = {}; o.hasOwnProperty("__proto__" or "__count__" or "__parent__") => true
-        // o = {"__proto__": null}; Object.prototype.hasOwnProperty.call(o, "__proto__" or "__count__" or "__parent__") => false
-        function hasOwnPollutedProps(obj) {
-            return hasOwnProperty.call(obj, "__count__") || hasOwnProperty.call(obj, "__parent__");
-        }
-
-        var useObjectCreate = false;
-        if (typeof Object.create === "function") {
-            if (!hasOwnEnumerableProps(Object.create(null))) {
-                useObjectCreate = true;
-            }
-        }
-        if (useObjectCreate === false) {
-            if (hasOwnEnumerableProps({})) {
-                throw new Error("StringSet environment error 0, please file a bug at https://github.com/olov/stringset/issues");
-            }
-        }
-        // no throw yet means we can create objects without own enumerable props (safe-guard against VMs and shims)
-
-        var o = (useObjectCreate ? Object.create(null) : {});
-        var useProtoClear = false;
-        if (hasOwnPollutedProps(o)) {
-            o.__proto__ = null;
-            if (hasOwnEnumerableProps(o) || hasOwnPollutedProps(o)) {
-                throw new Error("StringSet environment error 1, please file a bug at https://github.com/olov/stringset/issues");
-            }
-            useProtoClear = true;
-        }
-        // no throw yet means we can create objects without own polluted props (safe-guard against VMs and shims)
-
-        return function() {
-            var o = (useObjectCreate ? Object.create(null) : {});
-            if (useProtoClear) {
-                o.__proto__ = null;
-            }
-            return o;
-        };
-    })();
-
-    // stringset ctor
-    function stringset(optional_array) {
-        // use with or without new
-        if (!(this instanceof stringset)) {
-            return new stringset(optional_array);
-        }
-        this.obj = create();
-        this.hasProto = false; // false (no __proto__ item) or true (has __proto__ item)
-
-        if (optional_array) {
-            this.addMany(optional_array);
-        }
-    };
-
-    // primitive methods that deals with data representation
-    stringset.prototype.has = function(item) {
-        // The type-check of item in has, get, set and delete is important because otherwise an object
-        // {toString: function() { return "__proto__"; }} can avoid the item === "__proto__" test.
-        // The alternative to type-checking would be to force string conversion, i.e. item = String(item);
-        if (typeof item !== "string") {
-            throw new Error("StringSet expected string item");
-        }
-        return (item === "__proto__" ?
-            this.hasProto :
-            hasOwnProperty.call(this.obj, item));
-    };
-
-    stringset.prototype.add = function(item) {
-        if (typeof item !== "string") {
-            throw new Error("StringSet expected string item");
-        }
-        if (item === "__proto__") {
-            this.hasProto = true;
-        } else {
-            this.obj[item] = true;
-        }
-    };
-
-    stringset.prototype.remove = function(item) {
-        if (typeof item !== "string") {
-            throw new Error("StringSet expected string item");
-        }
-        var didExist = this.has(item);
-        if (item === "__proto__") {
-            this.hasProto = false;
-        } else {
-            delete this.obj[item];
-        }
-        return didExist;
-    };
-
-    // alias remove to delete but beware:
-    // ss.delete("key"); // OK in ES5 and later
-    // ss['delete']("key"); // OK in all ES versions
-    // ss.remove("key"); // OK in all ES versions
-    stringset.prototype['delete'] = stringset.prototype.remove;
-
-    stringset.prototype.isEmpty = function() {
-        for (var item in this.obj) {
-            if (hasOwnProperty.call(this.obj, item)) {
-                return false;
-            }
-        }
-        return !this.hasProto;
-    };
-
-    stringset.prototype.size = function() {
-        var len = 0;
-        for (var item in this.obj) {
-            if (hasOwnProperty.call(this.obj, item)) {
-                ++len;
-            }
-        }
-        return (this.hasProto ? len + 1 : len);
-    };
-
-    stringset.prototype.items = function() {
-        var items = [];
-        for (var item in this.obj) {
-            if (hasOwnProperty.call(this.obj, item)) {
-                items.push(item);
-            }
-        }
-        if (this.hasProto) {
-            items.push("__proto__");
-        }
-        return items;
-    };
-
-
-    // methods that rely on the above primitives
-    stringset.prototype.addMany = function(items) {
-        if (!Array.isArray(items)) {
-            throw new Error("StringSet expected array");
-        }
-        for (var i = 0; i < items.length; i++) {
-            this.add(items[i]);
-        }
-        return this;
-    };
-
-    stringset.prototype.merge = function(other) {
-        this.addMany(other.items());
-        return this;
-    };
-
-    stringset.prototype.clone = function() {
-        var other = stringset();
-        return other.merge(this);
-    };
-
-    stringset.prototype.toString = function() {
-        return "{" + this.items().map(JSON.stringify).join(",") + "}";
-    };
-
-    return stringset;
-})();
-
-if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
-    module.exports = StringSet;
-}
-
-},{}],131:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 /*
   Copyright (C) 2013 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2013 Thaddee Tyl <thaddee.tyl@gmail.com>
@@ -38957,3568 +39173,529 @@ parseYieldExpression: true, parseAwaitExpression: true
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],132:[function(require,module,exports){
-var assert = require("assert");
-var types = require("./types");
-var n = types.namedTypes;
-var isArray = types.builtInTypes.array;
-var isObject = types.builtInTypes.object;
-var linesModule = require("./lines");
-var fromString = linesModule.fromString;
-var Lines = linesModule.Lines;
-var concat = linesModule.concat;
-var comparePos = require("./util").comparePos;
-var childNodesCacheKey = require("private").makeUniqueKey();
+},{}],137:[function(require,module,exports){
+// simple-fmt.js
+// MIT licensed, see LICENSE file
+// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
 
-// TODO Move a non-caching implementation of this function into ast-types,
-// and implement a caching wrapper function here.
-function getSortedChildNodes(node, resultArray) {
-    if (!node) {
-        return;
+var fmt = (function() {
+    "use strict";
+
+    function fmt(str, var_args) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return str.replace(/\{(\d+)\}/g, function(s, match) {
+            return (match in args ? args[match] : s);
+        });
     }
 
-    if (resultArray) {
-        if (n.Node.check(node) &&
-            n.SourceLocation.check(node.loc)) {
-            // This reverse insertion sort almost always takes constant
-            // time because we almost always (maybe always?) append the
-            // nodes in order anyway.
-            for (var i = resultArray.length - 1; i >= 0; --i) {
-                if (comparePos(resultArray[i].loc.end,
-                               node.loc.start) <= 0) {
-                    break;
+    function obj(str, obj) {
+        return str.replace(/\{([_$a-zA-Z0-9][_$a-zA-Z0-9]*)\}/g, function(s, match) {
+            return (match in obj ? obj[match] : s);
+        });
+    }
+
+    function repeat(str, n) {
+        return (new Array(n + 1)).join(str);
+    }
+
+    fmt.fmt = fmt;
+    fmt.obj = obj;
+    fmt.repeat = repeat;
+    return fmt;
+})();
+
+if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+    module.exports = fmt;
+}
+
+},{}],138:[function(require,module,exports){
+// simple-is.js
+// MIT licensed, see LICENSE file
+// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
+
+var is = (function() {
+    "use strict";
+
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    var toString = Object.prototype.toString;
+    var _undefined = void 0;
+
+    return {
+        nan: function(v) {
+            return v !== v;
+        },
+        boolean: function(v) {
+            return typeof v === "boolean";
+        },
+        number: function(v) {
+            return typeof v === "number";
+        },
+        string: function(v) {
+            return typeof v === "string";
+        },
+        fn: function(v) {
+            return typeof v === "function";
+        },
+        object: function(v) {
+            return v !== null && typeof v === "object";
+        },
+        primitive: function(v) {
+            var t = typeof v;
+            return v === null || v === _undefined ||
+                t === "boolean" || t === "number" || t === "string";
+        },
+        array: Array.isArray || function(v) {
+            return toString.call(v) === "[object Array]";
+        },
+        finitenumber: function(v) {
+            return typeof v === "number" && isFinite(v);
+        },
+        someof: function(v, values) {
+            return values.indexOf(v) >= 0;
+        },
+        noneof: function(v, values) {
+            return values.indexOf(v) === -1;
+        },
+        own: function(obj, prop) {
+            return hasOwnProperty.call(obj, prop);
+        },
+    };
+})();
+
+if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+    module.exports = is;
+}
+
+},{}],139:[function(require,module,exports){
+// stringmap.js
+// MIT licensed, see LICENSE file
+// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
+
+var StringMap = (function() {
+    "use strict";
+
+    // to save us a few characters
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+    var create = (function() {
+        function hasOwnEnumerableProps(obj) {
+            for (var prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    return true;
                 }
             }
-            resultArray.splice(i + 1, 0, node);
-            return;
-        }
-    } else if (node[childNodesCacheKey]) {
-        return node[childNodesCacheKey];
-    }
-
-    var names;
-    if (isArray.check(node)) {
-        names = Object.keys(node);
-    } else if (isObject.check(node)) {
-        names = types.getFieldNames(node);
-    } else {
-        return;
-    }
-
-    if (!resultArray) {
-        Object.defineProperty(node, childNodesCacheKey, {
-            value: resultArray = [],
-            enumerable: false
-        });
-    }
-
-    for (var i = 0, nameCount = names.length; i < nameCount; ++i) {
-        getSortedChildNodes(node[names[i]], resultArray);
-    }
-
-    return resultArray;
-}
-
-// As efficiently as possible, decorate the comment object with
-// .precedingNode, .enclosingNode, and/or .followingNode properties, at
-// least one of which is guaranteed to be defined.
-function decorateComment(node, comment) {
-    var childNodes = getSortedChildNodes(node);
-
-    // Time to dust off the old binary search robes and wizard hat.
-    var left = 0, right = childNodes.length;
-    while (left < right) {
-        var middle = (left + right) >> 1;
-        var child = childNodes[middle];
-
-        if (comparePos(child.loc.start, comment.loc.start) <= 0 &&
-            comparePos(comment.loc.end, child.loc.end) <= 0) {
-            // The comment is completely contained by this child node.
-            decorateComment(comment.enclosingNode = child, comment);
-            return; // Abandon the binary search at this level.
-        }
-
-        if (comparePos(child.loc.end, comment.loc.start) <= 0) {
-            // This child node falls completely before the comment.
-            // Because we will never consider this node or any nodes
-            // before it again, this node must be the closest preceding
-            // node we have encountered so far.
-            var precedingNode = child;
-            left = middle + 1;
-            continue;
-        }
-
-        if (comparePos(comment.loc.end, child.loc.start) <= 0) {
-            // This child node falls completely after the comment.
-            // Because we will never consider this node or any nodes after
-            // it again, this node must be the closest following node we
-            // have encountered so far.
-            var followingNode = child;
-            right = middle;
-            continue;
-        }
-
-        throw new Error("Comment location overlaps with node location");
-    }
-
-    if (precedingNode) {
-        comment.precedingNode = precedingNode;
-    }
-
-    if (followingNode) {
-        comment.followingNode = followingNode;
-    }
-}
-
-exports.attach = function(comments, ast, lines) {
-    if (!isArray.check(comments)) {
-        return;
-    }
-
-    var tiesToBreak = [];
-
-    comments.forEach(function(comment) {
-        comment.loc.lines = lines;
-        decorateComment(ast, comment);
-
-        var pn = comment.precedingNode;
-        var en = comment.enclosingNode;
-        var fn = comment.followingNode;
-
-        if (pn && fn) {
-            var tieCount = tiesToBreak.length;
-            if (tieCount > 0) {
-                var lastTie = tiesToBreak[tieCount - 1];
-
-                assert.strictEqual(
-                    lastTie.precedingNode === comment.precedingNode,
-                    lastTie.followingNode === comment.followingNode
-                );
-
-                if (lastTie.followingNode !== comment.followingNode) {
-                    breakTies(tiesToBreak, lines);
-                }
-            }
-
-            tiesToBreak.push(comment);
-
-        } else if (pn) {
-            // No contest: we have a trailing comment.
-            breakTies(tiesToBreak, lines);
-            Comments.forNode(pn).addTrailing(comment);
-
-        } else if (fn) {
-            // No contest: we have a leading comment.
-            breakTies(tiesToBreak, lines);
-            Comments.forNode(fn).addLeading(comment);
-
-        } else if (en) {
-            // The enclosing node has no child nodes at all, so what we
-            // have here is a dangling comment, e.g. [/* crickets */].
-            breakTies(tiesToBreak, lines);
-            Comments.forNode(en).addDangling(comment);
-
-        } else {
-            throw new Error("AST contains no nodes at all?");
-        }
-    });
-
-    breakTies(tiesToBreak, lines);
-};
-
-function breakTies(tiesToBreak, lines) {
-    var tieCount = tiesToBreak.length;
-    if (tieCount === 0) {
-        return;
-    }
-
-    var pn = tiesToBreak[0].precedingNode;
-    var fn = tiesToBreak[0].followingNode;
-    var gapEndPos = fn.loc.start;
-
-    // Iterate backwards through tiesToBreak, examining the gaps
-    // between the tied comments. In order to qualify as leading, a
-    // comment must be separated from fn by an unbroken series of
-    // whitespace-only gaps (or other comments).
-    for (var indexOfFirstLeadingComment = tieCount;
-         indexOfFirstLeadingComment > 0;
-         --indexOfFirstLeadingComment) {
-        var comment = tiesToBreak[indexOfFirstLeadingComment - 1];
-        assert.strictEqual(comment.precedingNode, pn);
-        assert.strictEqual(comment.followingNode, fn);
-
-        var gap = lines.sliceString(comment.loc.end, gapEndPos);
-        if (/\S/.test(gap)) {
-            // The gap string contained something other than whitespace.
-            break;
-        }
-
-        gapEndPos = comment.loc.start;
-    }
-
-    while (indexOfFirstLeadingComment <= tieCount &&
-           (comment = tiesToBreak[indexOfFirstLeadingComment]) &&
-           // If the comment is a //-style comment and indented more
-           // deeply than the node itself, reconsider it as trailing.
-           comment.type === "Line" &&
-           comment.loc.start.column > fn.loc.start.column) {
-        ++indexOfFirstLeadingComment;
-    }
-
-    tiesToBreak.forEach(function(comment, i) {
-        if (i < indexOfFirstLeadingComment) {
-            Comments.forNode(pn).addTrailing(comment);
-        } else {
-            Comments.forNode(fn).addLeading(comment);
-        }
-    });
-
-    tiesToBreak.length = 0;
-}
-
-function Comments() {
-    assert.ok(this instanceof Comments);
-    this.leading = [];
-    this.dangling = [];
-    this.trailing = [];
-}
-
-var Cp = Comments.prototype;
-
-Comments.forNode = function forNode(node) {
-    var comments = node.comments;
-    if (!comments) {
-        Object.defineProperty(node, "comments", {
-            value: comments = new Comments,
-            enumerable: false
-        });
-    }
-    return comments;
-};
-
-Cp.forEach = function forEach(callback, context) {
-    this.leading.forEach(callback, context);
-    // this.dangling.forEach(callback, context);
-    this.trailing.forEach(callback, context);
-};
-
-Cp.addLeading = function addLeading(comment) {
-    this.leading.push(comment);
-};
-
-Cp.addDangling = function addDangling(comment) {
-    this.dangling.push(comment);
-};
-
-Cp.addTrailing = function addTrailing(comment) {
-    comment.trailing = true;
-    if (comment.type === "Block") {
-        this.trailing.push(comment);
-    } else {
-        this.leading.push(comment);
-    }
-};
-
-/**
- * @param {Object} options - Options object that configures printing.
- */
-function printLeadingComment(comment, options) {
-    var loc = comment.loc;
-    var lines = loc && loc.lines;
-    var parts = [];
-
-    if (comment.type === "Block") {
-        parts.push("/*", fromString(comment.value, options), "*/");
-    } else if (comment.type === "Line") {
-        parts.push("//", fromString(comment.value, options));
-    } else assert.fail(comment.type);
-
-    if (comment.trailing) {
-        // When we print trailing comments as leading comments, we don't
-        // want to bring any trailing spaces along.
-        parts.push("\n");
-
-    } else if (lines instanceof Lines) {
-        var trailingSpace = lines.slice(
-            loc.end,
-            lines.skipSpaces(loc.end)
-        );
-
-        if (trailingSpace.length === 1) {
-            // If the trailing space contains no newlines, then we want to
-            // preserve it exactly as we found it.
-            parts.push(trailingSpace);
-        } else {
-            // If the trailing space contains newlines, then replace it
-            // with just that many newlines, with all other spaces removed.
-            parts.push(new Array(trailingSpace.length).join("\n"));
-        }
-
-    } else {
-        parts.push("\n");
-    }
-
-    return concat(parts).stripMargin(loc ? loc.start.column : 0);
-}
-
-/**
- * @param {Object} options - Options object that configures printing.
- */
-function printTrailingComment(comment, options) {
-    var loc = comment.loc;
-    var lines = loc && loc.lines;
-    var parts = [];
-
-    if (lines instanceof Lines) {
-        var fromPos = lines.skipSpaces(loc.start, true) || lines.firstPos();
-        var leadingSpace = lines.slice(fromPos, loc.start);
-
-        if (leadingSpace.length === 1) {
-            // If the leading space contains no newlines, then we want to
-            // preserve it exactly as we found it.
-            parts.push(leadingSpace);
-        } else {
-            // If the leading space contains newlines, then replace it
-            // with just that many newlines, sans all other spaces.
-            parts.push(new Array(leadingSpace.length).join("\n"));
-        }
-    }
-
-    if (comment.type === "Block") {
-        parts.push("/*", fromString(comment.value, options), "*/");
-    } else if (comment.type === "Line") {
-        parts.push("//", fromString(comment.value, options), "\n");
-    } else assert.fail(comment.type);
-
-    return concat(parts).stripMargin(
-        loc ? loc.start.column : 0,
-        true // Skip the first line, in case there were leading spaces.
-    );
-}
-
-/**
- * @param {Object} options - Options object that configures printing.
- */
-exports.printComments = function(comments, innerLines, options) {
-    if (innerLines) {
-        assert.ok(innerLines instanceof Lines);
-    } else {
-        innerLines = fromString("");
-    }
-
-    if (!comments || !(comments.leading.length +
-                       comments.trailing.length)) {
-        return innerLines;
-    }
-
-    var parts = [];
-
-    comments.leading.forEach(function(comment) {
-        parts.push(printLeadingComment(comment, options));
-    });
-
-    parts.push(innerLines);
-
-    comments.trailing.forEach(function(comment) {
-        assert.strictEqual(comment.type, "Block");
-        parts.push(printTrailingComment(comment, options));
-    });
-
-    return concat(parts);
-};
-
-},{"./lines":133,"./types":139,"./util":140,"assert":170,"private":109}],133:[function(require,module,exports){
-var assert = require("assert");
-var sourceMap = require("source-map");
-var normalizeOptions = require("./options").normalize;
-var secretKey = require("private").makeUniqueKey();
-var types = require("./types");
-var isString = types.builtInTypes.string;
-var comparePos = require("./util").comparePos;
-var Mapping = require("./mapping");
-
-// Goals:
-// 1. Minimize new string creation.
-// 2. Keep (de)identation O(lines) time.
-// 3. Permit negative indentations.
-// 4. Enforce immutability.
-// 5. No newline characters.
-
-function getSecret(lines) {
-    return lines[secretKey];
-}
-
-function Lines(infos, sourceFileName) {
-    assert.ok(this instanceof Lines);
-    assert.ok(infos.length > 0);
-
-    if (sourceFileName) {
-        isString.assert(sourceFileName);
-    } else {
-        sourceFileName = null;
-    }
-
-    Object.defineProperty(this, secretKey, {
-        value: {
-            infos: infos,
-            mappings: [],
-            name: sourceFileName,
-            cachedSourceMap: null
-        }
-    });
-
-    if (sourceFileName) {
-        getSecret(this).mappings.push(new Mapping(this, {
-            start: this.firstPos(),
-            end: this.lastPos()
-        }));
-    }
-}
-
-// Exposed for instanceof checks. The fromString function should be used
-// to create new Lines objects.
-exports.Lines = Lines;
-var Lp = Lines.prototype;
-
-// These properties used to be assigned to each new object in the Lines
-// constructor, but we can more efficiently stuff them into the secret and
-// let these lazy accessors compute their values on-the-fly.
-Object.defineProperties(Lp, {
-    length: {
-        get: function() {
-            return getSecret(this).infos.length;
-        }
-    },
-
-    name: {
-        get: function() {
-            return getSecret(this).name;
-        }
-    }
-});
-
-function copyLineInfo(info) {
-    return {
-        line: info.line,
-        indent: info.indent,
-        sliceStart: info.sliceStart,
-        sliceEnd: info.sliceEnd
-    };
-}
-
-var fromStringCache = {};
-var hasOwn = fromStringCache.hasOwnProperty;
-var maxCacheKeyLen = 10;
-
-function countSpaces(spaces, tabWidth) {
-    var count = 0;
-    var len = spaces.length;
-
-    for (var i = 0; i < len; ++i) {
-        var ch = spaces.charAt(i);
-
-        if (ch === " ") {
-            count += 1;
-
-        } else if (ch === "\t") {
-            assert.strictEqual(typeof tabWidth, "number");
-            assert.ok(tabWidth > 0);
-
-            var next = Math.ceil(count / tabWidth) * tabWidth;
-            if (next === count) {
-                count += tabWidth;
-            } else {
-                count = next;
-            }
-
-        } else if (ch === "\r") {
-            // Ignore carriage return characters.
-
-        } else {
-            assert.fail("unexpected whitespace character", ch);
-        }
-    }
-
-    return count;
-}
-exports.countSpaces = countSpaces;
-
-var leadingSpaceExp = /^\s*/;
-
-/**
- * @param {Object} options - Options object that configures printing.
- */
-function fromString(string, options) {
-    if (string instanceof Lines)
-        return string;
-
-    string += "";
-
-    var tabWidth = options && options.tabWidth;
-    var tabless = string.indexOf("\t") < 0;
-    var cacheable = !options && tabless && (string.length <= maxCacheKeyLen);
-
-    assert.ok(tabWidth || tabless, "No tab width specified but encountered tabs in string\n" + string);
-
-    if (cacheable && hasOwn.call(fromStringCache, string))
-        return fromStringCache[string];
-
-    var lines = new Lines(string.split("\n").map(function(line) {
-        var spaces = leadingSpaceExp.exec(line)[0];
-        return {
-            line: line,
-            indent: countSpaces(spaces, tabWidth),
-            sliceStart: spaces.length,
-            sliceEnd: line.length
-        };
-    }), normalizeOptions(options).sourceFileName);
-
-    if (cacheable)
-        fromStringCache[string] = lines;
-
-    return lines;
-}
-exports.fromString = fromString;
-
-function isOnlyWhitespace(string) {
-    return !/\S/.test(string);
-}
-
-Lp.toString = function(options) {
-    return this.sliceString(this.firstPos(), this.lastPos(), options);
-};
-
-Lp.getSourceMap = function(sourceMapName, sourceRoot) {
-    if (!sourceMapName) {
-        // Although we could make up a name or generate an anonymous
-        // source map, instead we assume that any consumer who does not
-        // provide a name does not actually want a source map.
-        return null;
-    }
-
-    var targetLines = this;
-
-    function updateJSON(json) {
-        json = json || {};
-
-        isString.assert(sourceMapName);
-        json.file = sourceMapName;
-
-        if (sourceRoot) {
-            isString.assert(sourceRoot);
-            json.sourceRoot = sourceRoot;
-        }
-
-        return json;
-    }
-
-    var secret = getSecret(targetLines);
-    if (secret.cachedSourceMap) {
-        // Since Lines objects are immutable, we can reuse any source map
-        // that was previously generated. Nevertheless, we return a new
-        // JSON object here to protect the cached source map from outside
-        // modification.
-        return updateJSON(secret.cachedSourceMap.toJSON());
-    }
-
-    var smg = new sourceMap.SourceMapGenerator(updateJSON());
-    var sourcesToContents = {};
-
-    secret.mappings.forEach(function(mapping) {
-        var sourceCursor = mapping.sourceLines.skipSpaces(
-            mapping.sourceLoc.start
-        ) || mapping.sourceLines.lastPos();
-
-        var targetCursor = targetLines.skipSpaces(
-            mapping.targetLoc.start
-        ) || targetLines.lastPos();
-
-        while (comparePos(sourceCursor, mapping.sourceLoc.end) < 0 &&
-               comparePos(targetCursor, mapping.targetLoc.end) < 0) {
-
-            var sourceChar = mapping.sourceLines.charAt(sourceCursor);
-            var targetChar = targetLines.charAt(targetCursor);
-            assert.strictEqual(sourceChar, targetChar);
-
-            var sourceName = mapping.sourceLines.name;
-
-            // Add mappings one character at a time for maximum resolution.
-            smg.addMapping({
-                source: sourceName,
-                original: { line: sourceCursor.line,
-                            column: sourceCursor.column },
-                generated: { line: targetCursor.line,
-                             column: targetCursor.column }
-            });
-
-            if (!hasOwn.call(sourcesToContents, sourceName)) {
-                var sourceContent = mapping.sourceLines.toString();
-                smg.setSourceContent(sourceName, sourceContent);
-                sourcesToContents[sourceName] = sourceContent;
-            }
-
-            targetLines.nextPos(targetCursor, true);
-            mapping.sourceLines.nextPos(sourceCursor, true);
-        }
-    });
-
-    secret.cachedSourceMap = smg;
-
-    return smg.toJSON();
-};
-
-Lp.bootstrapCharAt = function(pos) {
-    assert.strictEqual(typeof pos, "object");
-    assert.strictEqual(typeof pos.line, "number");
-    assert.strictEqual(typeof pos.column, "number");
-
-    var line = pos.line,
-        column = pos.column,
-        strings = this.toString().split("\n"),
-        string = strings[line - 1];
-
-    if (typeof string === "undefined")
-        return "";
-
-    if (column === string.length &&
-        line < strings.length)
-        return "\n";
-
-    if (column >= string.length)
-        return "";
-
-    return string.charAt(column);
-};
-
-Lp.charAt = function(pos) {
-    assert.strictEqual(typeof pos, "object");
-    assert.strictEqual(typeof pos.line, "number");
-    assert.strictEqual(typeof pos.column, "number");
-
-    var line = pos.line,
-        column = pos.column,
-        secret = getSecret(this),
-        infos = secret.infos,
-        info = infos[line - 1],
-        c = column;
-
-    if (typeof info === "undefined" || c < 0)
-        return "";
-
-    var indent = this.getIndentAt(line);
-    if (c < indent)
-        return " ";
-
-    c += info.sliceStart - indent;
-
-    if (c === info.sliceEnd &&
-        line < this.length)
-        return "\n";
-
-    if (c >= info.sliceEnd)
-        return "";
-
-    return info.line.charAt(c);
-};
-
-Lp.stripMargin = function(width, skipFirstLine) {
-    if (width === 0)
-        return this;
-
-    assert.ok(width > 0, "negative margin: " + width);
-
-    if (skipFirstLine && this.length === 1)
-        return this;
-
-    var secret = getSecret(this);
-
-    var lines = new Lines(secret.infos.map(function(info, i) {
-        if (info.line && (i > 0 || !skipFirstLine)) {
-            info = copyLineInfo(info);
-            info.indent = Math.max(0, info.indent - width);
-        }
-        return info;
-    }));
-
-    if (secret.mappings.length > 0) {
-        var newMappings = getSecret(lines).mappings;
-        assert.strictEqual(newMappings.length, 0);
-        secret.mappings.forEach(function(mapping) {
-            newMappings.push(mapping.indent(width, skipFirstLine, true));
-        });
-    }
-
-    return lines;
-};
-
-Lp.indent = function(by) {
-    if (by === 0)
-        return this;
-
-    var secret = getSecret(this);
-
-    var lines = new Lines(secret.infos.map(function(info) {
-        if (info.line) {
-            info = copyLineInfo(info);
-            info.indent += by;
-        }
-        return info
-    }));
-
-    if (secret.mappings.length > 0) {
-        var newMappings = getSecret(lines).mappings;
-        assert.strictEqual(newMappings.length, 0);
-        secret.mappings.forEach(function(mapping) {
-            newMappings.push(mapping.indent(by));
-        });
-    }
-
-    return lines;
-};
-
-Lp.indentTail = function(by) {
-    if (by === 0)
-        return this;
-
-    if (this.length < 2)
-        return this;
-
-    var secret = getSecret(this);
-
-    var lines = new Lines(secret.infos.map(function(info, i) {
-        if (i > 0 && info.line) {
-            info = copyLineInfo(info);
-            info.indent += by;
-        }
-
-        return info;
-    }));
-
-    if (secret.mappings.length > 0) {
-        var newMappings = getSecret(lines).mappings;
-        assert.strictEqual(newMappings.length, 0);
-        secret.mappings.forEach(function(mapping) {
-            newMappings.push(mapping.indent(by, true));
-        });
-    }
-
-    return lines;
-};
-
-Lp.getIndentAt = function(line) {
-    assert.ok(line >= 1, "no line " + line + " (line numbers start from 1)");
-    var secret = getSecret(this),
-        info = secret.infos[line - 1];
-    return Math.max(info.indent, 0);
-};
-
-Lp.guessTabWidth = function() {
-    var secret = getSecret(this);
-    if (hasOwn.call(secret, "cachedTabWidth")) {
-        return secret.cachedTabWidth;
-    }
-
-    var counts = []; // Sparse array.
-    var lastIndent = 0;
-
-    for (var line = 1, last = this.length; line <= last; ++line) {
-        var info = secret.infos[line - 1];
-        var sliced = info.line.slice(info.sliceStart, info.sliceEnd);
-
-        // Whitespace-only lines don't tell us much about the likely tab
-        // width of this code.
-        if (isOnlyWhitespace(sliced)) {
-            continue;
-        }
-
-        var diff = Math.abs(info.indent - lastIndent);
-        counts[diff] = ~~counts[diff] + 1;
-        lastIndent = info.indent;
-    }
-
-    var maxCount = -1;
-    var result = 2;
-
-    for (var tabWidth = 1;
-         tabWidth < counts.length;
-         tabWidth += 1) {
-        if (hasOwn.call(counts, tabWidth) &&
-            counts[tabWidth] > maxCount) {
-            maxCount = counts[tabWidth];
-            result = tabWidth;
-        }
-    }
-
-    return secret.cachedTabWidth = result;
-};
-
-Lp.isOnlyWhitespace = function() {
-    return isOnlyWhitespace(this.toString());
-};
-
-Lp.isPrecededOnlyByWhitespace = function(pos) {
-    var secret = getSecret(this);
-    var info = secret.infos[pos.line - 1];
-    var indent = Math.max(info.indent, 0);
-
-    var diff = pos.column - indent;
-    if (diff <= 0) {
-        // If pos.column does not exceed the indentation amount, then
-        // there must be only whitespace before it.
-        return true;
-    }
-
-    var start = info.sliceStart;
-    var end = Math.min(start + diff, info.sliceEnd);
-    var prefix = info.line.slice(start, end);
-
-    return isOnlyWhitespace(prefix);
-};
-
-Lp.getLineLength = function(line) {
-    var secret = getSecret(this),
-        info = secret.infos[line - 1];
-    return this.getIndentAt(line) + info.sliceEnd - info.sliceStart;
-};
-
-Lp.nextPos = function(pos, skipSpaces) {
-    var l = Math.max(pos.line, 0),
-        c = Math.max(pos.column, 0);
-
-    if (c < this.getLineLength(l)) {
-        pos.column += 1;
-
-        return skipSpaces
-            ? !!this.skipSpaces(pos, false, true)
-            : true;
-    }
-
-    if (l < this.length) {
-        pos.line += 1;
-        pos.column = 0;
-
-        return skipSpaces
-            ? !!this.skipSpaces(pos, false, true)
-            : true;
-    }
-
-    return false;
-};
-
-Lp.prevPos = function(pos, skipSpaces) {
-    var l = pos.line,
-        c = pos.column;
-
-    if (c < 1) {
-        l -= 1;
-
-        if (l < 1)
-            return false;
-
-        c = this.getLineLength(l);
-
-    } else {
-        c = Math.min(c - 1, this.getLineLength(l));
-    }
-
-    pos.line = l;
-    pos.column = c;
-
-    return skipSpaces
-        ? !!this.skipSpaces(pos, true, true)
-        : true;
-};
-
-Lp.firstPos = function() {
-    // Trivial, but provided for completeness.
-    return { line: 1, column: 0 };
-};
-
-Lp.lastPos = function() {
-    return {
-        line: this.length,
-        column: this.getLineLength(this.length)
-    };
-};
-
-Lp.skipSpaces = function(pos, backward, modifyInPlace) {
-    if (pos) {
-        pos = modifyInPlace ? pos : {
-            line: pos.line,
-            column: pos.column
-        };
-    } else if (backward) {
-        pos = this.lastPos();
-    } else {
-        pos = this.firstPos();
-    }
-
-    if (backward) {
-        while (this.prevPos(pos)) {
-            if (!isOnlyWhitespace(this.charAt(pos)) &&
-                this.nextPos(pos)) {
-                return pos;
-            }
-        }
-
-        return null;
-
-    } else {
-        while (isOnlyWhitespace(this.charAt(pos))) {
-            if (!this.nextPos(pos)) {
-                return null;
-            }
-        }
-
-        return pos;
-    }
-};
-
-Lp.trimLeft = function() {
-    var pos = this.skipSpaces(this.firstPos(), false, true);
-    return pos ? this.slice(pos) : emptyLines;
-};
-
-Lp.trimRight = function() {
-    var pos = this.skipSpaces(this.lastPos(), true, true);
-    return pos ? this.slice(this.firstPos(), pos) : emptyLines;
-};
-
-Lp.trim = function() {
-    var start = this.skipSpaces(this.firstPos(), false, true);
-    if (start === null)
-        return emptyLines;
-
-    var end = this.skipSpaces(this.lastPos(), true, true);
-    assert.notStrictEqual(end, null);
-
-    return this.slice(start, end);
-};
-
-Lp.eachPos = function(callback, startPos, skipSpaces) {
-    var pos = this.firstPos();
-
-    if (startPos) {
-        pos.line = startPos.line,
-        pos.column = startPos.column
-    }
-
-    if (skipSpaces && !this.skipSpaces(pos, false, true)) {
-        return; // Encountered nothing but spaces.
-    }
-
-    do callback.call(this, pos);
-    while (this.nextPos(pos, skipSpaces));
-};
-
-Lp.bootstrapSlice = function(start, end) {
-    var strings = this.toString().split("\n").slice(
-            start.line - 1, end.line);
-
-    strings.push(strings.pop().slice(0, end.column));
-    strings[0] = strings[0].slice(start.column);
-
-    return fromString(strings.join("\n"));
-};
-
-Lp.slice = function(start, end) {
-    if (!end) {
-        if (!start) {
-            // The client seems to want a copy of this Lines object, but
-            // Lines objects are immutable, so it's perfectly adequate to
-            // return the same object.
-            return this;
-        }
-
-        // Slice to the end if no end position was provided.
-        end = this.lastPos();
-    }
-
-    var secret = getSecret(this);
-    var sliced = secret.infos.slice(start.line - 1, end.line);
-
-    if (start.line === end.line) {
-        sliced[0] = sliceInfo(sliced[0], start.column, end.column);
-    } else {
-        assert.ok(start.line < end.line);
-        sliced[0] = sliceInfo(sliced[0], start.column);
-        sliced.push(sliceInfo(sliced.pop(), 0, end.column));
-    }
-
-    var lines = new Lines(sliced);
-
-    if (secret.mappings.length > 0) {
-        var newMappings = getSecret(lines).mappings;
-        assert.strictEqual(newMappings.length, 0);
-        secret.mappings.forEach(function(mapping) {
-            var sliced = mapping.slice(this, start, end);
-            if (sliced) {
-                newMappings.push(sliced);
-            }
-        }, this);
-    }
-
-    return lines;
-};
-
-function sliceInfo(info, startCol, endCol) {
-    var sliceStart = info.sliceStart;
-    var sliceEnd = info.sliceEnd;
-    var indent = Math.max(info.indent, 0);
-    var lineLength = indent + sliceEnd - sliceStart;
-
-    if (typeof endCol === "undefined") {
-        endCol = lineLength;
-    }
-
-    startCol = Math.max(startCol, 0);
-    endCol = Math.min(endCol, lineLength);
-    endCol = Math.max(endCol, startCol);
-
-    if (endCol < indent) {
-        indent = endCol;
-        sliceEnd = sliceStart;
-    } else {
-        sliceEnd -= lineLength - endCol;
-    }
-
-    lineLength = endCol;
-    lineLength -= startCol;
-
-    if (startCol < indent) {
-        indent -= startCol;
-    } else {
-        startCol -= indent;
-        indent = 0;
-        sliceStart += startCol;
-    }
-
-    assert.ok(indent >= 0);
-    assert.ok(sliceStart <= sliceEnd);
-    assert.strictEqual(lineLength, indent + sliceEnd - sliceStart);
-
-    if (info.indent === indent &&
-        info.sliceStart === sliceStart &&
-        info.sliceEnd === sliceEnd) {
-        return info;
-    }
-
-    return {
-        line: info.line,
-        indent: indent,
-        sliceStart: sliceStart,
-        sliceEnd: sliceEnd
-    };
-}
-
-Lp.bootstrapSliceString = function(start, end, options) {
-    return this.slice(start, end).toString(options);
-};
-
-Lp.sliceString = function(start, end, options) {
-    if (!end) {
-        if (!start) {
-            // The client seems to want a copy of this Lines object, but
-            // Lines objects are immutable, so it's perfectly adequate to
-            // return the same object.
-            return this;
-        }
-
-        // Slice to the end if no end position was provided.
-        end = this.lastPos();
-    }
-
-    options = normalizeOptions(options);
-
-    var infos = getSecret(this).infos;
-    var parts = [];
-    var tabWidth = options.tabWidth;
-
-    for (var line = start.line; line <= end.line; ++line) {
-        var info = infos[line - 1];
-
-        if (line === start.line) {
-            if (line === end.line) {
-                info = sliceInfo(info, start.column, end.column);
-            } else {
-                info = sliceInfo(info, start.column);
-            }
-        } else if (line === end.line) {
-            info = sliceInfo(info, 0, end.column);
-        }
-
-        var indent = Math.max(info.indent, 0);
-
-        var before = info.line.slice(0, info.sliceStart);
-        if (options.reuseWhitespace &&
-            isOnlyWhitespace(before) &&
-            countSpaces(before, options.tabWidth) === indent) {
-            // Reuse original spaces if the indentation is correct.
-            parts.push(info.line.slice(0, info.sliceEnd));
-            continue;
-        }
-
-        var tabs = 0;
-        var spaces = indent;
-
-        if (options.useTabs) {
-            tabs = Math.floor(indent / tabWidth);
-            spaces -= tabs * tabWidth;
-        }
-
-        var result = "";
-
-        if (tabs > 0) {
-            result += new Array(tabs + 1).join("\t");
-        }
-
-        if (spaces > 0) {
-            result += new Array(spaces + 1).join(" ");
-        }
-
-        result += info.line.slice(info.sliceStart, info.sliceEnd);
-
-        parts.push(result);
-    }
-
-    return parts.join("\n");
-};
-
-Lp.isEmpty = function() {
-    return this.length < 2 && this.getLineLength(1) < 1;
-};
-
-Lp.join = function(elements) {
-    var separator = this;
-    var separatorSecret = getSecret(separator);
-    var infos = [];
-    var mappings = [];
-    var prevInfo;
-
-    function appendSecret(secret) {
-        if (secret === null)
-            return;
-
-        if (prevInfo) {
-            var info = secret.infos[0];
-            var indent = new Array(info.indent + 1).join(" ");
-            var prevLine = infos.length;
-            var prevColumn = Math.max(prevInfo.indent, 0) +
-                prevInfo.sliceEnd - prevInfo.sliceStart;
-
-            prevInfo.line = prevInfo.line.slice(
-                0, prevInfo.sliceEnd) + indent + info.line.slice(
-                    info.sliceStart, info.sliceEnd);
-
-            prevInfo.sliceEnd = prevInfo.line.length;
-
-            if (secret.mappings.length > 0) {
-                secret.mappings.forEach(function(mapping) {
-                    mappings.push(mapping.add(prevLine, prevColumn));
-                });
-            }
-
-        } else if (secret.mappings.length > 0) {
-            mappings.push.apply(mappings, secret.mappings);
-        }
-
-        secret.infos.forEach(function(info, i) {
-            if (!prevInfo || i > 0) {
-                prevInfo = copyLineInfo(info);
-                infos.push(prevInfo);
-            }
-        });
-    }
-
-    function appendWithSeparator(secret, i) {
-        if (i > 0)
-            appendSecret(separatorSecret);
-        appendSecret(secret);
-    }
-
-    elements.map(function(elem) {
-        var lines = fromString(elem);
-        if (lines.isEmpty())
-            return null;
-        return getSecret(lines);
-    }).forEach(separator.isEmpty()
-               ? appendSecret
-               : appendWithSeparator);
-
-    if (infos.length < 1)
-        return emptyLines;
-
-    var lines = new Lines(infos);
-
-    getSecret(lines).mappings = mappings;
-
-    return lines;
-};
-
-exports.concat = function(elements) {
-    return emptyLines.join(elements);
-};
-
-Lp.concat = function(other) {
-    var args = arguments,
-        list = [this];
-    list.push.apply(list, args);
-    assert.strictEqual(list.length, args.length + 1);
-    return emptyLines.join(list);
-};
-
-// The emptyLines object needs to be created all the way down here so that
-// Lines.prototype will be fully populated.
-var emptyLines = fromString("");
-
-},{"./mapping":134,"./options":135,"./types":139,"./util":140,"assert":170,"private":109,"source-map":151}],134:[function(require,module,exports){
-var assert = require("assert");
-var types = require("./types");
-var isString = types.builtInTypes.string;
-var isNumber = types.builtInTypes.number;
-var SourceLocation = types.namedTypes.SourceLocation;
-var Position = types.namedTypes.Position;
-var linesModule = require("./lines");
-var comparePos = require("./util").comparePos;
-
-function Mapping(sourceLines, sourceLoc, targetLoc) {
-    assert.ok(this instanceof Mapping);
-    assert.ok(sourceLines instanceof linesModule.Lines);
-    SourceLocation.assert(sourceLoc);
-
-    if (targetLoc) {
-        // In certain cases it's possible for targetLoc.{start,end}.column
-        // values to be negative, which technically makes them no longer
-        // valid SourceLocation nodes, so we need to be more forgiving.
-        assert.ok(
-            isNumber.check(targetLoc.start.line) &&
-            isNumber.check(targetLoc.start.column) &&
-            isNumber.check(targetLoc.end.line) &&
-            isNumber.check(targetLoc.end.column)
-        );
-    } else {
-        // Assume identity mapping if no targetLoc specified.
-        targetLoc = sourceLoc;
-    }
-
-    Object.defineProperties(this, {
-        sourceLines: { value: sourceLines },
-        sourceLoc: { value: sourceLoc },
-        targetLoc: { value: targetLoc }
-    });
-}
-
-var Mp = Mapping.prototype;
-module.exports = Mapping;
-
-Mp.slice = function(lines, start, end) {
-    assert.ok(lines instanceof linesModule.Lines);
-    Position.assert(start);
-
-    if (end) {
-        Position.assert(end);
-    } else {
-        end = lines.lastPos();
-    }
-
-    var sourceLines = this.sourceLines;
-    var sourceLoc = this.sourceLoc;
-    var targetLoc = this.targetLoc;
-
-    function skip(name) {
-        var sourceFromPos = sourceLoc[name];
-        var targetFromPos = targetLoc[name];
-        var targetToPos = start;
-
-        if (name === "end") {
-            targetToPos = end;
-        } else {
-            assert.strictEqual(name, "start");
-        }
-
-        return skipChars(
-            sourceLines, sourceFromPos,
-            lines, targetFromPos, targetToPos
-        );
-    }
-
-    if (comparePos(start, targetLoc.start) <= 0) {
-        if (comparePos(targetLoc.end, end) <= 0) {
-            targetLoc = {
-                start: subtractPos(targetLoc.start, start.line, start.column),
-                end: subtractPos(targetLoc.end, start.line, start.column)
-            };
-
-            // The sourceLoc can stay the same because the contents of the
-            // targetLoc have not changed.
-
-        } else if (comparePos(end, targetLoc.start) <= 0) {
-            return null;
-
-        } else {
-            sourceLoc = {
-                start: sourceLoc.start,
-                end: skip("end")
-            };
-
-            targetLoc = {
-                start: subtractPos(targetLoc.start, start.line, start.column),
-                end: subtractPos(end, start.line, start.column)
-            };
-        }
-
-    } else {
-        if (comparePos(targetLoc.end, start) <= 0) {
-            return null;
-        }
-
-        if (comparePos(targetLoc.end, end) <= 0) {
-            sourceLoc = {
-                start: skip("start"),
-                end: sourceLoc.end
-            };
-
-            targetLoc = {
-                // Same as subtractPos(start, start.line, start.column):
-                start: { line: 1, column: 0 },
-                end: subtractPos(targetLoc.end, start.line, start.column)
-            };
-
-        } else {
-            sourceLoc = {
-                start: skip("start"),
-                end: skip("end")
-            };
-
-            targetLoc = {
-                // Same as subtractPos(start, start.line, start.column):
-                start: { line: 1, column: 0 },
-                end: subtractPos(end, start.line, start.column)
-            };
-        }
-    }
-
-    return new Mapping(this.sourceLines, sourceLoc, targetLoc);
-};
-
-Mp.add = function(line, column) {
-    return new Mapping(this.sourceLines, this.sourceLoc, {
-        start: addPos(this.targetLoc.start, line, column),
-        end: addPos(this.targetLoc.end, line, column)
-    });
-};
-
-function addPos(toPos, line, column) {
-    return {
-        line: toPos.line + line - 1,
-        column: (toPos.line === 1)
-            ? toPos.column + column
-            : toPos.column
-    };
-}
-
-Mp.subtract = function(line, column) {
-    return new Mapping(this.sourceLines, this.sourceLoc, {
-        start: subtractPos(this.targetLoc.start, line, column),
-        end: subtractPos(this.targetLoc.end, line, column)
-    });
-};
-
-function subtractPos(fromPos, line, column) {
-    return {
-        line: fromPos.line - line + 1,
-        column: (fromPos.line === line)
-            ? fromPos.column - column
-            : fromPos.column
-    };
-}
-
-Mp.indent = function(by, skipFirstLine, noNegativeColumns) {
-    if (by === 0) {
-        return this;
-    }
-
-    var targetLoc = this.targetLoc;
-    var startLine = targetLoc.start.line;
-    var endLine = targetLoc.end.line;
-
-    if (skipFirstLine && startLine === 1 && endLine === 1) {
-        return this;
-    }
-
-    targetLoc = {
-        start: targetLoc.start,
-        end: targetLoc.end
-    };
-
-    if (!skipFirstLine || startLine > 1) {
-        var startColumn = targetLoc.start.column + by;
-        targetLoc.start = {
-            line: startLine,
-            column: noNegativeColumns
-                ? Math.max(0, startColumn)
-                : startColumn
-        };
-    }
-
-    if (!skipFirstLine || endLine > 1) {
-        var endColumn = targetLoc.end.column + by;
-        targetLoc.end = {
-            line: endLine,
-            column: noNegativeColumns
-                ? Math.max(0, endColumn)
-                : endColumn
-        };
-    }
-
-    return new Mapping(this.sourceLines, this.sourceLoc, targetLoc);
-};
-
-function skipChars(
-    sourceLines, sourceFromPos,
-    targetLines, targetFromPos, targetToPos
-) {
-    assert.ok(sourceLines instanceof linesModule.Lines);
-    assert.ok(targetLines instanceof linesModule.Lines);
-    Position.assert(sourceFromPos);
-    Position.assert(targetFromPos);
-    Position.assert(targetToPos);
-
-    var targetComparison = comparePos(targetFromPos, targetToPos);
-    if (targetComparison === 0) {
-        // Trivial case: no characters to skip.
-        return sourceFromPos;
-    }
-
-    if (targetComparison < 0) {
-        // Skipping forward.
-
-        var sourceCursor = sourceLines.skipSpaces(sourceFromPos);
-        var targetCursor = targetLines.skipSpaces(targetFromPos);
-
-        var lineDiff = targetToPos.line - targetCursor.line;
-        sourceCursor.line += lineDiff;
-        targetCursor.line += lineDiff;
-
-        if (lineDiff > 0) {
-            // If jumping to later lines, reset columns to the beginnings
-            // of those lines.
-            sourceCursor.column = 0;
-            targetCursor.column = 0;
-        } else {
-            assert.strictEqual(lineDiff, 0);
-        }
-
-        while (comparePos(targetCursor, targetToPos) < 0 &&
-               targetLines.nextPos(targetCursor, true)) {
-            assert.ok(sourceLines.nextPos(sourceCursor, true));
-            assert.strictEqual(
-                sourceLines.charAt(sourceCursor),
-                targetLines.charAt(targetCursor)
-            );
-        }
-
-    } else {
-        // Skipping backward.
-
-        var sourceCursor = sourceLines.skipSpaces(sourceFromPos, true);
-        var targetCursor = targetLines.skipSpaces(targetFromPos, true);
-
-        var lineDiff = targetToPos.line - targetCursor.line;
-        sourceCursor.line += lineDiff;
-        targetCursor.line += lineDiff;
-
-        if (lineDiff < 0) {
-            // If jumping to earlier lines, reset columns to the ends of
-            // those lines.
-            sourceCursor.column = sourceLines.getLineLength(sourceCursor.line);
-            targetCursor.column = targetLines.getLineLength(targetCursor.line);
-        } else {
-            assert.strictEqual(lineDiff, 0);
-        }
-
-        while (comparePos(targetToPos, targetCursor) < 0 &&
-               targetLines.prevPos(targetCursor, true)) {
-            assert.ok(sourceLines.prevPos(sourceCursor, true));
-            assert.strictEqual(
-                sourceLines.charAt(sourceCursor),
-                targetLines.charAt(targetCursor)
-            );
-        }
-    }
-
-    return sourceCursor;
-}
-
-},{"./lines":133,"./types":139,"./util":140,"assert":170}],135:[function(require,module,exports){
-var defaults = {
-    // If you want to use a different branch of esprima, or any other
-    // module that supports a .parse function, pass that module object to
-    // recast.parse as options.esprima.
-    esprima: require("esprima-fb"),
-
-    // Number of spaces the pretty-printer should use per tab for
-    // indentation. If you do not pass this option explicitly, it will be
-    // (quite reliably!) inferred from the original code.
-    tabWidth: 4,
-
-    // If you really want the pretty-printer to use tabs instead of
-    // spaces, make this option true.
-    useTabs: false,
-
-    // The reprinting code leaves leading whitespace untouched unless it
-    // has to reindent a line, or you pass false for this option.
-    reuseWhitespace: true,
-
-    // Some of the pretty-printer code (such as that for printing function
-    // parameter lists) makes a valiant attempt to prevent really long
-    // lines. You can adjust the limit by changing this option; however,
-    // there is no guarantee that line length will fit inside this limit.
-    wrapColumn: 74, // Aspirational for now.
-
-    // Pass a string as options.sourceFileName to recast.parse to tell the
-    // reprinter to keep track of reused code so that it can construct a
-    // source map automatically.
-    sourceFileName: null,
-
-    // Pass a string as options.sourceMapName to recast.print, and
-    // (provided you passed options.sourceFileName earlier) the
-    // PrintResult of recast.print will have a .map property for the
-    // generated source map.
-    sourceMapName: null,
-
-    // If provided, this option will be passed along to the source map
-    // generator as a root directory for relative source file paths.
-    sourceRoot: null,
-
-    // If you provide a source map that was generated from a previous call
-    // to recast.print as options.inputSourceMap, the old source map will
-    // be composed with the new source map.
-    inputSourceMap: null,
-
-    // If you want esprima to generate .range information (recast only
-    // uses .loc internally), pass true for this option.
-    range: false,
-
-    // If you want esprima not to throw exceptions when it encounters
-    // non-fatal errors, keep this option true.
-    tolerant: true
-}, hasOwn = defaults.hasOwnProperty;
-
-// Copy options and fill in default values.
-exports.normalize = function(options) {
-    options = options || defaults;
-
-    function get(key) {
-        return hasOwn.call(options, key)
-            ? options[key]
-            : defaults[key];
-    }
-
-    return {
-        tabWidth: +get("tabWidth"),
-        useTabs: !!get("useTabs"),
-        reuseWhitespace: !!get("reuseWhitespace"),
-        wrapColumn: Math.max(get("wrapColumn"), 0),
-        sourceFileName: get("sourceFileName"),
-        sourceMapName: get("sourceMapName"),
-        sourceRoot: get("sourceRoot"),
-        inputSourceMap: get("inputSourceMap"),
-        esprima: get("esprima"),
-        range: get("range"),
-        tolerant: get("tolerant")
-    };
-};
-
-},{"esprima-fb":142}],136:[function(require,module,exports){
-var assert = require("assert");
-var types = require("./types");
-var n = types.namedTypes;
-var b = types.builders;
-var isObject = types.builtInTypes.object;
-var isArray = types.builtInTypes.array;
-var isFunction = types.builtInTypes.function;
-var Patcher = require("./patcher").Patcher;
-var normalizeOptions = require("./options").normalize;
-var fromString = require("./lines").fromString;
-var attachComments = require("./comments").attach;
-
-exports.parse = function parse(source, options) {
-    options = normalizeOptions(options);
-
-    var lines = fromString(source, options);
-
-    var sourceWithoutTabs = lines.toString({
-        tabWidth: options.tabWidth,
-        reuseWhitespace: false,
-        useTabs: false
-    });
-
-    var program = options.esprima.parse(sourceWithoutTabs, {
-        loc: true,
-        range: options.range,
-        comment: true,
-        tolerant: options.tolerant,
-        sourceType: 'module'
-    });
-
-    var comments = program.comments;
-    delete program.comments;
-
-    // In order to ensure we reprint leading and trailing program
-    // comments, wrap the original Program node with a File node.
-    var file = b.file(program);
-    file.loc = {
-        lines: lines,
-        indent: 0,
-        start: lines.firstPos(),
-        end: lines.lastPos()
-    };
-
-    // Return a copy of the original AST so that any changes made may be
-    // compared to the original.
-    var copy = new TreeCopier(lines).copy(file);
-
-    // Attach comments to the copy rather than the original.
-    attachComments(comments, copy.program, lines);
-
-    return copy;
-};
-
-function TreeCopier(lines) {
-    assert.ok(this instanceof TreeCopier);
-    this.lines = lines;
-    this.indent = 0;
-}
-
-var TCp = TreeCopier.prototype;
-
-TCp.copy = function(node) {
-    if (isArray.check(node)) {
-        return node.map(this.copy, this);
-    }
-
-    if (!isObject.check(node)) {
-        return node;
-    }
-
-    if ((n.MethodDefinition && n.MethodDefinition.check(node)) ||
-        (n.Property.check(node) && (node.method || node.shorthand))) {
-        // If the node is a MethodDefinition or a .method or .shorthand
-        // Property, then the location information stored in
-        // node.value.loc is very likely untrustworthy (just the {body}
-        // part of a method, or nothing in the case of shorthand
-        // properties), so we null out that information to prevent
-        // accidental reuse of bogus source code during reprinting.
-        node.value.loc = null;
-
-        if (n.FunctionExpression.check(node.value)) {
-            // FunctionExpression method values should be anonymous,
-            // because their .id fields are ignored anyway.
-            node.value.id = null;
-        }
-    }
-
-    var copy = Object.create(Object.getPrototypeOf(node), {
-        original: { // Provide a link from the copy to the original.
-            value: node,
-            configurable: false,
-            enumerable: false,
-            writable: true
-        }
-    });
-
-    var loc = node.loc;
-    var oldIndent = this.indent;
-    var newIndent = oldIndent;
-
-    if (loc) {
-        if (loc.start.line < 1) {
-            loc.start.line = 1;
-        }
-
-        if (loc.end.line < 1) {
-            loc.end.line = 1;
-        }
-
-        if (this.lines.isPrecededOnlyByWhitespace(loc.start)) {
-            newIndent = this.indent = loc.start.column;
-        }
-
-        loc.lines = this.lines;
-        loc.indent = newIndent;
-    }
-
-    var keys = Object.keys(node);
-    var keyCount = keys.length;
-    for (var i = 0; i < keyCount; ++i) {
-        var key = keys[i];
-        if (key === "loc") {
-            copy[key] = node[key];
-        } else if (key === "comments") {
-            // Handled below.
-        } else {
-            copy[key] = this.copy(node[key]);
-        }
-    }
-
-    this.indent = oldIndent;
-
-    if (node.comments) {
-        Object.defineProperty(copy, "comments", {
-            value: node.comments,
-            enumerable: false
-        });
-    }
-
-    return copy;
-};
-
-},{"./comments":132,"./lines":133,"./options":135,"./patcher":137,"./types":139,"assert":170}],137:[function(require,module,exports){
-var assert = require("assert");
-var linesModule = require("./lines");
-var types = require("./types");
-var getFieldValue = types.getFieldValue;
-var Node = types.namedTypes.Node;
-var Expression = types.namedTypes.Expression;
-var SourceLocation = types.namedTypes.SourceLocation;
-var util = require("./util");
-var comparePos = util.comparePos;
-var NodePath = types.NodePath;
-var isObject = types.builtInTypes.object;
-var isArray = types.builtInTypes.array;
-var isString = types.builtInTypes.string;
-
-function Patcher(lines) {
-    assert.ok(this instanceof Patcher);
-    assert.ok(lines instanceof linesModule.Lines);
-
-    var self = this,
-        replacements = [];
-
-    self.replace = function(loc, lines) {
-        if (isString.check(lines))
-            lines = linesModule.fromString(lines);
-
-        replacements.push({
-            lines: lines,
-            start: loc.start,
-            end: loc.end
-        });
-    };
-
-    self.get = function(loc) {
-        // If no location is provided, return the complete Lines object.
-        loc = loc || {
-            start: { line: 1, column: 0 },
-            end: { line: lines.length,
-                   column: lines.getLineLength(lines.length) }
-        };
-
-        var sliceFrom = loc.start,
-            toConcat = [];
-
-        function pushSlice(from, to) {
-            assert.ok(comparePos(from, to) <= 0);
-            toConcat.push(lines.slice(from, to));
-        }
-
-        replacements.sort(function(a, b) {
-            return comparePos(a.start, b.start);
-        }).forEach(function(rep) {
-            if (comparePos(sliceFrom, rep.start) > 0) {
-                // Ignore nested replacement ranges.
-            } else {
-                pushSlice(sliceFrom, rep.start);
-                toConcat.push(rep.lines);
-                sliceFrom = rep.end;
-            }
-        });
-
-        pushSlice(sliceFrom, loc.end);
-
-        return linesModule.concat(toConcat);
-    };
-}
-exports.Patcher = Patcher;
-
-exports.getReprinter = function(path) {
-    assert.ok(path instanceof NodePath);
-
-    // Make sure that this path refers specifically to a Node, rather than
-    // some non-Node subproperty of a Node.
-    var node = path.value;
-    if (!Node.check(node))
-        return;
-
-    var orig = node.original;
-    var origLoc = orig && orig.loc;
-    var lines = origLoc && origLoc.lines;
-    var reprints = [];
-
-    if (!lines || !findReprints(path, reprints))
-        return;
-
-    return function(print) {
-        var patcher = new Patcher(lines);
-
-        reprints.forEach(function(reprint) {
-            var old = reprint.oldPath.value;
-            SourceLocation.assert(old.loc, true);
-            patcher.replace(
-                old.loc,
-                print(reprint.newPath).indentTail(old.loc.indent)
-            );
-        });
-
-        return patcher.get(origLoc).indentTail(-orig.loc.indent);
-    };
-};
-
-function findReprints(newPath, reprints) {
-    var newNode = newPath.value;
-    Node.assert(newNode);
-
-    var oldNode = newNode.original;
-    Node.assert(oldNode);
-
-    assert.deepEqual(reprints, []);
-
-    if (newNode.type !== oldNode.type) {
-        return false;
-    }
-
-    var oldPath = new NodePath(oldNode);
-    var canReprint = findChildReprints(newPath, oldPath, reprints);
-
-    if (!canReprint) {
-        // Make absolutely sure the calling code does not attempt to reprint
-        // any nodes.
-        reprints.length = 0;
-    }
-
-    return canReprint;
-}
-
-function findAnyReprints(newPath, oldPath, reprints) {
-    var newNode = newPath.value;
-    var oldNode = oldPath.value;
-
-    if (newNode === oldNode)
-        return true;
-
-    if (isArray.check(newNode))
-        return findArrayReprints(newPath, oldPath, reprints);
-
-    if (isObject.check(newNode))
-        return findObjectReprints(newPath, oldPath, reprints);
-
-    return false;
-}
-
-function findArrayReprints(newPath, oldPath, reprints) {
-    var newNode = newPath.value;
-    var oldNode = oldPath.value;
-    isArray.assert(newNode);
-    var len = newNode.length;
-
-    if (!(isArray.check(oldNode) &&
-          oldNode.length === len))
-        return false;
-
-    for (var i = 0; i < len; ++i)
-        if (!findAnyReprints(newPath.get(i), oldPath.get(i), reprints))
-            return false;
-
-    return true;
-}
-
-function findObjectReprints(newPath, oldPath, reprints) {
-    var newNode = newPath.value;
-    isObject.assert(newNode);
-
-    if (newNode.original === null) {
-        // If newNode.original node was set to null, reprint the node.
-        return false;
-    }
-
-    var oldNode = oldPath.value;
-    if (!isObject.check(oldNode))
-        return false;
-
-    if (Node.check(newNode)) {
-        if (!Node.check(oldNode)) {
             return false;
         }
-
-        if (!oldNode.loc) {
-            // If we have no .loc information for oldNode, then we won't
-            // be able to reprint it.
-            return false;
+        // FF <= 3.6:
+        // o = {}; o.hasOwnProperty("__proto__" or "__count__" or "__parent__") => true
+        // o = {"__proto__": null}; Object.prototype.hasOwnProperty.call(o, "__proto__" or "__count__" or "__parent__") => false
+        function hasOwnPollutedProps(obj) {
+            return hasOwnProperty.call(obj, "__count__") || hasOwnProperty.call(obj, "__parent__");
         }
 
-        // Here we need to decide whether the reprinted code for newNode
-        // is appropriate for patching into the location of oldNode.
-
-        if (newNode.type === oldNode.type) {
-            var childReprints = [];
-
-            if (findChildReprints(newPath, oldPath, childReprints)) {
-                reprints.push.apply(reprints, childReprints);
-            } else {
-                reprints.push({
-                    newPath: newPath,
-                    oldPath: oldPath
-                });
+        var useObjectCreate = false;
+        if (typeof Object.create === "function") {
+            if (!hasOwnEnumerableProps(Object.create(null))) {
+                useObjectCreate = true;
             }
-
-            return true;
         }
-
-        if (Expression.check(newNode) &&
-            Expression.check(oldNode)) {
-
-            // If both nodes are subtypes of Expression, then we should be
-            // able to fill the location occupied by the old node with
-            // code printed for the new node with no ill consequences.
-            reprints.push({
-                newPath: newPath,
-                oldPath: oldPath
-            });
-
-            return true;
-        }
-
-        // The nodes have different types, and at least one of the types
-        // is not a subtype of the Expression type, so we cannot safely
-        // assume the nodes are syntactically interchangeable.
-        return false;
-    }
-
-    return findChildReprints(newPath, oldPath, reprints);
-}
-
-// This object is reused in hasOpeningParen and hasClosingParen to avoid
-// having to allocate a temporary object.
-var reusablePos = { line: 1, column: 0 };
-
-function hasOpeningParen(oldPath) {
-    var oldNode = oldPath.value;
-    var loc = oldNode.loc;
-    var lines = loc && loc.lines;
-
-    if (lines) {
-        var pos = reusablePos;
-        pos.line = loc.start.line;
-        pos.column = loc.start.column;
-
-        while (lines.prevPos(pos)) {
-            var ch = lines.charAt(pos);
-
-            if (ch === "(") {
-                var rootPath = oldPath;
-                while (rootPath.parentPath)
-                    rootPath = rootPath.parentPath;
-
-                // If we found an opening parenthesis but it occurred before
-                // the start of the original subtree for this reprinting, then
-                // we must not return true for hasOpeningParen(oldPath).
-                return comparePos(rootPath.value.loc.start, pos) <= 0;
+        if (useObjectCreate === false) {
+            if (hasOwnEnumerableProps({})) {
+                throw new Error("StringMap environment error 0, please file a bug at https://github.com/olov/stringmap/issues");
             }
+        }
+        // no throw yet means we can create objects without own enumerable props (safe-guard against VMs and shims)
 
-            if (ch !== " ") {
+        var o = (useObjectCreate ? Object.create(null) : {});
+        var useProtoClear = false;
+        if (hasOwnPollutedProps(o)) {
+            o.__proto__ = null;
+            if (hasOwnEnumerableProps(o) || hasOwnPollutedProps(o)) {
+                throw new Error("StringMap environment error 1, please file a bug at https://github.com/olov/stringmap/issues");
+            }
+            useProtoClear = true;
+        }
+        // no throw yet means we can create objects without own polluted props (safe-guard against VMs and shims)
+
+        return function() {
+            var o = (useObjectCreate ? Object.create(null) : {});
+            if (useProtoClear) {
+                o.__proto__ = null;
+            }
+            return o;
+        };
+    })();
+
+    // stringmap ctor
+    function stringmap(optional_object) {
+        // use with or without new
+        if (!(this instanceof stringmap)) {
+            return new stringmap(optional_object);
+        }
+        this.obj = create();
+        this.hasProto = false; // false (no __proto__ key) or true (has __proto__ key)
+        this.proto = undefined; // value for __proto__ key when hasProto is true, undefined otherwise
+
+        if (optional_object) {
+            this.setMany(optional_object);
+        }
+    };
+
+    // primitive methods that deals with data representation
+    stringmap.prototype.has = function(key) {
+        // The type-check of key in has, get, set and delete is important because otherwise an object
+        // {toString: function() { return "__proto__"; }} can avoid the key === "__proto__" test.
+        // The alternative to type-checking would be to force string conversion, i.e. key = String(key);
+        if (typeof key !== "string") {
+            throw new Error("StringMap expected string key");
+        }
+        return (key === "__proto__" ?
+            this.hasProto :
+            hasOwnProperty.call(this.obj, key));
+    };
+
+    stringmap.prototype.get = function(key) {
+        if (typeof key !== "string") {
+            throw new Error("StringMap expected string key");
+        }
+        return (key === "__proto__" ?
+            this.proto :
+            (hasOwnProperty.call(this.obj, key) ? this.obj[key] : undefined));
+    };
+
+    stringmap.prototype.set = function(key, value) {
+        if (typeof key !== "string") {
+            throw new Error("StringMap expected string key");
+        }
+        if (key === "__proto__") {
+            this.hasProto = true;
+            this.proto = value;
+        } else {
+            this.obj[key] = value;
+        }
+    };
+
+    stringmap.prototype.remove = function(key) {
+        if (typeof key !== "string") {
+            throw new Error("StringMap expected string key");
+        }
+        var didExist = this.has(key);
+        if (key === "__proto__") {
+            this.hasProto = false;
+            this.proto = undefined;
+        } else {
+            delete this.obj[key];
+        }
+        return didExist;
+    };
+
+    // alias remove to delete but beware:
+    // sm.delete("key"); // OK in ES5 and later
+    // sm['delete']("key"); // OK in all ES versions
+    // sm.remove("key"); // OK in all ES versions
+    stringmap.prototype['delete'] = stringmap.prototype.remove;
+
+    stringmap.prototype.isEmpty = function() {
+        for (var key in this.obj) {
+            if (hasOwnProperty.call(this.obj, key)) {
                 return false;
             }
         }
-    }
+        return !this.hasProto;
+    };
 
-    return false;
+    stringmap.prototype.size = function() {
+        var len = 0;
+        for (var key in this.obj) {
+            if (hasOwnProperty.call(this.obj, key)) {
+                ++len;
+            }
+        }
+        return (this.hasProto ? len + 1 : len);
+    };
+
+    stringmap.prototype.keys = function() {
+        var keys = [];
+        for (var key in this.obj) {
+            if (hasOwnProperty.call(this.obj, key)) {
+                keys.push(key);
+            }
+        }
+        if (this.hasProto) {
+            keys.push("__proto__");
+        }
+        return keys;
+    };
+
+    stringmap.prototype.values = function() {
+        var values = [];
+        for (var key in this.obj) {
+            if (hasOwnProperty.call(this.obj, key)) {
+                values.push(this.obj[key]);
+            }
+        }
+        if (this.hasProto) {
+            values.push(this.proto);
+        }
+        return values;
+    };
+
+    stringmap.prototype.items = function() {
+        var items = [];
+        for (var key in this.obj) {
+            if (hasOwnProperty.call(this.obj, key)) {
+                items.push([key, this.obj[key]]);
+            }
+        }
+        if (this.hasProto) {
+            items.push(["__proto__", this.proto]);
+        }
+        return items;
+    };
+
+
+    // methods that rely on the above primitives
+    stringmap.prototype.setMany = function(object) {
+        if (object === null || (typeof object !== "object" && typeof object !== "function")) {
+            throw new Error("StringMap expected Object");
+        }
+        for (var key in object) {
+            if (hasOwnProperty.call(object, key)) {
+                this.set(key, object[key]);
+            }
+        }
+        return this;
+    };
+
+    stringmap.prototype.merge = function(other) {
+        var keys = other.keys();
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            this.set(key, other.get(key));
+        }
+        return this;
+    };
+
+    stringmap.prototype.map = function(fn) {
+        var keys = this.keys();
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            keys[i] = fn(this.get(key), key); // re-use keys array for results
+        }
+        return keys;
+    };
+
+    stringmap.prototype.forEach = function(fn) {
+        var keys = this.keys();
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            fn(this.get(key), key);
+        }
+    };
+
+    stringmap.prototype.clone = function() {
+        var other = stringmap();
+        return other.merge(this);
+    };
+
+    stringmap.prototype.toString = function() {
+        var self = this;
+        return "{" + this.keys().map(function(key) {
+            return JSON.stringify(key) + ":" + JSON.stringify(self.get(key));
+        }).join(",") + "}";
+    };
+
+    return stringmap;
+})();
+
+if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+    module.exports = StringMap;
 }
 
-function hasClosingParen(oldPath) {
-    var oldNode = oldPath.value;
-    var loc = oldNode.loc;
-    var lines = loc && loc.lines;
+},{}],140:[function(require,module,exports){
+// stringset.js
+// MIT licensed, see LICENSE file
+// Copyright (c) 2013 Olov Lassus <olov.lassus@gmail.com>
 
-    if (lines) {
-        var pos = reusablePos;
-        pos.line = loc.end.line;
-        pos.column = loc.end.column;
+var StringSet = (function() {
+    "use strict";
 
-        do {
-            var ch = lines.charAt(pos);
+    // to save us a few characters
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-            if (ch === ")") {
-                var rootPath = oldPath;
-                while (rootPath.parentPath)
-                    rootPath = rootPath.parentPath;
-
-                // If we found a closing parenthesis but it occurred after the
-                // end of the original subtree for this reprinting, then we
-                // must not return true for hasClosingParen(oldPath).
-                return comparePos(pos, rootPath.value.loc.end) <= 0;
+    var create = (function() {
+        function hasOwnEnumerableProps(obj) {
+            for (var prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    return true;
+                }
             }
+            return false;
+        }
 
-            if (ch !== " ") {
+        // FF <= 3.6:
+        // o = {}; o.hasOwnProperty("__proto__" or "__count__" or "__parent__") => true
+        // o = {"__proto__": null}; Object.prototype.hasOwnProperty.call(o, "__proto__" or "__count__" or "__parent__") => false
+        function hasOwnPollutedProps(obj) {
+            return hasOwnProperty.call(obj, "__count__") || hasOwnProperty.call(obj, "__parent__");
+        }
+
+        var useObjectCreate = false;
+        if (typeof Object.create === "function") {
+            if (!hasOwnEnumerableProps(Object.create(null))) {
+                useObjectCreate = true;
+            }
+        }
+        if (useObjectCreate === false) {
+            if (hasOwnEnumerableProps({})) {
+                throw new Error("StringSet environment error 0, please file a bug at https://github.com/olov/stringset/issues");
+            }
+        }
+        // no throw yet means we can create objects without own enumerable props (safe-guard against VMs and shims)
+
+        var o = (useObjectCreate ? Object.create(null) : {});
+        var useProtoClear = false;
+        if (hasOwnPollutedProps(o)) {
+            o.__proto__ = null;
+            if (hasOwnEnumerableProps(o) || hasOwnPollutedProps(o)) {
+                throw new Error("StringSet environment error 1, please file a bug at https://github.com/olov/stringset/issues");
+            }
+            useProtoClear = true;
+        }
+        // no throw yet means we can create objects without own polluted props (safe-guard against VMs and shims)
+
+        return function() {
+            var o = (useObjectCreate ? Object.create(null) : {});
+            if (useProtoClear) {
+                o.__proto__ = null;
+            }
+            return o;
+        };
+    })();
+
+    // stringset ctor
+    function stringset(optional_array) {
+        // use with or without new
+        if (!(this instanceof stringset)) {
+            return new stringset(optional_array);
+        }
+        this.obj = create();
+        this.hasProto = false; // false (no __proto__ item) or true (has __proto__ item)
+
+        if (optional_array) {
+            this.addMany(optional_array);
+        }
+    };
+
+    // primitive methods that deals with data representation
+    stringset.prototype.has = function(item) {
+        // The type-check of item in has, get, set and delete is important because otherwise an object
+        // {toString: function() { return "__proto__"; }} can avoid the item === "__proto__" test.
+        // The alternative to type-checking would be to force string conversion, i.e. item = String(item);
+        if (typeof item !== "string") {
+            throw new Error("StringSet expected string item");
+        }
+        return (item === "__proto__" ?
+            this.hasProto :
+            hasOwnProperty.call(this.obj, item));
+    };
+
+    stringset.prototype.add = function(item) {
+        if (typeof item !== "string") {
+            throw new Error("StringSet expected string item");
+        }
+        if (item === "__proto__") {
+            this.hasProto = true;
+        } else {
+            this.obj[item] = true;
+        }
+    };
+
+    stringset.prototype.remove = function(item) {
+        if (typeof item !== "string") {
+            throw new Error("StringSet expected string item");
+        }
+        var didExist = this.has(item);
+        if (item === "__proto__") {
+            this.hasProto = false;
+        } else {
+            delete this.obj[item];
+        }
+        return didExist;
+    };
+
+    // alias remove to delete but beware:
+    // ss.delete("key"); // OK in ES5 and later
+    // ss['delete']("key"); // OK in all ES versions
+    // ss.remove("key"); // OK in all ES versions
+    stringset.prototype['delete'] = stringset.prototype.remove;
+
+    stringset.prototype.isEmpty = function() {
+        for (var item in this.obj) {
+            if (hasOwnProperty.call(this.obj, item)) {
                 return false;
             }
-
-        } while (lines.nextPos(pos));
-    }
-
-    return false;
-}
-
-function hasParens(oldPath) {
-    // This logic can technically be fooled if the node has parentheses
-    // but there are comments intervening between the parentheses and the
-    // node. In such cases the node will be harmlessly wrapped in an
-    // additional layer of parentheses.
-    return hasOpeningParen(oldPath) && hasClosingParen(oldPath);
-}
-
-function findChildReprints(newPath, oldPath, reprints) {
-    var newNode = newPath.value;
-    var oldNode = oldPath.value;
-
-    isObject.assert(newNode);
-    isObject.assert(oldNode);
-
-    if (newNode.original === null) {
-        // If newNode.original node was set to null, reprint the node.
-        return false;
-    }
-
-    // If this type of node cannot come lexically first in its enclosing
-    // statement (e.g. a function expression or object literal), and it
-    // seems to be doing so, then the only way we can ignore this problem
-    // and save ourselves from falling back to the pretty printer is if an
-    // opening parenthesis happens to precede the node.  For example,
-    // (function(){ ... }()); does not need to be reprinted, even though
-    // the FunctionExpression comes lexically first in the enclosing
-    // ExpressionStatement and fails the hasParens test, because the
-    // parent CallExpression passes the hasParens test. If we relied on
-    // the path.needsParens() && !hasParens(oldNode) check below, the
-    // absence of a closing parenthesis after the FunctionExpression would
-    // trigger pretty-printing unnecessarily.
-    if (!newPath.canBeFirstInStatement() &&
-        newPath.firstInStatement() &&
-        !hasOpeningParen(oldPath))
-        return false;
-
-    // If this node needs parentheses and will not be wrapped with
-    // parentheses when reprinted, then return false to skip reprinting
-    // and let it be printed generically.
-    if (newPath.needsParens(true) && !hasParens(oldPath)) {
-        return false;
-    }
-
-    for (var k in util.getUnionOfKeys(newNode, oldNode)) {
-        if (k === "loc")
-            continue;
-
-        if (!findAnyReprints(newPath.get(k), oldPath.get(k), reprints))
-            return false;
-    }
-
-    return true;
-}
-
-},{"./lines":133,"./types":139,"./util":140,"assert":170}],138:[function(require,module,exports){
-var assert = require("assert");
-var sourceMap = require("source-map");
-var printComments = require("./comments").printComments;
-var linesModule = require("./lines");
-var fromString = linesModule.fromString;
-var concat = linesModule.concat;
-var normalizeOptions = require("./options").normalize;
-var getReprinter = require("./patcher").getReprinter;
-var types = require("./types");
-var namedTypes = types.namedTypes;
-var isString = types.builtInTypes.string;
-var isObject = types.builtInTypes.object;
-var NodePath = types.NodePath;
-var util = require("./util");
-
-function PrintResult(code, sourceMap) {
-    assert.ok(this instanceof PrintResult);
-
-    isString.assert(code);
-    this.code = code;
-
-    if (sourceMap) {
-        isObject.assert(sourceMap);
-        this.map = sourceMap;
-    }
-}
-
-var PRp = PrintResult.prototype;
-var warnedAboutToString = false;
-
-PRp.toString = function() {
-    if (!warnedAboutToString) {
-        console.warn(
-            "Deprecation warning: recast.print now returns an object with " +
-            "a .code property. You appear to be treating the object as a " +
-            "string, which might still work but is strongly discouraged."
-        );
-
-        warnedAboutToString = true;
-    }
-
-    return this.code;
-};
-
-var emptyPrintResult = new PrintResult("");
-
-function Printer(originalOptions) {
-    assert.ok(this instanceof Printer);
-
-    var explicitTabWidth = originalOptions && originalOptions.tabWidth;
-    var options = normalizeOptions(originalOptions);
-    assert.notStrictEqual(options, originalOptions);
-
-    // It's common for client code to pass the same options into both
-    // recast.parse and recast.print, but the Printer doesn't need (and
-    // can be confused by) options.sourceFileName, so we null it out.
-    options.sourceFileName = null;
-
-    function printWithComments(path) {
-        assert.ok(path instanceof NodePath);
-        return printComments(path.node.comments, print(path), options);
-    }
-
-    function print(path, includeComments) {
-        if (includeComments)
-            return printWithComments(path);
-
-        assert.ok(path instanceof NodePath);
-
-        if (!explicitTabWidth) {
-            var oldTabWidth = options.tabWidth;
-            var loc = path.node.loc;
-            if (loc && loc.lines && loc.lines.guessTabWidth) {
-                options.tabWidth = loc.lines.guessTabWidth();
-                var lines = maybeReprint(path);
-                options.tabWidth = oldTabWidth;
-                return lines;
-            }
         }
-
-        return maybeReprint(path);
-    }
-
-    function maybeReprint(path) {
-        var reprinter = getReprinter(path);
-        if (reprinter)
-            return maybeAddParens(path, reprinter(maybeReprint));
-        return printRootGenerically(path);
-    }
-
-    // Print the root node generically, but then resume reprinting its
-    // children non-generically.
-    function printRootGenerically(path) {
-        return genericPrint(path, options, printWithComments);
-    }
-
-    // Print the entire AST generically.
-    function printGenerically(path) {
-        return genericPrint(path, options, printGenerically);
-    }
-
-    this.print = function(ast) {
-        if (!ast) {
-            return emptyPrintResult;
-        }
-
-        var path = ast instanceof NodePath ? ast : new NodePath(ast);
-        var lines = print(path, true);
-
-        return new PrintResult(
-            lines.toString(options),
-            util.composeSourceMaps(
-                options.inputSourceMap,
-                lines.getSourceMap(
-                    options.sourceMapName,
-                    options.sourceRoot
-                )
-            )
-        );
+        return !this.hasProto;
     };
 
-    this.printGenerically = function(ast) {
-        if (!ast) {
-            return emptyPrintResult;
+    stringset.prototype.size = function() {
+        var len = 0;
+        for (var item in this.obj) {
+            if (hasOwnProperty.call(this.obj, item)) {
+                ++len;
+            }
         }
-
-        var path = ast instanceof NodePath ? ast : new NodePath(ast);
-        var oldReuseWhitespace = options.reuseWhitespace;
-
-        // Do not reuse whitespace (or anything else, for that matter)
-        // when printing generically.
-        options.reuseWhitespace = false;
-        var pr = new PrintResult(printGenerically(path).toString(options));
-        options.reuseWhitespace = oldReuseWhitespace;
-        return pr;
+        return (this.hasProto ? len + 1 : len);
     };
-}
 
-exports.Printer = Printer;
-
-function maybeAddParens(path, lines) {
-    return path.needsParens() ? concat(["(", lines, ")"]) : lines;
-}
-
-function genericPrint(path, options, printPath) {
-    assert.ok(path instanceof NodePath);
-    return maybeAddParens(path, genericPrintNoParens(path, options, printPath));
-}
-
-function genericPrintNoParens(path, options, print) {
-    var n = path.value;
-
-    if (!n) {
-        return fromString("");
-    }
-
-    if (typeof n === "string") {
-        return fromString(n, options);
-    }
-
-    namedTypes.Node.assert(n);
-
-    switch (n.type) {
-    case "File":
-        path = path.get("program");
-        n = path.node;
-        namedTypes.Program.assert(n);
-
-        // intentionally fall through...
-
-    case "Program":
-        return maybeAddSemicolon(
-            printStatementSequence(path.get("body"), options, print)
-        );
-
-    case "EmptyStatement":
-        return fromString("");
-
-    case "ExpressionStatement":
-        return concat([print(path.get("expression")), ";"]);
-
-    case "BinaryExpression":
-    case "LogicalExpression":
-    case "AssignmentExpression":
-        return fromString(" ").join([
-            print(path.get("left")),
-            n.operator,
-            print(path.get("right"))
-        ]);
-
-    case "MemberExpression":
-        var parts = [print(path.get("object"))];
-
-        if (n.computed)
-            parts.push("[", print(path.get("property")), "]");
-        else
-            parts.push(".", print(path.get("property")));
-
-        return concat(parts);
-
-    case "Path":
-        return fromString(".").join(n.body);
-
-    case "Identifier":
-        return fromString(n.name, options);
-
-    case "SpreadElement":
-    case "SpreadElementPattern":
-    case "SpreadProperty":
-    case "SpreadPropertyPattern":
-        return concat(["...", print(path.get("argument"))]);
-
-    case "FunctionDeclaration":
-    case "FunctionExpression":
-        var parts = [];
-
-        if (n.async)
-            parts.push("async ");
-
-        parts.push("function");
-
-        if (n.generator)
-            parts.push("*");
-
-        if (n.id)
-            parts.push(" ", print(path.get("id")));
-
-        parts.push(
-            "(",
-            printFunctionParams(path, options, print),
-            ") ",
-            print(path.get("body")));
-
-        return concat(parts);
-
-    case "ArrowFunctionExpression":
-        var parts = [];
-
-        if (n.async)
-            parts.push("async ");
-
-        if (n.params.length === 1) {
-            parts.push(print(path.get("params", 0)));
-        } else {
-            parts.push(
-                "(",
-                printFunctionParams(path, options, print),
-                ")"
-            );
-        }
-
-        parts.push(" => ", print(path.get("body")));
-
-        return concat(parts);
-
-    case "MethodDefinition":
-        var parts = [];
-
-        if (n.static) {
-            parts.push("static ");
-        }
-
-        parts.push(printMethod(
-            n.kind,
-            path.get("key"),
-            path.get("value"),
-            options,
-            print
-        ));
-
-        return concat(parts);
-
-    case "YieldExpression":
-        var parts = ["yield"];
-
-        if (n.delegate)
-            parts.push("*");
-
-        if (n.argument)
-            parts.push(" ", print(path.get("argument")));
-
-        return concat(parts);
-
-    case "AwaitExpression":
-        var parts = ["await"];
-
-        if (n.all)
-            parts.push("*");
-
-        if (n.argument)
-            parts.push(" ", print(path.get("argument")));
-
-        return concat(parts);
-
-    case "ModuleDeclaration":
-        var parts = ["module", print(path.get("id"))];
-
-        if (n.source) {
-            assert.ok(!n.body);
-            parts.push("from", print(path.get("source")));
-        } else {
-            parts.push(print(path.get("body")));
-        }
-
-        return fromString(" ").join(parts);
-
-    case "ImportSpecifier":
-    case "ExportSpecifier":
-        var parts = [print(path.get("id"))];
-
-        if (n.name)
-            parts.push(" as ", print(path.get("name")));
-
-        return concat(parts);
-
-    case "ExportBatchSpecifier":
-        return fromString("*");
-
-    case "ImportNamespaceSpecifier":
-        return concat(["* as ", print(path.get("id"))]);
-
-    case "ImportDefaultSpecifier":
-        return print(path.get("id"));
-
-    case "ExportDeclaration":
-        var parts = ["export"];
-
-        if (n["default"]) {
-            parts.push(" default");
-
-        } else if (n.specifiers &&
-                   n.specifiers.length > 0) {
-
-            if (n.specifiers.length === 1 &&
-                n.specifiers[0].type === "ExportBatchSpecifier") {
-                parts.push(" *");
-            } else {
-                parts.push(
-                    " { ",
-                    fromString(", ").join(path.get("specifiers").map(print)),
-                    " }"
-                );
-            }
-
-            if (n.source)
-                parts.push(" from ", print(path.get("source")));
-
-            parts.push(";");
-
-            return concat(parts);
-        }
-
-        if (n.declaration) {
-            if (!namedTypes.Node.check(n.declaration)) {
-                console.log(JSON.stringify(n, null, 2));
-            }
-            var decLines = print(path.get("declaration"));
-            parts.push(" ", decLines);
-            if (lastNonSpaceCharacter(decLines) !== ";") {
-                parts.push(";");
+    stringset.prototype.items = function() {
+        var items = [];
+        for (var item in this.obj) {
+            if (hasOwnProperty.call(this.obj, item)) {
+                items.push(item);
             }
         }
-
-        return concat(parts);
-
-    case "ImportDeclaration":
-        var parts = ["import "];
-
-        if (n.specifiers &&
-            n.specifiers.length > 0) {
-
-            var foundImportSpecifier = false;
-
-            path.get("specifiers").each(function(sp) {
-                if (sp.name > 0) {
-                    parts.push(", ");
-                }
-
-                if (namedTypes.ImportDefaultSpecifier.check(sp.value) ||
-                    namedTypes.ImportNamespaceSpecifier.check(sp.value)) {
-                    assert.strictEqual(foundImportSpecifier, false);
-                } else {
-                    namedTypes.ImportSpecifier.assert(sp.value);
-                    if (!foundImportSpecifier) {
-                        foundImportSpecifier = true;
-                        parts.push("{");
-                    }
-                }
-
-                parts.push(print(sp));
-            });
-
-            if (foundImportSpecifier) {
-                parts.push("}");
-            }
-
-            parts.push(" from ");
+        if (this.hasProto) {
+            items.push("__proto__");
         }
-
-        parts.push(print(path.get("source")), ";");
-
-        return concat(parts);
-
-    case "BlockStatement":
-        var naked = printStatementSequence(path.get("body"), options, print);
-        if (naked.isEmpty())
-            return fromString("{}");
-
-        return concat([
-            "{\n",
-            naked.indent(options.tabWidth),
-            "\n}"
-        ]);
-
-    case "ReturnStatement":
-        var parts = ["return"];
-
-        if (n.argument) {
-            var argLines = print(path.get("argument"));
-            if (argLines.length > 1 &&
-                namedTypes.XJSElement &&
-                namedTypes.XJSElement.check(n.argument)) {
-                parts.push(
-                    " (\n",
-                    argLines.indent(options.tabWidth),
-                    "\n)"
-                );
-            } else {
-                parts.push(" ", argLines);
-            }
-        }
-
-        parts.push(";");
-
-        return concat(parts);
-
-    case "CallExpression":
-        return concat([
-            print(path.get("callee")),
-            printArgumentsList(path, options, print)
-        ]);
-
-    case "ObjectExpression":
-    case "ObjectPattern":
-        var allowBreak = false,
-            len = n.properties.length,
-            parts = [len > 0 ? "{\n" : "{"];
-
-        path.get("properties").map(function(childPath) {
-            var prop = childPath.value;
-            var i = childPath.name;
-
-            var lines = print(childPath).indent(options.tabWidth);
-
-            var multiLine = lines.length > 1;
-            if (multiLine && allowBreak) {
-                // Similar to the logic for BlockStatement.
-                parts.push("\n");
-            }
-
-            parts.push(lines);
-
-            if (i < len - 1) {
-                // Add an extra line break if the previous object property
-                // had a multi-line value.
-                parts.push(multiLine ? ",\n\n" : ",\n");
-                allowBreak = !multiLine;
-            }
-        });
-
-        parts.push(len > 0 ? "\n}" : "}");
-
-        return concat(parts);
-
-    case "PropertyPattern":
-        return concat([
-            print(path.get("key")),
-            ": ",
-            print(path.get("pattern"))
-        ]);
-
-    case "Property": // Non-standard AST node type.
-        if (n.method || n.kind === "get" || n.kind === "set") {
-            return printMethod(
-                n.kind,
-                path.get("key"),
-                path.get("value"),
-                options,
-                print
-            );
-        }
-
-        if (path.node.shorthand) {
-            return print(path.get("key"));
-        } else {
-            return concat([
-                print(path.get("key")),
-                ": ",
-                print(path.get("value"))
-            ]);
-        }
-
-    case "ArrayExpression":
-    case "ArrayPattern":
-        var elems = n.elements,
-            len = elems.length,
-            parts = ["["];
-
-        path.get("elements").each(function(elemPath) {
-            var elem = elemPath.value;
-            if (!elem) {
-                // If the array expression ends with a hole, that hole
-                // will be ignored by the interpreter, but if it ends with
-                // two (or more) holes, we need to write out two (or more)
-                // commas so that the resulting code is interpreted with
-                // both (all) of the holes.
-                parts.push(",");
-            } else {
-                var i = elemPath.name;
-                if (i > 0)
-                    parts.push(" ");
-                parts.push(print(elemPath));
-                if (i < len - 1)
-                    parts.push(",");
-            }
-        });
-
-        parts.push("]");
-
-        return concat(parts);
-
-    case "SequenceExpression":
-        return fromString(", ").join(path.get("expressions").map(print));
-
-    case "ThisExpression":
-        return fromString("this");
-
-    case "Literal":
-        if (typeof n.value !== "string")
-            return fromString(n.value, options);
-
-        // intentionally fall through...
-
-    case "ModuleSpecifier":
-        // A ModuleSpecifier is a string-valued Literal.
-        return fromString(nodeStr(n), options);
-
-    case "UnaryExpression":
-        var parts = [n.operator];
-        if (/[a-z]$/.test(n.operator))
-            parts.push(" ");
-        parts.push(print(path.get("argument")));
-        return concat(parts);
-
-    case "UpdateExpression":
-        var parts = [
-            print(path.get("argument")),
-            n.operator
-        ];
-
-        if (n.prefix)
-            parts.reverse();
-
-        return concat(parts);
-
-    case "ConditionalExpression":
-        return concat([
-            "(", print(path.get("test")),
-            " ? ", print(path.get("consequent")),
-            " : ", print(path.get("alternate")), ")"
-        ]);
-
-    case "NewExpression":
-        var parts = ["new ", print(path.get("callee"))];
-        var args = n.arguments;
-        if (args) {
-            parts.push(printArgumentsList(path, options, print));
-        }
-
-        return concat(parts);
-
-    case "VariableDeclaration":
-        var parts = [n.kind, " "];
-        var maxLen = 0;
-        var printed = path.get("declarations").map(function(childPath) {
-            var lines = print(childPath);
-            maxLen = Math.max(lines.length, maxLen);
-            return lines;
-        });
-
-        if (maxLen === 1) {
-            parts.push(fromString(", ").join(printed));
-        } else if (printed.length > 1 ) {
-            parts.push(
-                fromString(",\n").join(printed)
-                    .indentTail(n.kind.length + 1)
-            );
-        } else {
-            parts.push(printed[0]);
-        }
-
-        // We generally want to terminate all variable declarations with a
-        // semicolon, except when they are children of for loops.
-        var parentNode = path.parent && path.parent.node;
-        if (!namedTypes.ForStatement.check(parentNode) &&
-            !namedTypes.ForInStatement.check(parentNode) &&
-            !(namedTypes.ForOfStatement &&
-              namedTypes.ForOfStatement.check(parentNode))) {
-            parts.push(";");
-        }
-
-        return concat(parts);
-
-    case "VariableDeclarator":
-        return n.init ? fromString(" = ").join([
-            print(path.get("id")),
-            print(path.get("init"))
-        ]) : print(path.get("id"));
-
-    case "WithStatement":
-        return concat([
-            "with (",
-            print(path.get("object")),
-            ") ",
-            print(path.get("body"))
-        ]);
-
-    case "IfStatement":
-        var con = adjustClause(print(path.get("consequent")), options),
-            parts = ["if (", print(path.get("test")), ")", con];
-
-        if (n.alternate)
-            parts.push(
-                endsWithBrace(con) ? " else" : "\nelse",
-                adjustClause(print(path.get("alternate")), options));
-
-        return concat(parts);
-
-    case "ForStatement":
-        // TODO Get the for (;;) case right.
-        var init = print(path.get("init")),
-            sep = init.length > 1 ? ";\n" : "; ",
-            forParen = "for (",
-            indented = fromString(sep).join([
-                init,
-                print(path.get("test")),
-                print(path.get("update"))
-            ]).indentTail(forParen.length),
-            head = concat([forParen, indented, ")"]),
-            clause = adjustClause(print(path.get("body")), options),
-            parts = [head];
-
-        if (head.length > 1) {
-            parts.push("\n");
-            clause = clause.trimLeft();
-        }
-
-        parts.push(clause);
-
-        return concat(parts);
-
-    case "WhileStatement":
-        return concat([
-            "while (",
-            print(path.get("test")),
-            ")",
-            adjustClause(print(path.get("body")), options)
-        ]);
-
-    case "ForInStatement":
-        // Note: esprima can't actually parse "for each (".
-        return concat([
-            n.each ? "for each (" : "for (",
-            print(path.get("left")),
-            " in ",
-            print(path.get("right")),
-            ")",
-            adjustClause(print(path.get("body")), options)
-        ]);
-
-    case "ForOfStatement":
-        return concat([
-            "for (",
-            print(path.get("left")),
-            " of ",
-            print(path.get("right")),
-            ")",
-            adjustClause(print(path.get("body")), options)
-        ]);
-
-    case "DoWhileStatement":
-        var doBody = concat([
-            "do",
-            adjustClause(print(path.get("body")), options)
-        ]), parts = [doBody];
-
-        if (endsWithBrace(doBody))
-            parts.push(" while");
-        else
-            parts.push("\nwhile");
-
-        parts.push(" (", print(path.get("test")), ");");
-
-        return concat(parts);
-
-    case "BreakStatement":
-        var parts = ["break"];
-        if (n.label)
-            parts.push(" ", print(path.get("label")));
-        parts.push(";");
-        return concat(parts);
-
-    case "ContinueStatement":
-        var parts = ["continue"];
-        if (n.label)
-            parts.push(" ", print(path.get("label")));
-        parts.push(";");
-        return concat(parts);
-
-    case "LabeledStatement":
-        return concat([
-            print(path.get("label")),
-            ":\n",
-            print(path.get("body"))
-        ]);
-
-    case "TryStatement":
-        var parts = [
-            "try ",
-            print(path.get("block"))
-        ];
-
-        path.get("handlers").each(function(handler) {
-            parts.push(" ", print(handler));
-        });
-
-        if (n.finalizer)
-            parts.push(" finally ", print(path.get("finalizer")));
-
-        return concat(parts);
-
-    case "CatchClause":
-        var parts = ["catch (", print(path.get("param"))];
-
-        if (n.guard)
-            // Note: esprima does not recognize conditional catch clauses.
-            parts.push(" if ", print(path.get("guard")));
-
-        parts.push(") ", print(path.get("body")));
-
-        return concat(parts);
-
-    case "ThrowStatement":
-        return concat([
-            "throw ",
-            print(path.get("argument")),
-            ";"
-        ]);
-
-    case "SwitchStatement":
-        return concat([
-            "switch (",
-            print(path.get("discriminant")),
-            ") {\n",
-            fromString("\n").join(path.get("cases").map(print)),
-            "\n}"
-        ]);
-
-        // Note: ignoring n.lexical because it has no printing consequences.
-
-    case "SwitchCase":
-        var parts = [];
-
-        if (n.test)
-            parts.push("case ", print(path.get("test")), ":");
-        else
-            parts.push("default:");
-
-        if (n.consequent.length > 0) {
-            parts.push("\n", printStatementSequence(
-                path.get("consequent"),
-                options,
-                print
-            ).indent(options.tabWidth));
-        }
-
-        return concat(parts);
-
-    case "DebuggerStatement":
-        return fromString("debugger;");
-
-    // XJS extensions below.
-
-    case "XJSAttribute":
-        var parts = [print(path.get("name"))];
-        if (n.value)
-            parts.push("=", print(path.get("value")));
-        return concat(parts);
-
-    case "XJSIdentifier":
-        return fromString(n.name, options);
-
-    case "XJSNamespacedName":
-        return fromString(":").join([
-            print(path.get("namespace")),
-            print(path.get("name"))
-        ]);
-
-    case "XJSMemberExpression":
-        return fromString(".").join([
-            print(path.get("object")),
-            print(path.get("property"))
-        ]);
-
-    case "XJSSpreadAttribute":
-        return concat(["{...", print(path.get("argument")), "}"]);
-
-    case "XJSExpressionContainer":
-        return concat(["{", print(path.get("expression")), "}"]);
-
-    case "XJSElement":
-        var openingLines = print(path.get("openingElement"));
-
-        if (n.openingElement.selfClosing) {
-            assert.ok(!n.closingElement);
-            return openingLines;
-        }
-
-        var childLines = concat(
-            path.get("children").map(function(childPath) {
-                var child = childPath.value;
-
-                if (namedTypes.Literal.check(child) &&
-                    typeof child.value === "string") {
-                    if (/\S/.test(child.value)) {
-                        return child.value.replace(/^\s+|\s+$/g, "");
-                    } else if (/\n/.test(child.value)) {
-                        return "\n";
-                    }
-                }
-
-                return print(childPath);
-            })
-        ).indentTail(options.tabWidth);
-
-        var closingLines = print(path.get("closingElement"));
-
-        return concat([
-            openingLines,
-            childLines,
-            closingLines
-        ]);
-
-    case "XJSOpeningElement":
-        var parts = ["<", print(path.get("name"))];
-        var attrParts = [];
-
-        path.get("attributes").each(function(attrPath) {
-            attrParts.push(" ", print(attrPath));
-        });
-
-        var attrLines = concat(attrParts);
-
-        var needLineWrap = (
-            attrLines.length > 1 ||
-            attrLines.getLineLength(1) > options.wrapColumn
-        );
-
-        if (needLineWrap) {
-            attrParts.forEach(function(part, i) {
-                if (part === " ") {
-                    assert.strictEqual(i % 2, 0);
-                    attrParts[i] = "\n";
-                }
-            });
-
-            attrLines = concat(attrParts).indentTail(options.tabWidth);
-        }
-
-        parts.push(attrLines, n.selfClosing ? " />" : ">");
-
-        return concat(parts);
-
-    case "XJSClosingElement":
-        return concat(["</", print(path.get("name")), ">"]);
-
-    case "XJSText":
-        return fromString(n.value, options);
-
-    case "XJSEmptyExpression":
-        return fromString("");
-
-    case "TypeAnnotatedIdentifier":
-        var parts = [
-            print(path.get("annotation")),
-            " ",
-            print(path.get("identifier"))
-        ];
-
-        return concat(parts);
-
-    case "ClassBody":
-        if (n.body.length === 0) {
-            return fromString("{}");
-        }
-
-        return concat([
-            "{\n",
-            printStatementSequence(path.get("body"), options, print)
-                .indent(options.tabWidth),
-            "\n}"
-        ]);
-
-    case "ClassPropertyDefinition":
-        var parts = ["static ", print(path.get("definition"))];
-        if (!namedTypes.MethodDefinition.check(n.definition))
-            parts.push(";");
-        return concat(parts);
-
-    case "ClassProperty":
-        return concat([print(path.get("id")), ";"]);
-
-    case "ClassDeclaration":
-    case "ClassExpression":
-        var parts = ["class"];
-
-        if (n.id)
-            parts.push(" ", print(path.get("id")));
-
-        if (n.superClass)
-            parts.push(" extends ", print(path.get("superClass")));
-
-        parts.push(" ", print(path.get("body")));
-
-        return concat(parts);
-
-    // These types are unprintable because they serve as abstract
-    // supertypes for other (printable) types.
-    case "Node":
-    case "Printable":
-    case "SourceLocation":
-    case "Position":
-    case "Statement":
-    case "Function":
-    case "Pattern":
-    case "Expression":
-    case "Declaration":
-    case "Specifier":
-    case "NamedSpecifier":
-    case "Block": // Block comment.
-    case "Line": // Line comment.
-        throw new Error("unprintable type: " + JSON.stringify(n.type));
-
-    // Unhandled types below. If encountered, nodes of these types should
-    // be either left alone or desugared into AST types that are fully
-    // supported by the pretty-printer.
-
-    case "ClassHeritage": // TODO
-    case "ComprehensionBlock": // TODO
-    case "ComprehensionExpression": // TODO
-    case "Glob": // TODO
-    case "TaggedTemplateExpression": // TODO
-    case "TemplateElement": // TODO
-    case "TemplateLiteral": // TODO
-    case "GeneratorExpression": // TODO
-    case "LetStatement": // TODO
-    case "LetExpression": // TODO
-    case "GraphExpression": // TODO
-    case "GraphIndexExpression": // TODO
-
-    // Type Annotations for Facebook Flow, typically stripped out or
-    // transformed away before printing.
-    case "AnyTypeAnnotation": // TODO
-    case "BooleanTypeAnnotation": // TODO
-    case "ClassImplements": // TODO
-    case "DeclareClass": // TODO
-    case "DeclareFunction": // TODO
-    case "DeclareModule": // TODO
-    case "DeclareVariable": // TODO
-    case "FunctionTypeAnnotation": // TODO
-    case "FunctionTypeParam": // TODO
-    case "GenericTypeAnnotation": // TODO
-    case "InterfaceDeclaration": // TODO
-    case "InterfaceExtends": // TODO
-    case "IntersectionTypeAnnotation": // TODO
-    case "MemberTypeAnnotation": // TODO
-    case "NullableTypeAnnotation": // TODO
-    case "NumberTypeAnnotation": // TODO
-    case "ObjectTypeAnnotation": // TODO
-    case "ObjectTypeCallProperty": // TODO
-    case "ObjectTypeIndexer": // TODO
-    case "ObjectTypeProperty": // TODO
-    case "QualifiedTypeIdentifier": // TODO
-    case "StringLiteralTypeAnnotation": // TODO
-    case "StringTypeAnnotation": // TODO
-    case "TupleTypeAnnotation": // TODO
-    case "Type": // TODO
-    case "TypeAlias": // TODO
-    case "TypeAnnotation": // TODO
-    case "TypeParameterDeclaration": // TODO
-    case "TypeParameterInstantiation": // TODO
-    case "TypeofTypeAnnotation": // TODO
-    case "UnionTypeAnnotation": // TODO
-    case "VoidTypeAnnotation": // TODO
-
-    // XML types that nobody cares about or needs to print.
-    case "XMLDefaultDeclaration":
-    case "XMLAnyName":
-    case "XMLQualifiedIdentifier":
-    case "XMLFunctionQualifiedIdentifier":
-    case "XMLAttributeSelector":
-    case "XMLFilterExpression":
-    case "XML":
-    case "XMLElement":
-    case "XMLList":
-    case "XMLEscape":
-    case "XMLText":
-    case "XMLStartTag":
-    case "XMLEndTag":
-    case "XMLPointTag":
-    case "XMLName":
-    case "XMLAttribute":
-    case "XMLCdata":
-    case "XMLComment":
-    case "XMLProcessingInstruction":
-    default:
-        debugger;
-        throw new Error("unknown type: " + JSON.stringify(n.type));
-    }
-
-    return p;
-}
-
-function printStatementSequence(path, options, print) {
-    var inClassBody = path.parent &&
-        namedTypes.ClassBody &&
-        namedTypes.ClassBody.check(path.parent.node);
-
-    var filtered = path.filter(function(stmtPath) {
-        var stmt = stmtPath.value;
-
-        // Just in case the AST has been modified to contain falsy
-        // "statements," it's safer simply to skip them.
-        if (!stmt)
-            return false;
-
-        // Skip printing EmptyStatement nodes to avoid leaving stray
-        // semicolons lying around.
-        if (stmt.type === "EmptyStatement")
-            return false;
-
-        if (!inClassBody) {
-            namedTypes.Statement.assert(stmt);
-        }
-
-        return true;
-    });
-
-    var prevTrailingSpace = null;
-    var len = filtered.length;
-    var parts = [];
-
-    filtered.forEach(function(stmtPath, i) {
-        var printed = print(stmtPath);
-        var stmt = stmtPath.value;
-        var needSemicolon = true;
-        var multiLine = printed.length > 1;
-        var notFirst = i > 0;
-        var notLast = i < len - 1;
-        var leadingSpace;
-        var trailingSpace;
-
-        if (inClassBody) {
-            var stmt = stmtPath.value;
-
-            if (namedTypes.MethodDefinition.check(stmt) ||
-                (namedTypes.ClassPropertyDefinition.check(stmt) &&
-                 namedTypes.MethodDefinition.check(stmt.definition))) {
-                needSemicolon = false;
-            }
-        }
-
-        if (needSemicolon) {
-            // Try to add a semicolon to anything that isn't a method in a
-            // class body.
-            printed = maybeAddSemicolon(printed);
-        }
-
-        var trueLoc = options.reuseWhitespace && getTrueLoc(stmt);
-        var lines = trueLoc && trueLoc.lines;
-
-        if (notFirst) {
-            if (lines) {
-                var beforeStart = lines.skipSpaces(trueLoc.start, true);
-                var beforeStartLine = beforeStart ? beforeStart.line : 1;
-                var leadingGap = trueLoc.start.line - beforeStartLine;
-                leadingSpace = Array(leadingGap + 1).join("\n");
-            } else {
-                leadingSpace = multiLine ? "\n\n" : "\n";
-            }
-        } else {
-            leadingSpace = "";
-        }
-
-        if (notLast) {
-            if (lines) {
-                var afterEnd = lines.skipSpaces(trueLoc.end);
-                var afterEndLine = afterEnd ? afterEnd.line : lines.length;
-                var trailingGap = afterEndLine - trueLoc.end.line;
-                trailingSpace = Array(trailingGap + 1).join("\n");
-            } else {
-                trailingSpace = multiLine ? "\n\n" : "\n";
-            }
-        } else {
-            trailingSpace = "";
-        }
-
-        parts.push(
-            maxSpace(prevTrailingSpace, leadingSpace),
-            printed
-        );
-
-        if (notLast) {
-            prevTrailingSpace = trailingSpace;
-        } else if (trailingSpace) {
-            parts.push(trailingSpace);
-        }
-    });
-
-    return concat(parts);
-}
-
-function getTrueLoc(node) {
-    // It's possible that node is newly-created (not parsed by Esprima),
-    // in which case it probably won't have a .loc property (or an
-    // .original property for that matter). That's fine; we'll just
-    // pretty-print it as usual.
-    if (!node.loc) {
-        return null;
-    }
-
-    if (!node.comments) {
-        // If the node has no comments, regard node.loc as true.
-        return node.loc;
-    }
-
-    var start = node.loc.start;
-    var end = node.loc.end;
-
-    // If the node has any comments, their locations might contribute to
-    // the true start/end positions of the node.
-    node.comments.forEach(function(comment) {
-        if (comment.loc) {
-            if (util.comparePos(comment.loc.start, start) < 0) {
-                start = comment.loc.start;
-            }
-
-            if (util.comparePos(end, comment.loc.end) < 0) {
-                end = comment.loc.end;
-            }
-        }
-    });
-
-    return {
-        lines: node.loc.lines,
-        start: start,
-        end: end
+        return items;
     };
-}
 
-function maxSpace(s1, s2) {
-    if (!s1 && !s2) {
-        return fromString("");
-    }
 
-    if (!s1) {
-        return fromString(s2);
-    }
-
-    if (!s2) {
-        return fromString(s1);
-    }
-
-    var spaceLines1 = fromString(s1);
-    var spaceLines2 = fromString(s2);
-
-    if (spaceLines2.length > spaceLines1.length) {
-        return spaceLines2;
-    }
-
-    return spaceLines1;
-}
-
-function printMethod(kind, keyPath, valuePath, options, print) {
-    var parts = [];
-    var key = keyPath.value;
-    var value = valuePath.value;
-
-    namedTypes.FunctionExpression.assert(value);
-
-    if (value.async) {
-        parts.push("async ");
-    }
-
-    if (!kind || kind === "init") {
-        if (value.generator) {
-            parts.push("*");
+    // methods that rely on the above primitives
+    stringset.prototype.addMany = function(items) {
+        if (!Array.isArray(items)) {
+            throw new Error("StringSet expected array");
         }
-    } else {
-        assert.ok(kind === "get" || kind === "set");
-        parts.push(kind, " ");
-    }
-
-    parts.push(
-        print(keyPath),
-        "(",
-        printFunctionParams(valuePath, options, print),
-        ") ",
-        print(valuePath.get("body"))
-    );
-
-    return concat(parts);
-}
-
-function printArgumentsList(path, options, print) {
-    var printed = path.get("arguments").map(print);
-
-    var joined = fromString(", ").join(printed);
-    if (joined.getLineLength(1) > options.wrapColumn) {
-        joined = fromString(",\n").join(printed);
-        return concat(["(\n", joined.indent(options.tabWidth), "\n)"]);
-    }
-
-    return concat(["(", joined, ")"]);
-}
-
-function printFunctionParams(path, options, print) {
-    var fun = path.node;
-    namedTypes.Function.assert(fun);
-
-    var params = path.get("params");
-    var defaults = path.get("defaults");
-    var printed = params.map(defaults.value ? function(param) {
-        var p = print(param);
-        var d = defaults.get(param.name);
-        return d.value ? concat([p, "=", print(d)]) : p;
-    } : print);
-
-    if (fun.rest) {
-        printed.push(concat(["...", print(path.get("rest"))]));
-    }
-
-    var joined = fromString(", ").join(printed);
-    if (joined.length > 1 ||
-        joined.getLineLength(1) > options.wrapColumn) {
-        joined = fromString(",\n").join(printed);
-        return concat(["\n", joined.indent(options.tabWidth)]);
-    }
-
-    return joined;
-}
-
-function adjustClause(clause, options) {
-    if (clause.length > 1)
-        return concat([" ", clause]);
-
-    return concat([
-        "\n",
-        maybeAddSemicolon(clause).indent(options.tabWidth)
-    ]);
-}
-
-function lastNonSpaceCharacter(lines) {
-    var pos = lines.lastPos();
-    do {
-        var ch = lines.charAt(pos);
-        if (/\S/.test(ch))
-            return ch;
-    } while (lines.prevPos(pos));
-}
-
-function endsWithBrace(lines) {
-    return lastNonSpaceCharacter(lines) === "}";
-}
-
-function nodeStr(n) {
-    namedTypes.Literal.assert(n);
-    isString.assert(n.value);
-    return JSON.stringify(n.value);
-}
-
-function maybeAddSemicolon(lines) {
-    var eoc = lastNonSpaceCharacter(lines);
-    if (!eoc || "\n};".indexOf(eoc) < 0)
-        return concat([lines, ";"]);
-    return lines;
-}
-
-},{"./comments":132,"./lines":133,"./options":135,"./patcher":137,"./types":139,"./util":140,"assert":170,"source-map":151}],139:[function(require,module,exports){
-var types = require("ast-types");
-var def = types.Type.def;
-
-def("File")
-    .bases("Node")
-    .build("program")
-    .field("program", def("Program"));
-
-types.finalize();
-
-module.exports = types;
-
-},{"ast-types":100}],140:[function(require,module,exports){
-var assert = require("assert");
-var getFieldValue = require("./types").getFieldValue;
-var sourceMap = require("source-map");
-var SourceMapConsumer = sourceMap.SourceMapConsumer;
-var SourceMapGenerator = sourceMap.SourceMapGenerator;
-var hasOwn = Object.prototype.hasOwnProperty;
-
-function getUnionOfKeys() {
-    var result = {};
-    var argc = arguments.length;
-    for (var i = 0; i < argc; ++i) {
-        var keys = Object.keys(arguments[i]);
-        var keyCount = keys.length;
-        for (var j = 0; j < keyCount; ++j) {
-            result[keys[j]] = true;
+        for (var i = 0; i < items.length; i++) {
+            this.add(items[i]);
         }
-    }
-    return result;
-}
-exports.getUnionOfKeys = getUnionOfKeys;
+        return this;
+    };
 
-function comparePos(pos1, pos2) {
-    return (pos1.line - pos2.line) || (pos1.column - pos2.column);
-}
-exports.comparePos = comparePos;
+    stringset.prototype.merge = function(other) {
+        this.addMany(other.items());
+        return this;
+    };
 
-exports.composeSourceMaps = function(formerMap, latterMap) {
-    if (formerMap) {
-        if (!latterMap) {
-            return formerMap;
-        }
-    } else {
-        return latterMap || null;
-    }
+    stringset.prototype.clone = function() {
+        var other = stringset();
+        return other.merge(this);
+    };
 
-    var smcFormer = new SourceMapConsumer(formerMap);
-    var smcLatter = new SourceMapConsumer(latterMap);
-    var smg = new SourceMapGenerator({
-        file: latterMap.file,
-        sourceRoot: latterMap.sourceRoot
-    });
+    stringset.prototype.toString = function() {
+        return "{" + this.items().map(JSON.stringify).join(",") + "}";
+    };
 
-    var sourcesToContents = {};
+    return stringset;
+})();
 
-    smcLatter.eachMapping(function(mapping) {
-        var origPos = smcFormer.originalPositionFor({
-            line: mapping.originalLine,
-            column: mapping.originalColumn
-        });
-
-        var sourceName = origPos.source;
-        if (sourceName === null) {
-            return;
-        }
-
-        smg.addMapping({
-            source: sourceName,
-            original: {
-                line: origPos.line,
-                column: origPos.column
-            },
-            generated: {
-                line: mapping.generatedLine,
-                column: mapping.generatedColumn
-            },
-            name: mapping.name
-        });
-
-        var sourceContent = smcFormer.sourceContentFor(sourceName);
-        if (sourceContent && !hasOwn.call(sourcesToContents, sourceName)) {
-            sourcesToContents[sourceName] = sourceContent;
-            smg.setSourceContent(sourceName, sourceContent);
-        }
-    });
-
-    return smg.toJSON();
-};
-
-},{"./types":139,"assert":170,"source-map":151}],141:[function(require,module,exports){
-(function (process){
-var types = require("./lib/types");
-var parse = require("./lib/parser").parse;
-var Printer = require("./lib/printer").Printer;
-
-function print(node, options) {
-    return new Printer(options).print(node);
+if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+    module.exports = StringSet;
 }
 
-function prettyPrint(node, options) {
-    return new Printer(options).printGenerically(node);
-}
-
-function run(transformer, options) {
-    return runFile(process.argv[2], transformer, options);
-}
-
-function runFile(path, transformer, options) {
-    require("fs").readFile(path, "utf-8", function(err, code) {
-        if (err) {
-            console.error(err);
-            return;
-        }
-
-        runString(code, transformer, options);
-    });
-}
-
-function defaultWriteback(output) {
-    process.stdout.write(output);
-}
-
-function runString(code, transformer, options) {
-    var writeback = options && options.writeback || defaultWriteback;
-    transformer(parse(code, options), function(node) {
-        writeback(print(node, options).code);
-    });
-}
-
-Object.defineProperties(exports, {
-    /**
-     * Parse a string of code into an augmented syntax tree suitable for
-     * arbitrary modification and reprinting.
-     */
-    parse: {
-        enumerable: true,
-        value: parse
-    },
-
-    /**
-     * Traverse and potentially modify an abstract syntax tree using a
-     * convenient visitor syntax:
-     *
-     *   recast.visit(ast, {
-     *     names: [],
-     *     visitIdentifier: function(path) {
-     *       var node = path.value;
-     *       this.visitor.names.push(node.name);
-     *       this.traverse(path);
-     *     }
-     *   });
-     */
-    visit: {
-        enumerable: true,
-        value: types.visit
-    },
-
-    /**
-     * Reprint a modified syntax tree using as much of the original source
-     * code as possible.
-     */
-    print: {
-        enumerable: true,
-        value: print
-    },
-
-    /**
-     * Print without attempting to reuse any original source code.
-     */
-    prettyPrint: {
-        enumerable: false,
-        value: prettyPrint
-    },
-
-    /**
-     * Customized version of require("ast-types").
-     */
-    types: {
-        enumerable: false,
-        value: types
-    },
-
-    /**
-     * Convenient command-line interface (see e.g. example/add-braces).
-     */
-    run: {
-        enumerable: false,
-        value: run
-    }
-});
-
-}).call(this,require("UPikzY"))
-},{"./lib/parser":136,"./lib/printer":138,"./lib/types":139,"UPikzY":179,"fs":169}],142:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 /*
   Copyright (C) 2013 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2013 Thaddee Tyl <thaddee.tyl@gmail.com>
@@ -50264,7 +47441,4057 @@ parseYieldExpression: true, parseAwaitExpression: true
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],143:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
+var assert = require("assert");
+var types = require("./types");
+var n = types.namedTypes;
+var isArray = types.builtInTypes.array;
+var isObject = types.builtInTypes.object;
+var linesModule = require("./lines");
+var fromString = linesModule.fromString;
+var Lines = linesModule.Lines;
+var concat = linesModule.concat;
+var comparePos = require("./util").comparePos;
+var childNodesCacheKey = require("private").makeUniqueKey();
+
+// TODO Move a non-caching implementation of this function into ast-types,
+// and implement a caching wrapper function here.
+function getSortedChildNodes(node, resultArray) {
+    if (!node) {
+        return;
+    }
+
+    if (resultArray) {
+        if (n.Node.check(node) &&
+            n.SourceLocation.check(node.loc)) {
+            // This reverse insertion sort almost always takes constant
+            // time because we almost always (maybe always?) append the
+            // nodes in order anyway.
+            for (var i = resultArray.length - 1; i >= 0; --i) {
+                if (comparePos(resultArray[i].loc.end,
+                               node.loc.start) <= 0) {
+                    break;
+                }
+            }
+            resultArray.splice(i + 1, 0, node);
+            return;
+        }
+    } else if (node[childNodesCacheKey]) {
+        return node[childNodesCacheKey];
+    }
+
+    var names;
+    if (isArray.check(node)) {
+        names = Object.keys(node);
+    } else if (isObject.check(node)) {
+        names = types.getFieldNames(node);
+    } else {
+        return;
+    }
+
+    if (!resultArray) {
+        Object.defineProperty(node, childNodesCacheKey, {
+            value: resultArray = [],
+            enumerable: false
+        });
+    }
+
+    for (var i = 0, nameCount = names.length; i < nameCount; ++i) {
+        getSortedChildNodes(node[names[i]], resultArray);
+    }
+
+    return resultArray;
+}
+
+// As efficiently as possible, decorate the comment object with
+// .precedingNode, .enclosingNode, and/or .followingNode properties, at
+// least one of which is guaranteed to be defined.
+function decorateComment(node, comment) {
+    var childNodes = getSortedChildNodes(node);
+
+    // Time to dust off the old binary search robes and wizard hat.
+    var left = 0, right = childNodes.length;
+    while (left < right) {
+        var middle = (left + right) >> 1;
+        var child = childNodes[middle];
+
+        if (comparePos(child.loc.start, comment.loc.start) <= 0 &&
+            comparePos(comment.loc.end, child.loc.end) <= 0) {
+            // The comment is completely contained by this child node.
+            decorateComment(comment.enclosingNode = child, comment);
+            return; // Abandon the binary search at this level.
+        }
+
+        if (comparePos(child.loc.end, comment.loc.start) <= 0) {
+            // This child node falls completely before the comment.
+            // Because we will never consider this node or any nodes
+            // before it again, this node must be the closest preceding
+            // node we have encountered so far.
+            var precedingNode = child;
+            left = middle + 1;
+            continue;
+        }
+
+        if (comparePos(comment.loc.end, child.loc.start) <= 0) {
+            // This child node falls completely after the comment.
+            // Because we will never consider this node or any nodes after
+            // it again, this node must be the closest following node we
+            // have encountered so far.
+            var followingNode = child;
+            right = middle;
+            continue;
+        }
+
+        throw new Error("Comment location overlaps with node location");
+    }
+
+    if (precedingNode) {
+        comment.precedingNode = precedingNode;
+    }
+
+    if (followingNode) {
+        comment.followingNode = followingNode;
+    }
+}
+
+exports.attach = function(comments, ast, lines) {
+    if (!isArray.check(comments)) {
+        return;
+    }
+
+    var tiesToBreak = [];
+
+    comments.forEach(function(comment) {
+        comment.loc.lines = lines;
+        decorateComment(ast, comment);
+
+        var pn = comment.precedingNode;
+        var en = comment.enclosingNode;
+        var fn = comment.followingNode;
+
+        if (pn && fn) {
+            var tieCount = tiesToBreak.length;
+            if (tieCount > 0) {
+                var lastTie = tiesToBreak[tieCount - 1];
+
+                assert.strictEqual(
+                    lastTie.precedingNode === comment.precedingNode,
+                    lastTie.followingNode === comment.followingNode
+                );
+
+                if (lastTie.followingNode !== comment.followingNode) {
+                    breakTies(tiesToBreak, lines);
+                }
+            }
+
+            tiesToBreak.push(comment);
+
+        } else if (pn) {
+            // No contest: we have a trailing comment.
+            breakTies(tiesToBreak, lines);
+            Comments.forNode(pn).addTrailing(comment);
+
+        } else if (fn) {
+            // No contest: we have a leading comment.
+            breakTies(tiesToBreak, lines);
+            Comments.forNode(fn).addLeading(comment);
+
+        } else if (en) {
+            // The enclosing node has no child nodes at all, so what we
+            // have here is a dangling comment, e.g. [/* crickets */].
+            breakTies(tiesToBreak, lines);
+            Comments.forNode(en).addDangling(comment);
+
+        } else {
+            throw new Error("AST contains no nodes at all?");
+        }
+    });
+
+    breakTies(tiesToBreak, lines);
+};
+
+function breakTies(tiesToBreak, lines) {
+    var tieCount = tiesToBreak.length;
+    if (tieCount === 0) {
+        return;
+    }
+
+    var pn = tiesToBreak[0].precedingNode;
+    var fn = tiesToBreak[0].followingNode;
+    var gapEndPos = fn.loc.start;
+
+    // Iterate backwards through tiesToBreak, examining the gaps
+    // between the tied comments. In order to qualify as leading, a
+    // comment must be separated from fn by an unbroken series of
+    // whitespace-only gaps (or other comments).
+    for (var indexOfFirstLeadingComment = tieCount;
+         indexOfFirstLeadingComment > 0;
+         --indexOfFirstLeadingComment) {
+        var comment = tiesToBreak[indexOfFirstLeadingComment - 1];
+        assert.strictEqual(comment.precedingNode, pn);
+        assert.strictEqual(comment.followingNode, fn);
+
+        var gap = lines.sliceString(comment.loc.end, gapEndPos);
+        if (/\S/.test(gap)) {
+            // The gap string contained something other than whitespace.
+            break;
+        }
+
+        gapEndPos = comment.loc.start;
+    }
+
+    while (indexOfFirstLeadingComment <= tieCount &&
+           (comment = tiesToBreak[indexOfFirstLeadingComment]) &&
+           // If the comment is a //-style comment and indented more
+           // deeply than the node itself, reconsider it as trailing.
+           comment.type === "Line" &&
+           comment.loc.start.column > fn.loc.start.column) {
+        ++indexOfFirstLeadingComment;
+    }
+
+    tiesToBreak.forEach(function(comment, i) {
+        if (i < indexOfFirstLeadingComment) {
+            Comments.forNode(pn).addTrailing(comment);
+        } else {
+            Comments.forNode(fn).addLeading(comment);
+        }
+    });
+
+    tiesToBreak.length = 0;
+}
+
+function Comments() {
+    assert.ok(this instanceof Comments);
+    this.leading = [];
+    this.dangling = [];
+    this.trailing = [];
+}
+
+var Cp = Comments.prototype;
+
+Comments.forNode = function forNode(node) {
+    var comments = node.comments;
+    if (!comments) {
+        Object.defineProperty(node, "comments", {
+            value: comments = new Comments,
+            enumerable: false
+        });
+    }
+    return comments;
+};
+
+Cp.forEach = function forEach(callback, context) {
+    this.leading.forEach(callback, context);
+    // this.dangling.forEach(callback, context);
+    this.trailing.forEach(callback, context);
+};
+
+Cp.addLeading = function addLeading(comment) {
+    this.leading.push(comment);
+};
+
+Cp.addDangling = function addDangling(comment) {
+    this.dangling.push(comment);
+};
+
+Cp.addTrailing = function addTrailing(comment) {
+    comment.trailing = true;
+    if (comment.type === "Block") {
+        this.trailing.push(comment);
+    } else {
+        this.leading.push(comment);
+    }
+};
+
+/**
+ * @param {Object} options - Options object that configures printing.
+ */
+function printLeadingComment(comment, options) {
+    var loc = comment.loc;
+    var lines = loc && loc.lines;
+    var parts = [];
+
+    if (comment.type === "Block") {
+        parts.push("/*", fromString(comment.value, options), "*/");
+    } else if (comment.type === "Line") {
+        parts.push("//", fromString(comment.value, options));
+    } else assert.fail(comment.type);
+
+    if (comment.trailing) {
+        // When we print trailing comments as leading comments, we don't
+        // want to bring any trailing spaces along.
+        parts.push("\n");
+
+    } else if (lines instanceof Lines) {
+        var trailingSpace = lines.slice(
+            loc.end,
+            lines.skipSpaces(loc.end)
+        );
+
+        if (trailingSpace.length === 1) {
+            // If the trailing space contains no newlines, then we want to
+            // preserve it exactly as we found it.
+            parts.push(trailingSpace);
+        } else {
+            // If the trailing space contains newlines, then replace it
+            // with just that many newlines, with all other spaces removed.
+            parts.push(new Array(trailingSpace.length).join("\n"));
+        }
+
+    } else {
+        parts.push("\n");
+    }
+
+    return concat(parts).stripMargin(loc ? loc.start.column : 0);
+}
+
+/**
+ * @param {Object} options - Options object that configures printing.
+ */
+function printTrailingComment(comment, options) {
+    var loc = comment.loc;
+    var lines = loc && loc.lines;
+    var parts = [];
+
+    if (lines instanceof Lines) {
+        var fromPos = lines.skipSpaces(loc.start, true) || lines.firstPos();
+        var leadingSpace = lines.slice(fromPos, loc.start);
+
+        if (leadingSpace.length === 1) {
+            // If the leading space contains no newlines, then we want to
+            // preserve it exactly as we found it.
+            parts.push(leadingSpace);
+        } else {
+            // If the leading space contains newlines, then replace it
+            // with just that many newlines, sans all other spaces.
+            parts.push(new Array(leadingSpace.length).join("\n"));
+        }
+    }
+
+    if (comment.type === "Block") {
+        parts.push("/*", fromString(comment.value, options), "*/");
+    } else if (comment.type === "Line") {
+        parts.push("//", fromString(comment.value, options), "\n");
+    } else assert.fail(comment.type);
+
+    return concat(parts).stripMargin(
+        loc ? loc.start.column : 0,
+        true // Skip the first line, in case there were leading spaces.
+    );
+}
+
+/**
+ * @param {Object} options - Options object that configures printing.
+ */
+exports.printComments = function(comments, innerLines, options) {
+    if (innerLines) {
+        assert.ok(innerLines instanceof Lines);
+    } else {
+        innerLines = fromString("");
+    }
+
+    if (!comments || !(comments.leading.length +
+                       comments.trailing.length)) {
+        return innerLines;
+    }
+
+    var parts = [];
+
+    comments.leading.forEach(function(comment) {
+        parts.push(printLeadingComment(comment, options));
+    });
+
+    parts.push(innerLines);
+
+    comments.trailing.forEach(function(comment) {
+        assert.strictEqual(comment.type, "Block");
+        parts.push(printTrailingComment(comment, options));
+    });
+
+    return concat(parts);
+};
+
+},{"./lines":144,"./types":150,"./util":151,"assert":185,"private":118}],143:[function(require,module,exports){
+var assert = require("assert");
+var types = require("./types");
+var n = types.namedTypes;
+var Node = n.Node;
+var isArray = types.builtInTypes.array;
+var isNumber = types.builtInTypes.number;
+
+function FastPath(value) {
+    assert.ok(this instanceof FastPath);
+    this.stack = [value];
+}
+
+var FPp = FastPath.prototype;
+module.exports = FastPath;
+
+// Static convenience function for coercing a value to a FastPath.
+FastPath.from = function(obj) {
+    if (obj instanceof FastPath) {
+        // Return a defensive copy of any existing FastPath instances.
+        return obj.copy();
+    }
+
+    if (obj instanceof types.NodePath) {
+        // For backwards compatibility, unroll NodePath instances into
+        // lightweight FastPath [..., name, value] stacks.
+        var copy = Object.create(FastPath.prototype);
+        var stack = [obj.value];
+        for (var pp; (pp = obj.parentPath); obj = pp)
+            stack.push(obj.name, pp.value);
+        copy.stack = stack.reverse();
+        return copy;
+    }
+
+    // Otherwise use obj as the value of the new FastPath instance.
+    return new FastPath(obj);
+};
+
+FPp.copy = function copy() {
+    var copy = Object.create(FastPath.prototype);
+    copy.stack = this.stack.slice(0);
+    return copy;
+};
+
+// The name of the current property is always the penultimate element of
+// this.stack, and always a String.
+FPp.getName = function getName() {
+    var s = this.stack;
+    var len = s.length;
+    if (len > 1) {
+        return s[len - 2];
+    }
+    // Since the name is always a string, null is a safe sentinel value to
+    // return if we do not know the name of the (root) value.
+    return null;
+};
+
+// The value of the current property is always the final element of
+// this.stack.
+FPp.getValue = function getValue() {
+    var s = this.stack;
+    return s[s.length - 1];
+};
+
+FPp.getNode = function getNode() {
+    var s = this.stack;
+
+    for (var i = s.length - 1; i >= 0; i -= 2) {
+        var value = s[i];
+        if (n.Node.check(value)) {
+            return value;
+        }
+    }
+
+    return null;
+};
+
+FPp.getParentNode = function getParentNode() {
+    var s = this.stack;
+    var count = 0;
+
+    for (var i = s.length - 1; i >= 0; i -= 2) {
+        var value = s[i];
+        if (n.Node.check(value) && count++ > 0) {
+            return value;
+        }
+    }
+
+    return null;
+};
+
+// The length of the stack can be either even or odd, depending on whether
+// or not we have a name for the root value. The difference between the
+// index of the root value and the index of the final value is always
+// even, though, which allows us to return the root value in constant time
+// (i.e. without iterating backwards through the stack).
+FPp.getRootValue = function getRootValue() {
+    var s = this.stack;
+    if (s.length % 2 === 0) {
+        return s[1];
+    }
+    return s[0];
+};
+
+// Temporarily push properties named by string arguments given after the
+// callback function onto this.stack, then call the callback with a
+// reference to this (modified) FastPath object. Note that the stack will
+// be restored to its original state after the callback is finished, so it
+// is probably a mistake to retain a reference to the path.
+FPp.call = function call(callback/*, name1, name2, ... */) {
+    var s = this.stack;
+    var origLen = s.length;
+    var value = s[origLen - 1];
+    var argc = arguments.length;
+    for (var i = 1; i < argc; ++i) {
+        var name = arguments[i];
+        value = value[name];
+        s.push(name, value);
+    }
+    var result = callback(this);
+    s.length = origLen;
+    return result;
+};
+
+// Similar to FastPath.prototype.call, except that the value obtained by
+// accessing this.getValue()[name1][name2]... should be array-like. The
+// callback will be called with a reference to this path object for each
+// element of the array.
+FPp.each = function each(callback/*, name1, name2, ... */) {
+    var s = this.stack;
+    var origLen = s.length;
+    var value = s[origLen - 1];
+    var argc = arguments.length;
+
+    for (var i = 1; i < argc; ++i) {
+        var name = arguments[i];
+        value = value[name];
+        s.push(name, value);
+    }
+
+    for (var i = 0; i < value.length; ++i) {
+        if (i in value) {
+            s.push(i, value[i]);
+            // If the callback needs to know the value of i, call
+            // path.getName(), assuming path is the parameter name.
+            callback(this);
+            s.length -= 2;
+        }
+    }
+
+    s.length = origLen;
+};
+
+// Similar to FastPath.prototype.each, except that the results of the
+// callback function invocations are stored in an array and returned at
+// the end of the iteration.
+FPp.map = function map(callback/*, name1, name2, ... */) {
+    var s = this.stack;
+    var origLen = s.length;
+    var value = s[origLen - 1];
+    var argc = arguments.length;
+
+    for (var i = 1; i < argc; ++i) {
+        var name = arguments[i];
+        value = value[name];
+        s.push(name, value);
+    }
+
+    var result = new Array(value.length);
+
+    for (var i = 0; i < value.length; ++i) {
+        if (i in value) {
+            s.push(i, value[i]);
+            result[i] = callback(this, i);
+            s.length -= 2;
+        }
+    }
+
+    s.length = origLen;
+
+    return result;
+};
+
+// Inspired by require("ast-types").NodePath.prototype.needsParens, but
+// more efficient because we're iterating backwards through a stack.
+FPp.needsParens = function(assumeExpressionContext) {
+    var parent = this.getParentNode();
+    if (!parent) {
+        return false;
+    }
+
+    var name = this.getName();
+    var node = this.getNode();
+
+    // Only expressions need parentheses.
+    if (!n.Expression.check(node)) {
+        return false;
+    }
+
+    // Identifiers never need parentheses.
+    if (node.type === "Identifier") {
+        return false;
+    }
+
+    switch (node.type) {
+    case "UnaryExpression":
+    case "SpreadElement":
+    case "SpreadProperty":
+        return parent.type === "MemberExpression"
+            && name === "object"
+            && parent.object === node;
+
+    case "BinaryExpression":
+    case "LogicalExpression":
+        switch (parent.type) {
+        case "CallExpression":
+            return name === "callee"
+                && parent.callee === node;
+
+        case "UnaryExpression":
+        case "SpreadElement":
+        case "SpreadProperty":
+            return true;
+
+        case "MemberExpression":
+            return name === "object"
+                && parent.object === node;
+
+        case "BinaryExpression":
+        case "LogicalExpression":
+            var po = parent.operator;
+            var pp = PRECEDENCE[po];
+            var no = node.operator;
+            var np = PRECEDENCE[no];
+
+            if (pp > np) {
+                return true;
+            }
+
+            if (pp === np && name === "right") {
+                assert.strictEqual(parent.right, node);
+                return true;
+            }
+
+        default:
+            return false;
+        }
+
+    case "SequenceExpression":
+        switch (parent.type) {
+        case "ForStatement":
+            // Although parentheses wouldn't hurt around sequence
+            // expressions in the head of for loops, traditional style
+            // dictates that e.g. i++, j++ should not be wrapped with
+            // parentheses.
+            return false;
+
+        case "ExpressionStatement":
+            return name !== "expression";
+
+        default:
+            // Otherwise err on the side of overparenthesization, adding
+            // explicit exceptions above if this proves overzealous.
+            return true;
+        }
+
+    case "YieldExpression":
+        switch (parent.type) {
+        case "BinaryExpression":
+        case "LogicalExpression":
+        case "UnaryExpression":
+        case "SpreadElement":
+        case "SpreadProperty":
+        case "CallExpression":
+        case "MemberExpression":
+        case "NewExpression":
+        case "ConditionalExpression":
+        case "YieldExpression":
+            return true;
+
+        default:
+            return false;
+        }
+
+    case "Literal":
+        return parent.type === "MemberExpression"
+            && isNumber.check(node.value)
+            && name === "object"
+            && parent.object === node;
+
+    case "AssignmentExpression":
+    case "ConditionalExpression":
+        switch (parent.type) {
+        case "UnaryExpression":
+        case "SpreadElement":
+        case "SpreadProperty":
+        case "BinaryExpression":
+        case "LogicalExpression":
+            return true;
+
+        case "CallExpression":
+            return name === "callee"
+                && parent.callee === node;
+
+        case "ConditionalExpression":
+            return name === "test"
+                && parent.test === node;
+
+        case "MemberExpression":
+            return name === "object"
+                && parent.object === node;
+
+        default:
+            return false;
+        }
+
+    default:
+        if (parent.type === "NewExpression" &&
+            name === "callee" &&
+            parent.callee === node) {
+            return containsCallExpression(node);
+        }
+    }
+
+    if (assumeExpressionContext !== true &&
+        !this.canBeFirstInStatement() &&
+        this.firstInStatement())
+        return true;
+
+    return false;
+};
+
+function isBinary(node) {
+    return n.BinaryExpression.check(node)
+        || n.LogicalExpression.check(node);
+}
+
+function isUnaryLike(node) {
+    return n.UnaryExpression.check(node)
+        // I considered making SpreadElement and SpreadProperty subtypes
+        // of UnaryExpression, but they're not really Expression nodes.
+        || (n.SpreadElement && n.SpreadElement.check(node))
+        || (n.SpreadProperty && n.SpreadProperty.check(node));
+}
+
+var PRECEDENCE = {};
+[["||"],
+ ["&&"],
+ ["|"],
+ ["^"],
+ ["&"],
+ ["==", "===", "!=", "!=="],
+ ["<", ">", "<=", ">=", "in", "instanceof"],
+ [">>", "<<", ">>>"],
+ ["+", "-"],
+ ["*", "/", "%"]
+].forEach(function(tier, i) {
+    tier.forEach(function(op) {
+        PRECEDENCE[op] = i;
+    });
+});
+
+function containsCallExpression(node) {
+    if (n.CallExpression.check(node)) {
+        return true;
+    }
+
+    if (isArray.check(node)) {
+        return node.some(containsCallExpression);
+    }
+
+    if (n.Node.check(node)) {
+        return types.someField(node, function(name, child) {
+            return containsCallExpression(child);
+        });
+    }
+
+    return false;
+}
+
+FPp.canBeFirstInStatement = function() {
+    var node = this.getNode();
+    return !n.FunctionExpression.check(node)
+        && !n.ObjectExpression.check(node);
+};
+
+FPp.firstInStatement = function() {
+    var s = this.stack;
+    var parentName, parent;
+    var childName, child;
+
+    for (var i = s.length - 1; i >= 0; i -= 2) {
+        if (n.Node.check(s[i])) {
+            childName = parentName;
+            child = parent;
+            parentName = s[i - 1];
+            parent = s[i];
+        }
+
+        if (!parent || !child) {
+            continue;
+        }
+
+        if (n.BlockStatement.check(parent) &&
+            parentName === "body" &&
+            childName === 0) {
+            assert.strictEqual(parent.body[0], child);
+            return true;
+        }
+
+        if (n.ExpressionStatement.check(parent) &&
+            childName === "expression") {
+            assert.strictEqual(parent.expression, child);
+            return true;
+        }
+
+        if (n.SequenceExpression.check(parent) &&
+            parentName === "expressions" &&
+            childName === 0) {
+            assert.strictEqual(parent.expressions[0], child);
+            continue;
+        }
+
+        if (n.CallExpression.check(parent) &&
+            childName === "callee") {
+            assert.strictEqual(parent.callee, child);
+            continue;
+        }
+
+        if (n.MemberExpression.check(parent) &&
+            childName === "object") {
+            assert.strictEqual(parent.object, child);
+            continue;
+        }
+
+        if (n.ConditionalExpression.check(parent) &&
+            childName === "test") {
+            assert.strictEqual(parent.test, child);
+            continue;
+        }
+
+        if (isBinary(parent) &&
+            childName === "left") {
+            assert.strictEqual(parent.left, child);
+            continue;
+        }
+
+        if (n.UnaryExpression.check(parent) &&
+            !parent.prefix &&
+            childName === "argument") {
+            assert.strictEqual(parent.argument, child);
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+};
+
+},{"./types":150,"assert":185}],144:[function(require,module,exports){
+var assert = require("assert");
+var sourceMap = require("source-map");
+var normalizeOptions = require("./options").normalize;
+var secretKey = require("private").makeUniqueKey();
+var types = require("./types");
+var isString = types.builtInTypes.string;
+var comparePos = require("./util").comparePos;
+var Mapping = require("./mapping");
+
+// Goals:
+// 1. Minimize new string creation.
+// 2. Keep (de)identation O(lines) time.
+// 3. Permit negative indentations.
+// 4. Enforce immutability.
+// 5. No newline characters.
+
+function getSecret(lines) {
+    return lines[secretKey];
+}
+
+function Lines(infos, sourceFileName) {
+    assert.ok(this instanceof Lines);
+    assert.ok(infos.length > 0);
+
+    if (sourceFileName) {
+        isString.assert(sourceFileName);
+    } else {
+        sourceFileName = null;
+    }
+
+    Object.defineProperty(this, secretKey, {
+        value: {
+            infos: infos,
+            mappings: [],
+            name: sourceFileName,
+            cachedSourceMap: null
+        }
+    });
+
+    if (sourceFileName) {
+        getSecret(this).mappings.push(new Mapping(this, {
+            start: this.firstPos(),
+            end: this.lastPos()
+        }));
+    }
+}
+
+// Exposed for instanceof checks. The fromString function should be used
+// to create new Lines objects.
+exports.Lines = Lines;
+var Lp = Lines.prototype;
+
+// These properties used to be assigned to each new object in the Lines
+// constructor, but we can more efficiently stuff them into the secret and
+// let these lazy accessors compute their values on-the-fly.
+Object.defineProperties(Lp, {
+    length: {
+        get: function() {
+            return getSecret(this).infos.length;
+        }
+    },
+
+    name: {
+        get: function() {
+            return getSecret(this).name;
+        }
+    }
+});
+
+function copyLineInfo(info) {
+    return {
+        line: info.line,
+        indent: info.indent,
+        sliceStart: info.sliceStart,
+        sliceEnd: info.sliceEnd
+    };
+}
+
+var fromStringCache = {};
+var hasOwn = fromStringCache.hasOwnProperty;
+var maxCacheKeyLen = 10;
+
+function countSpaces(spaces, tabWidth) {
+    var count = 0;
+    var len = spaces.length;
+
+    for (var i = 0; i < len; ++i) {
+        switch (spaces.charCodeAt(i)) {
+        case 9: // '\t'
+            assert.strictEqual(typeof tabWidth, "number");
+            assert.ok(tabWidth > 0);
+
+            var next = Math.ceil(count / tabWidth) * tabWidth;
+            if (next === count) {
+                count += tabWidth;
+            } else {
+                count = next;
+            }
+
+            break;
+
+        case 11: // '\v'
+        case 12: // '\f'
+        case 13: // '\r'
+        case 0xfeff: // zero-width non-breaking space
+            // These characters contribute nothing to indentation.
+            break;
+
+        case 32: // ' '
+        default: // Treat all other whitespace like ' '.
+            count += 1;
+            break;
+        }
+    }
+
+    return count;
+}
+exports.countSpaces = countSpaces;
+
+var leadingSpaceExp = /^\s*/;
+
+/**
+ * @param {Object} options - Options object that configures printing.
+ */
+function fromString(string, options) {
+    if (string instanceof Lines)
+        return string;
+
+    string += "";
+
+    var tabWidth = options && options.tabWidth;
+    var tabless = string.indexOf("\t") < 0;
+    var cacheable = !options && tabless && (string.length <= maxCacheKeyLen);
+
+    assert.ok(tabWidth || tabless, "No tab width specified but encountered tabs in string\n" + string);
+
+    if (cacheable && hasOwn.call(fromStringCache, string))
+        return fromStringCache[string];
+
+    var lines = new Lines(string.split("\n").map(function(line) {
+        var spaces = leadingSpaceExp.exec(line)[0];
+        return {
+            line: line,
+            indent: countSpaces(spaces, tabWidth),
+            sliceStart: spaces.length,
+            sliceEnd: line.length
+        };
+    }), normalizeOptions(options).sourceFileName);
+
+    if (cacheable)
+        fromStringCache[string] = lines;
+
+    return lines;
+}
+exports.fromString = fromString;
+
+function isOnlyWhitespace(string) {
+    return !/\S/.test(string);
+}
+
+Lp.toString = function(options) {
+    return this.sliceString(this.firstPos(), this.lastPos(), options);
+};
+
+Lp.getSourceMap = function(sourceMapName, sourceRoot) {
+    if (!sourceMapName) {
+        // Although we could make up a name or generate an anonymous
+        // source map, instead we assume that any consumer who does not
+        // provide a name does not actually want a source map.
+        return null;
+    }
+
+    var targetLines = this;
+
+    function updateJSON(json) {
+        json = json || {};
+
+        isString.assert(sourceMapName);
+        json.file = sourceMapName;
+
+        if (sourceRoot) {
+            isString.assert(sourceRoot);
+            json.sourceRoot = sourceRoot;
+        }
+
+        return json;
+    }
+
+    var secret = getSecret(targetLines);
+    if (secret.cachedSourceMap) {
+        // Since Lines objects are immutable, we can reuse any source map
+        // that was previously generated. Nevertheless, we return a new
+        // JSON object here to protect the cached source map from outside
+        // modification.
+        return updateJSON(secret.cachedSourceMap.toJSON());
+    }
+
+    var smg = new sourceMap.SourceMapGenerator(updateJSON());
+    var sourcesToContents = {};
+
+    secret.mappings.forEach(function(mapping) {
+        var sourceCursor = mapping.sourceLines.skipSpaces(
+            mapping.sourceLoc.start
+        ) || mapping.sourceLines.lastPos();
+
+        var targetCursor = targetLines.skipSpaces(
+            mapping.targetLoc.start
+        ) || targetLines.lastPos();
+
+        while (comparePos(sourceCursor, mapping.sourceLoc.end) < 0 &&
+               comparePos(targetCursor, mapping.targetLoc.end) < 0) {
+
+            var sourceChar = mapping.sourceLines.charAt(sourceCursor);
+            var targetChar = targetLines.charAt(targetCursor);
+            assert.strictEqual(sourceChar, targetChar);
+
+            var sourceName = mapping.sourceLines.name;
+
+            // Add mappings one character at a time for maximum resolution.
+            smg.addMapping({
+                source: sourceName,
+                original: { line: sourceCursor.line,
+                            column: sourceCursor.column },
+                generated: { line: targetCursor.line,
+                             column: targetCursor.column }
+            });
+
+            if (!hasOwn.call(sourcesToContents, sourceName)) {
+                var sourceContent = mapping.sourceLines.toString();
+                smg.setSourceContent(sourceName, sourceContent);
+                sourcesToContents[sourceName] = sourceContent;
+            }
+
+            targetLines.nextPos(targetCursor, true);
+            mapping.sourceLines.nextPos(sourceCursor, true);
+        }
+    });
+
+    secret.cachedSourceMap = smg;
+
+    return smg.toJSON();
+};
+
+Lp.bootstrapCharAt = function(pos) {
+    assert.strictEqual(typeof pos, "object");
+    assert.strictEqual(typeof pos.line, "number");
+    assert.strictEqual(typeof pos.column, "number");
+
+    var line = pos.line,
+        column = pos.column,
+        strings = this.toString().split("\n"),
+        string = strings[line - 1];
+
+    if (typeof string === "undefined")
+        return "";
+
+    if (column === string.length &&
+        line < strings.length)
+        return "\n";
+
+    if (column >= string.length)
+        return "";
+
+    return string.charAt(column);
+};
+
+Lp.charAt = function(pos) {
+    assert.strictEqual(typeof pos, "object");
+    assert.strictEqual(typeof pos.line, "number");
+    assert.strictEqual(typeof pos.column, "number");
+
+    var line = pos.line,
+        column = pos.column,
+        secret = getSecret(this),
+        infos = secret.infos,
+        info = infos[line - 1],
+        c = column;
+
+    if (typeof info === "undefined" || c < 0)
+        return "";
+
+    var indent = this.getIndentAt(line);
+    if (c < indent)
+        return " ";
+
+    c += info.sliceStart - indent;
+
+    if (c === info.sliceEnd &&
+        line < this.length)
+        return "\n";
+
+    if (c >= info.sliceEnd)
+        return "";
+
+    return info.line.charAt(c);
+};
+
+Lp.stripMargin = function(width, skipFirstLine) {
+    if (width === 0)
+        return this;
+
+    assert.ok(width > 0, "negative margin: " + width);
+
+    if (skipFirstLine && this.length === 1)
+        return this;
+
+    var secret = getSecret(this);
+
+    var lines = new Lines(secret.infos.map(function(info, i) {
+        if (info.line && (i > 0 || !skipFirstLine)) {
+            info = copyLineInfo(info);
+            info.indent = Math.max(0, info.indent - width);
+        }
+        return info;
+    }));
+
+    if (secret.mappings.length > 0) {
+        var newMappings = getSecret(lines).mappings;
+        assert.strictEqual(newMappings.length, 0);
+        secret.mappings.forEach(function(mapping) {
+            newMappings.push(mapping.indent(width, skipFirstLine, true));
+        });
+    }
+
+    return lines;
+};
+
+Lp.indent = function(by) {
+    if (by === 0)
+        return this;
+
+    var secret = getSecret(this);
+
+    var lines = new Lines(secret.infos.map(function(info) {
+        if (info.line) {
+            info = copyLineInfo(info);
+            info.indent += by;
+        }
+        return info
+    }));
+
+    if (secret.mappings.length > 0) {
+        var newMappings = getSecret(lines).mappings;
+        assert.strictEqual(newMappings.length, 0);
+        secret.mappings.forEach(function(mapping) {
+            newMappings.push(mapping.indent(by));
+        });
+    }
+
+    return lines;
+};
+
+Lp.indentTail = function(by) {
+    if (by === 0)
+        return this;
+
+    if (this.length < 2)
+        return this;
+
+    var secret = getSecret(this);
+
+    var lines = new Lines(secret.infos.map(function(info, i) {
+        if (i > 0 && info.line) {
+            info = copyLineInfo(info);
+            info.indent += by;
+        }
+
+        return info;
+    }));
+
+    if (secret.mappings.length > 0) {
+        var newMappings = getSecret(lines).mappings;
+        assert.strictEqual(newMappings.length, 0);
+        secret.mappings.forEach(function(mapping) {
+            newMappings.push(mapping.indent(by, true));
+        });
+    }
+
+    return lines;
+};
+
+Lp.getIndentAt = function(line) {
+    assert.ok(line >= 1, "no line " + line + " (line numbers start from 1)");
+    var secret = getSecret(this),
+        info = secret.infos[line - 1];
+    return Math.max(info.indent, 0);
+};
+
+Lp.guessTabWidth = function() {
+    var secret = getSecret(this);
+    if (hasOwn.call(secret, "cachedTabWidth")) {
+        return secret.cachedTabWidth;
+    }
+
+    var counts = []; // Sparse array.
+    var lastIndent = 0;
+
+    for (var line = 1, last = this.length; line <= last; ++line) {
+        var info = secret.infos[line - 1];
+        var sliced = info.line.slice(info.sliceStart, info.sliceEnd);
+
+        // Whitespace-only lines don't tell us much about the likely tab
+        // width of this code.
+        if (isOnlyWhitespace(sliced)) {
+            continue;
+        }
+
+        var diff = Math.abs(info.indent - lastIndent);
+        counts[diff] = ~~counts[diff] + 1;
+        lastIndent = info.indent;
+    }
+
+    var maxCount = -1;
+    var result = 2;
+
+    for (var tabWidth = 1;
+         tabWidth < counts.length;
+         tabWidth += 1) {
+        if (hasOwn.call(counts, tabWidth) &&
+            counts[tabWidth] > maxCount) {
+            maxCount = counts[tabWidth];
+            result = tabWidth;
+        }
+    }
+
+    return secret.cachedTabWidth = result;
+};
+
+Lp.isOnlyWhitespace = function() {
+    return isOnlyWhitespace(this.toString());
+};
+
+Lp.isPrecededOnlyByWhitespace = function(pos) {
+    var secret = getSecret(this);
+    var info = secret.infos[pos.line - 1];
+    var indent = Math.max(info.indent, 0);
+
+    var diff = pos.column - indent;
+    if (diff <= 0) {
+        // If pos.column does not exceed the indentation amount, then
+        // there must be only whitespace before it.
+        return true;
+    }
+
+    var start = info.sliceStart;
+    var end = Math.min(start + diff, info.sliceEnd);
+    var prefix = info.line.slice(start, end);
+
+    return isOnlyWhitespace(prefix);
+};
+
+Lp.getLineLength = function(line) {
+    var secret = getSecret(this),
+        info = secret.infos[line - 1];
+    return this.getIndentAt(line) + info.sliceEnd - info.sliceStart;
+};
+
+Lp.nextPos = function(pos, skipSpaces) {
+    var l = Math.max(pos.line, 0),
+        c = Math.max(pos.column, 0);
+
+    if (c < this.getLineLength(l)) {
+        pos.column += 1;
+
+        return skipSpaces
+            ? !!this.skipSpaces(pos, false, true)
+            : true;
+    }
+
+    if (l < this.length) {
+        pos.line += 1;
+        pos.column = 0;
+
+        return skipSpaces
+            ? !!this.skipSpaces(pos, false, true)
+            : true;
+    }
+
+    return false;
+};
+
+Lp.prevPos = function(pos, skipSpaces) {
+    var l = pos.line,
+        c = pos.column;
+
+    if (c < 1) {
+        l -= 1;
+
+        if (l < 1)
+            return false;
+
+        c = this.getLineLength(l);
+
+    } else {
+        c = Math.min(c - 1, this.getLineLength(l));
+    }
+
+    pos.line = l;
+    pos.column = c;
+
+    return skipSpaces
+        ? !!this.skipSpaces(pos, true, true)
+        : true;
+};
+
+Lp.firstPos = function() {
+    // Trivial, but provided for completeness.
+    return { line: 1, column: 0 };
+};
+
+Lp.lastPos = function() {
+    return {
+        line: this.length,
+        column: this.getLineLength(this.length)
+    };
+};
+
+Lp.skipSpaces = function(pos, backward, modifyInPlace) {
+    if (pos) {
+        pos = modifyInPlace ? pos : {
+            line: pos.line,
+            column: pos.column
+        };
+    } else if (backward) {
+        pos = this.lastPos();
+    } else {
+        pos = this.firstPos();
+    }
+
+    if (backward) {
+        while (this.prevPos(pos)) {
+            if (!isOnlyWhitespace(this.charAt(pos)) &&
+                this.nextPos(pos)) {
+                return pos;
+            }
+        }
+
+        return null;
+
+    } else {
+        while (isOnlyWhitespace(this.charAt(pos))) {
+            if (!this.nextPos(pos)) {
+                return null;
+            }
+        }
+
+        return pos;
+    }
+};
+
+Lp.trimLeft = function() {
+    var pos = this.skipSpaces(this.firstPos(), false, true);
+    return pos ? this.slice(pos) : emptyLines;
+};
+
+Lp.trimRight = function() {
+    var pos = this.skipSpaces(this.lastPos(), true, true);
+    return pos ? this.slice(this.firstPos(), pos) : emptyLines;
+};
+
+Lp.trim = function() {
+    var start = this.skipSpaces(this.firstPos(), false, true);
+    if (start === null)
+        return emptyLines;
+
+    var end = this.skipSpaces(this.lastPos(), true, true);
+    assert.notStrictEqual(end, null);
+
+    return this.slice(start, end);
+};
+
+Lp.eachPos = function(callback, startPos, skipSpaces) {
+    var pos = this.firstPos();
+
+    if (startPos) {
+        pos.line = startPos.line,
+        pos.column = startPos.column
+    }
+
+    if (skipSpaces && !this.skipSpaces(pos, false, true)) {
+        return; // Encountered nothing but spaces.
+    }
+
+    do callback.call(this, pos);
+    while (this.nextPos(pos, skipSpaces));
+};
+
+Lp.bootstrapSlice = function(start, end) {
+    var strings = this.toString().split("\n").slice(
+            start.line - 1, end.line);
+
+    strings.push(strings.pop().slice(0, end.column));
+    strings[0] = strings[0].slice(start.column);
+
+    return fromString(strings.join("\n"));
+};
+
+Lp.slice = function(start, end) {
+    if (!end) {
+        if (!start) {
+            // The client seems to want a copy of this Lines object, but
+            // Lines objects are immutable, so it's perfectly adequate to
+            // return the same object.
+            return this;
+        }
+
+        // Slice to the end if no end position was provided.
+        end = this.lastPos();
+    }
+
+    var secret = getSecret(this);
+    var sliced = secret.infos.slice(start.line - 1, end.line);
+
+    if (start.line === end.line) {
+        sliced[0] = sliceInfo(sliced[0], start.column, end.column);
+    } else {
+        assert.ok(start.line < end.line);
+        sliced[0] = sliceInfo(sliced[0], start.column);
+        sliced.push(sliceInfo(sliced.pop(), 0, end.column));
+    }
+
+    var lines = new Lines(sliced);
+
+    if (secret.mappings.length > 0) {
+        var newMappings = getSecret(lines).mappings;
+        assert.strictEqual(newMappings.length, 0);
+        secret.mappings.forEach(function(mapping) {
+            var sliced = mapping.slice(this, start, end);
+            if (sliced) {
+                newMappings.push(sliced);
+            }
+        }, this);
+    }
+
+    return lines;
+};
+
+function sliceInfo(info, startCol, endCol) {
+    var sliceStart = info.sliceStart;
+    var sliceEnd = info.sliceEnd;
+    var indent = Math.max(info.indent, 0);
+    var lineLength = indent + sliceEnd - sliceStart;
+
+    if (typeof endCol === "undefined") {
+        endCol = lineLength;
+    }
+
+    startCol = Math.max(startCol, 0);
+    endCol = Math.min(endCol, lineLength);
+    endCol = Math.max(endCol, startCol);
+
+    if (endCol < indent) {
+        indent = endCol;
+        sliceEnd = sliceStart;
+    } else {
+        sliceEnd -= lineLength - endCol;
+    }
+
+    lineLength = endCol;
+    lineLength -= startCol;
+
+    if (startCol < indent) {
+        indent -= startCol;
+    } else {
+        startCol -= indent;
+        indent = 0;
+        sliceStart += startCol;
+    }
+
+    assert.ok(indent >= 0);
+    assert.ok(sliceStart <= sliceEnd);
+    assert.strictEqual(lineLength, indent + sliceEnd - sliceStart);
+
+    if (info.indent === indent &&
+        info.sliceStart === sliceStart &&
+        info.sliceEnd === sliceEnd) {
+        return info;
+    }
+
+    return {
+        line: info.line,
+        indent: indent,
+        sliceStart: sliceStart,
+        sliceEnd: sliceEnd
+    };
+}
+
+Lp.bootstrapSliceString = function(start, end, options) {
+    return this.slice(start, end).toString(options);
+};
+
+Lp.sliceString = function(start, end, options) {
+    if (!end) {
+        if (!start) {
+            // The client seems to want a copy of this Lines object, but
+            // Lines objects are immutable, so it's perfectly adequate to
+            // return the same object.
+            return this;
+        }
+
+        // Slice to the end if no end position was provided.
+        end = this.lastPos();
+    }
+
+    options = normalizeOptions(options);
+
+    var infos = getSecret(this).infos;
+    var parts = [];
+    var tabWidth = options.tabWidth;
+
+    for (var line = start.line; line <= end.line; ++line) {
+        var info = infos[line - 1];
+
+        if (line === start.line) {
+            if (line === end.line) {
+                info = sliceInfo(info, start.column, end.column);
+            } else {
+                info = sliceInfo(info, start.column);
+            }
+        } else if (line === end.line) {
+            info = sliceInfo(info, 0, end.column);
+        }
+
+        var indent = Math.max(info.indent, 0);
+
+        var before = info.line.slice(0, info.sliceStart);
+        if (options.reuseWhitespace &&
+            isOnlyWhitespace(before) &&
+            countSpaces(before, options.tabWidth) === indent) {
+            // Reuse original spaces if the indentation is correct.
+            parts.push(info.line.slice(0, info.sliceEnd));
+            continue;
+        }
+
+        var tabs = 0;
+        var spaces = indent;
+
+        if (options.useTabs) {
+            tabs = Math.floor(indent / tabWidth);
+            spaces -= tabs * tabWidth;
+        }
+
+        var result = "";
+
+        if (tabs > 0) {
+            result += new Array(tabs + 1).join("\t");
+        }
+
+        if (spaces > 0) {
+            result += new Array(spaces + 1).join(" ");
+        }
+
+        result += info.line.slice(info.sliceStart, info.sliceEnd);
+
+        parts.push(result);
+    }
+
+    return parts.join("\n");
+};
+
+Lp.isEmpty = function() {
+    return this.length < 2 && this.getLineLength(1) < 1;
+};
+
+Lp.join = function(elements) {
+    var separator = this;
+    var separatorSecret = getSecret(separator);
+    var infos = [];
+    var mappings = [];
+    var prevInfo;
+
+    function appendSecret(secret) {
+        if (secret === null)
+            return;
+
+        if (prevInfo) {
+            var info = secret.infos[0];
+            var indent = new Array(info.indent + 1).join(" ");
+            var prevLine = infos.length;
+            var prevColumn = Math.max(prevInfo.indent, 0) +
+                prevInfo.sliceEnd - prevInfo.sliceStart;
+
+            prevInfo.line = prevInfo.line.slice(
+                0, prevInfo.sliceEnd) + indent + info.line.slice(
+                    info.sliceStart, info.sliceEnd);
+
+            prevInfo.sliceEnd = prevInfo.line.length;
+
+            if (secret.mappings.length > 0) {
+                secret.mappings.forEach(function(mapping) {
+                    mappings.push(mapping.add(prevLine, prevColumn));
+                });
+            }
+
+        } else if (secret.mappings.length > 0) {
+            mappings.push.apply(mappings, secret.mappings);
+        }
+
+        secret.infos.forEach(function(info, i) {
+            if (!prevInfo || i > 0) {
+                prevInfo = copyLineInfo(info);
+                infos.push(prevInfo);
+            }
+        });
+    }
+
+    function appendWithSeparator(secret, i) {
+        if (i > 0)
+            appendSecret(separatorSecret);
+        appendSecret(secret);
+    }
+
+    elements.map(function(elem) {
+        var lines = fromString(elem);
+        if (lines.isEmpty())
+            return null;
+        return getSecret(lines);
+    }).forEach(separator.isEmpty()
+               ? appendSecret
+               : appendWithSeparator);
+
+    if (infos.length < 1)
+        return emptyLines;
+
+    var lines = new Lines(infos);
+
+    getSecret(lines).mappings = mappings;
+
+    return lines;
+};
+
+exports.concat = function(elements) {
+    return emptyLines.join(elements);
+};
+
+Lp.concat = function(other) {
+    var args = arguments,
+        list = [this];
+    list.push.apply(list, args);
+    assert.strictEqual(list.length, args.length + 1);
+    return emptyLines.join(list);
+};
+
+// The emptyLines object needs to be created all the way down here so that
+// Lines.prototype will be fully populated.
+var emptyLines = fromString("");
+
+},{"./mapping":145,"./options":146,"./types":150,"./util":151,"assert":185,"private":118,"source-map":161}],145:[function(require,module,exports){
+var assert = require("assert");
+var types = require("./types");
+var isString = types.builtInTypes.string;
+var isNumber = types.builtInTypes.number;
+var SourceLocation = types.namedTypes.SourceLocation;
+var Position = types.namedTypes.Position;
+var linesModule = require("./lines");
+var comparePos = require("./util").comparePos;
+
+function Mapping(sourceLines, sourceLoc, targetLoc) {
+    assert.ok(this instanceof Mapping);
+    assert.ok(sourceLines instanceof linesModule.Lines);
+    SourceLocation.assert(sourceLoc);
+
+    if (targetLoc) {
+        // In certain cases it's possible for targetLoc.{start,end}.column
+        // values to be negative, which technically makes them no longer
+        // valid SourceLocation nodes, so we need to be more forgiving.
+        assert.ok(
+            isNumber.check(targetLoc.start.line) &&
+            isNumber.check(targetLoc.start.column) &&
+            isNumber.check(targetLoc.end.line) &&
+            isNumber.check(targetLoc.end.column)
+        );
+    } else {
+        // Assume identity mapping if no targetLoc specified.
+        targetLoc = sourceLoc;
+    }
+
+    Object.defineProperties(this, {
+        sourceLines: { value: sourceLines },
+        sourceLoc: { value: sourceLoc },
+        targetLoc: { value: targetLoc }
+    });
+}
+
+var Mp = Mapping.prototype;
+module.exports = Mapping;
+
+Mp.slice = function(lines, start, end) {
+    assert.ok(lines instanceof linesModule.Lines);
+    Position.assert(start);
+
+    if (end) {
+        Position.assert(end);
+    } else {
+        end = lines.lastPos();
+    }
+
+    var sourceLines = this.sourceLines;
+    var sourceLoc = this.sourceLoc;
+    var targetLoc = this.targetLoc;
+
+    function skip(name) {
+        var sourceFromPos = sourceLoc[name];
+        var targetFromPos = targetLoc[name];
+        var targetToPos = start;
+
+        if (name === "end") {
+            targetToPos = end;
+        } else {
+            assert.strictEqual(name, "start");
+        }
+
+        return skipChars(
+            sourceLines, sourceFromPos,
+            lines, targetFromPos, targetToPos
+        );
+    }
+
+    if (comparePos(start, targetLoc.start) <= 0) {
+        if (comparePos(targetLoc.end, end) <= 0) {
+            targetLoc = {
+                start: subtractPos(targetLoc.start, start.line, start.column),
+                end: subtractPos(targetLoc.end, start.line, start.column)
+            };
+
+            // The sourceLoc can stay the same because the contents of the
+            // targetLoc have not changed.
+
+        } else if (comparePos(end, targetLoc.start) <= 0) {
+            return null;
+
+        } else {
+            sourceLoc = {
+                start: sourceLoc.start,
+                end: skip("end")
+            };
+
+            targetLoc = {
+                start: subtractPos(targetLoc.start, start.line, start.column),
+                end: subtractPos(end, start.line, start.column)
+            };
+        }
+
+    } else {
+        if (comparePos(targetLoc.end, start) <= 0) {
+            return null;
+        }
+
+        if (comparePos(targetLoc.end, end) <= 0) {
+            sourceLoc = {
+                start: skip("start"),
+                end: sourceLoc.end
+            };
+
+            targetLoc = {
+                // Same as subtractPos(start, start.line, start.column):
+                start: { line: 1, column: 0 },
+                end: subtractPos(targetLoc.end, start.line, start.column)
+            };
+
+        } else {
+            sourceLoc = {
+                start: skip("start"),
+                end: skip("end")
+            };
+
+            targetLoc = {
+                // Same as subtractPos(start, start.line, start.column):
+                start: { line: 1, column: 0 },
+                end: subtractPos(end, start.line, start.column)
+            };
+        }
+    }
+
+    return new Mapping(this.sourceLines, sourceLoc, targetLoc);
+};
+
+Mp.add = function(line, column) {
+    return new Mapping(this.sourceLines, this.sourceLoc, {
+        start: addPos(this.targetLoc.start, line, column),
+        end: addPos(this.targetLoc.end, line, column)
+    });
+};
+
+function addPos(toPos, line, column) {
+    return {
+        line: toPos.line + line - 1,
+        column: (toPos.line === 1)
+            ? toPos.column + column
+            : toPos.column
+    };
+}
+
+Mp.subtract = function(line, column) {
+    return new Mapping(this.sourceLines, this.sourceLoc, {
+        start: subtractPos(this.targetLoc.start, line, column),
+        end: subtractPos(this.targetLoc.end, line, column)
+    });
+};
+
+function subtractPos(fromPos, line, column) {
+    return {
+        line: fromPos.line - line + 1,
+        column: (fromPos.line === line)
+            ? fromPos.column - column
+            : fromPos.column
+    };
+}
+
+Mp.indent = function(by, skipFirstLine, noNegativeColumns) {
+    if (by === 0) {
+        return this;
+    }
+
+    var targetLoc = this.targetLoc;
+    var startLine = targetLoc.start.line;
+    var endLine = targetLoc.end.line;
+
+    if (skipFirstLine && startLine === 1 && endLine === 1) {
+        return this;
+    }
+
+    targetLoc = {
+        start: targetLoc.start,
+        end: targetLoc.end
+    };
+
+    if (!skipFirstLine || startLine > 1) {
+        var startColumn = targetLoc.start.column + by;
+        targetLoc.start = {
+            line: startLine,
+            column: noNegativeColumns
+                ? Math.max(0, startColumn)
+                : startColumn
+        };
+    }
+
+    if (!skipFirstLine || endLine > 1) {
+        var endColumn = targetLoc.end.column + by;
+        targetLoc.end = {
+            line: endLine,
+            column: noNegativeColumns
+                ? Math.max(0, endColumn)
+                : endColumn
+        };
+    }
+
+    return new Mapping(this.sourceLines, this.sourceLoc, targetLoc);
+};
+
+function skipChars(
+    sourceLines, sourceFromPos,
+    targetLines, targetFromPos, targetToPos
+) {
+    assert.ok(sourceLines instanceof linesModule.Lines);
+    assert.ok(targetLines instanceof linesModule.Lines);
+    Position.assert(sourceFromPos);
+    Position.assert(targetFromPos);
+    Position.assert(targetToPos);
+
+    var targetComparison = comparePos(targetFromPos, targetToPos);
+    if (targetComparison === 0) {
+        // Trivial case: no characters to skip.
+        return sourceFromPos;
+    }
+
+    if (targetComparison < 0) {
+        // Skipping forward.
+
+        var sourceCursor = sourceLines.skipSpaces(sourceFromPos);
+        var targetCursor = targetLines.skipSpaces(targetFromPos);
+
+        var lineDiff = targetToPos.line - targetCursor.line;
+        sourceCursor.line += lineDiff;
+        targetCursor.line += lineDiff;
+
+        if (lineDiff > 0) {
+            // If jumping to later lines, reset columns to the beginnings
+            // of those lines.
+            sourceCursor.column = 0;
+            targetCursor.column = 0;
+        } else {
+            assert.strictEqual(lineDiff, 0);
+        }
+
+        while (comparePos(targetCursor, targetToPos) < 0 &&
+               targetLines.nextPos(targetCursor, true)) {
+            assert.ok(sourceLines.nextPos(sourceCursor, true));
+            assert.strictEqual(
+                sourceLines.charAt(sourceCursor),
+                targetLines.charAt(targetCursor)
+            );
+        }
+
+    } else {
+        // Skipping backward.
+
+        var sourceCursor = sourceLines.skipSpaces(sourceFromPos, true);
+        var targetCursor = targetLines.skipSpaces(targetFromPos, true);
+
+        var lineDiff = targetToPos.line - targetCursor.line;
+        sourceCursor.line += lineDiff;
+        targetCursor.line += lineDiff;
+
+        if (lineDiff < 0) {
+            // If jumping to earlier lines, reset columns to the ends of
+            // those lines.
+            sourceCursor.column = sourceLines.getLineLength(sourceCursor.line);
+            targetCursor.column = targetLines.getLineLength(targetCursor.line);
+        } else {
+            assert.strictEqual(lineDiff, 0);
+        }
+
+        while (comparePos(targetToPos, targetCursor) < 0 &&
+               targetLines.prevPos(targetCursor, true)) {
+            assert.ok(sourceLines.prevPos(sourceCursor, true));
+            assert.strictEqual(
+                sourceLines.charAt(sourceCursor),
+                targetLines.charAt(targetCursor)
+            );
+        }
+    }
+
+    return sourceCursor;
+}
+
+},{"./lines":144,"./types":150,"./util":151,"assert":185}],146:[function(require,module,exports){
+var defaults = {
+    // If you want to use a different branch of esprima, or any other
+    // module that supports a .parse function, pass that module object to
+    // recast.parse as options.esprima.
+    esprima: require("esprima-fb"),
+
+    // Number of spaces the pretty-printer should use per tab for
+    // indentation. If you do not pass this option explicitly, it will be
+    // (quite reliably!) inferred from the original code.
+    tabWidth: 4,
+
+    // If you really want the pretty-printer to use tabs instead of
+    // spaces, make this option true.
+    useTabs: false,
+
+    // The reprinting code leaves leading whitespace untouched unless it
+    // has to reindent a line, or you pass false for this option.
+    reuseWhitespace: true,
+
+    // Some of the pretty-printer code (such as that for printing function
+    // parameter lists) makes a valiant attempt to prevent really long
+    // lines. You can adjust the limit by changing this option; however,
+    // there is no guarantee that line length will fit inside this limit.
+    wrapColumn: 74, // Aspirational for now.
+
+    // Pass a string as options.sourceFileName to recast.parse to tell the
+    // reprinter to keep track of reused code so that it can construct a
+    // source map automatically.
+    sourceFileName: null,
+
+    // Pass a string as options.sourceMapName to recast.print, and
+    // (provided you passed options.sourceFileName earlier) the
+    // PrintResult of recast.print will have a .map property for the
+    // generated source map.
+    sourceMapName: null,
+
+    // If provided, this option will be passed along to the source map
+    // generator as a root directory for relative source file paths.
+    sourceRoot: null,
+
+    // If you provide a source map that was generated from a previous call
+    // to recast.print as options.inputSourceMap, the old source map will
+    // be composed with the new source map.
+    inputSourceMap: null,
+
+    // If you want esprima to generate .range information (recast only
+    // uses .loc internally), pass true for this option.
+    range: false,
+
+    // If you want esprima not to throw exceptions when it encounters
+    // non-fatal errors, keep this option true.
+    tolerant: true,
+    
+    // If you want to override the quotes used in string literals, specify
+    // either "single", "double", or "auto" here ("auto" will select the one 
+    // which results in the shorter literal)
+    // Otherwise, the input marks will be preserved
+    quote: null,
+}, hasOwn = defaults.hasOwnProperty;
+
+// Copy options and fill in default values.
+exports.normalize = function(options) {
+    options = options || defaults;
+
+    function get(key) {
+        return hasOwn.call(options, key)
+            ? options[key]
+            : defaults[key];
+    }
+
+    return {
+        tabWidth: +get("tabWidth"),
+        useTabs: !!get("useTabs"),
+        reuseWhitespace: !!get("reuseWhitespace"),
+        wrapColumn: Math.max(get("wrapColumn"), 0),
+        sourceFileName: get("sourceFileName"),
+        sourceMapName: get("sourceMapName"),
+        sourceRoot: get("sourceRoot"),
+        inputSourceMap: get("inputSourceMap"),
+        esprima: get("esprima"),
+        range: get("range"),
+        tolerant: get("tolerant"),
+        quote: get("quote"),
+    };
+};
+
+},{"esprima-fb":141}],147:[function(require,module,exports){
+var assert = require("assert");
+var types = require("./types");
+var n = types.namedTypes;
+var b = types.builders;
+var isObject = types.builtInTypes.object;
+var isArray = types.builtInTypes.array;
+var isFunction = types.builtInTypes.function;
+var Patcher = require("./patcher").Patcher;
+var normalizeOptions = require("./options").normalize;
+var fromString = require("./lines").fromString;
+var attachComments = require("./comments").attach;
+
+exports.parse = function parse(source, options) {
+    options = normalizeOptions(options);
+
+    var lines = fromString(source, options);
+
+    var sourceWithoutTabs = lines.toString({
+        tabWidth: options.tabWidth,
+        reuseWhitespace: false,
+        useTabs: false
+    });
+
+    var program = options.esprima.parse(sourceWithoutTabs, {
+        loc: true,
+        range: options.range,
+        comment: true,
+        tolerant: options.tolerant,
+        sourceType: 'module'
+    });
+
+    var comments = program.comments;
+    delete program.comments;
+
+    // In order to ensure we reprint leading and trailing program
+    // comments, wrap the original Program node with a File node.
+    var file = b.file(program);
+    file.loc = {
+        lines: lines,
+        indent: 0,
+        start: lines.firstPos(),
+        end: lines.lastPos()
+    };
+
+    // Return a copy of the original AST so that any changes made may be
+    // compared to the original.
+    var copy = new TreeCopier(lines).copy(file);
+
+    // Attach comments to the copy rather than the original.
+    attachComments(comments, copy, lines);
+
+    return copy;
+};
+
+function TreeCopier(lines) {
+    assert.ok(this instanceof TreeCopier);
+    this.lines = lines;
+    this.indent = 0;
+}
+
+var TCp = TreeCopier.prototype;
+
+TCp.copy = function(node) {
+    if (isArray.check(node)) {
+        return node.map(this.copy, this);
+    }
+
+    if (!isObject.check(node)) {
+        return node;
+    }
+
+    if ((n.MethodDefinition && n.MethodDefinition.check(node)) ||
+        (n.Property.check(node) && (node.method || node.shorthand))) {
+        // If the node is a MethodDefinition or a .method or .shorthand
+        // Property, then the location information stored in
+        // node.value.loc is very likely untrustworthy (just the {body}
+        // part of a method, or nothing in the case of shorthand
+        // properties), so we null out that information to prevent
+        // accidental reuse of bogus source code during reprinting.
+        node.value.loc = null;
+
+        if (n.FunctionExpression.check(node.value)) {
+            // FunctionExpression method values should be anonymous,
+            // because their .id fields are ignored anyway.
+            node.value.id = null;
+        }
+    }
+
+    var copy = Object.create(Object.getPrototypeOf(node), {
+        original: { // Provide a link from the copy to the original.
+            value: node,
+            configurable: false,
+            enumerable: false,
+            writable: true
+        }
+    });
+
+    var loc = node.loc;
+    var oldIndent = this.indent;
+    var newIndent = oldIndent;
+
+    if (loc) {
+        if (loc.start.line < 1) {
+            loc.start.line = 1;
+        }
+
+        if (loc.end.line < 1) {
+            loc.end.line = 1;
+        }
+
+        if (this.lines.isPrecededOnlyByWhitespace(loc.start)) {
+            newIndent = this.indent = loc.start.column;
+        }
+
+        loc.lines = this.lines;
+        loc.indent = newIndent;
+    }
+
+    var keys = Object.keys(node);
+    var keyCount = keys.length;
+    for (var i = 0; i < keyCount; ++i) {
+        var key = keys[i];
+        if (key === "loc") {
+            copy[key] = node[key];
+        } else if (key === "comments") {
+            // Handled below.
+        } else {
+            copy[key] = this.copy(node[key]);
+        }
+    }
+
+    this.indent = oldIndent;
+
+    if (node.comments) {
+        Object.defineProperty(copy, "comments", {
+            value: node.comments,
+            enumerable: false
+        });
+    }
+
+    return copy;
+};
+
+},{"./comments":142,"./lines":144,"./options":146,"./patcher":148,"./types":150,"assert":185}],148:[function(require,module,exports){
+var assert = require("assert");
+var linesModule = require("./lines");
+var types = require("./types");
+var getFieldValue = types.getFieldValue;
+var Node = types.namedTypes.Node;
+var Expression = types.namedTypes.Expression;
+var SourceLocation = types.namedTypes.SourceLocation;
+var util = require("./util");
+var comparePos = util.comparePos;
+var FastPath = require("./fast-path");
+var isObject = types.builtInTypes.object;
+var isArray = types.builtInTypes.array;
+var isString = types.builtInTypes.string;
+
+function Patcher(lines) {
+    assert.ok(this instanceof Patcher);
+    assert.ok(lines instanceof linesModule.Lines);
+
+    var self = this,
+        replacements = [];
+
+    self.replace = function(loc, lines) {
+        if (isString.check(lines))
+            lines = linesModule.fromString(lines);
+
+        replacements.push({
+            lines: lines,
+            start: loc.start,
+            end: loc.end
+        });
+    };
+
+    self.get = function(loc) {
+        // If no location is provided, return the complete Lines object.
+        loc = loc || {
+            start: { line: 1, column: 0 },
+            end: { line: lines.length,
+                   column: lines.getLineLength(lines.length) }
+        };
+
+        var sliceFrom = loc.start,
+            toConcat = [];
+
+        function pushSlice(from, to) {
+            assert.ok(comparePos(from, to) <= 0);
+            toConcat.push(lines.slice(from, to));
+        }
+
+        replacements.sort(function(a, b) {
+            return comparePos(a.start, b.start);
+        }).forEach(function(rep) {
+            if (comparePos(sliceFrom, rep.start) > 0) {
+                // Ignore nested replacement ranges.
+            } else {
+                pushSlice(sliceFrom, rep.start);
+                toConcat.push(rep.lines);
+                sliceFrom = rep.end;
+            }
+        });
+
+        pushSlice(sliceFrom, loc.end);
+
+        return linesModule.concat(toConcat);
+    };
+}
+exports.Patcher = Patcher;
+
+exports.getReprinter = function(path) {
+    assert.ok(path instanceof FastPath);
+
+    // Make sure that this path refers specifically to a Node, rather than
+    // some non-Node subproperty of a Node.
+    var node = path.getValue();
+    if (!Node.check(node))
+        return;
+
+    var orig = node.original;
+    var origLoc = orig && orig.loc;
+    var lines = origLoc && origLoc.lines;
+    var reprints = [];
+
+    if (!lines || !findReprints(path, reprints))
+        return;
+
+    return function(print) {
+        var patcher = new Patcher(lines);
+
+        reprints.forEach(function(reprint) {
+            var old = reprint.oldNode;
+            SourceLocation.assert(old.loc, true);
+            patcher.replace(
+                old.loc,
+                print(reprint.newPath).indentTail(old.loc.indent)
+            );
+        });
+
+        return patcher.get(origLoc).indentTail(-orig.loc.indent);
+    };
+};
+
+function findReprints(newPath, reprints) {
+    var newNode = newPath.getValue();
+    Node.assert(newNode);
+
+    var oldNode = newNode.original;
+    Node.assert(oldNode);
+
+    assert.deepEqual(reprints, []);
+
+    if (newNode.type !== oldNode.type) {
+        return false;
+    }
+
+    var oldPath = new FastPath(oldNode);
+    var canReprint = findChildReprints(newPath, oldPath, reprints);
+
+    if (!canReprint) {
+        // Make absolutely sure the calling code does not attempt to reprint
+        // any nodes.
+        reprints.length = 0;
+    }
+
+    return canReprint;
+}
+
+function findAnyReprints(newPath, oldPath, reprints) {
+    var newNode = newPath.getValue();
+    var oldNode = oldPath.getValue();
+
+    if (newNode === oldNode)
+        return true;
+
+    if (isArray.check(newNode))
+        return findArrayReprints(newPath, oldPath, reprints);
+
+    if (isObject.check(newNode))
+        return findObjectReprints(newPath, oldPath, reprints);
+
+    return false;
+}
+
+function findArrayReprints(newPath, oldPath, reprints) {
+    var newNode = newPath.getValue();
+    var oldNode = oldPath.getValue();
+    isArray.assert(newNode);
+    var len = newNode.length;
+
+    if (!(isArray.check(oldNode) &&
+          oldNode.length === len))
+        return false;
+
+    for (var i = 0; i < len; ++i) {
+        newPath.stack.push(i, newNode[i]);
+        oldPath.stack.push(i, oldNode[i]);
+        var canReprint = findAnyReprints(newPath, oldPath, reprints);
+        newPath.stack.length -= 2;
+        oldPath.stack.length -= 2;
+        if (!canReprint) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function findObjectReprints(newPath, oldPath, reprints) {
+    var newNode = newPath.getValue();
+    isObject.assert(newNode);
+
+    if (newNode.original === null) {
+        // If newNode.original node was set to null, reprint the node.
+        return false;
+    }
+
+    var oldNode = oldPath.getValue();
+    if (!isObject.check(oldNode))
+        return false;
+
+    if (Node.check(newNode)) {
+        if (!Node.check(oldNode)) {
+            return false;
+        }
+
+        if (!oldNode.loc) {
+            // If we have no .loc information for oldNode, then we won't
+            // be able to reprint it.
+            return false;
+        }
+
+        // Here we need to decide whether the reprinted code for newNode
+        // is appropriate for patching into the location of oldNode.
+
+        if (newNode.type === oldNode.type) {
+            var childReprints = [];
+
+            if (findChildReprints(newPath, oldPath, childReprints)) {
+                reprints.push.apply(reprints, childReprints);
+            } else {
+                reprints.push({
+                    oldNode: oldNode,
+                    newPath: newPath.copy()
+                });
+            }
+
+            return true;
+        }
+
+        if (Expression.check(newNode) &&
+            Expression.check(oldNode)) {
+
+            // If both nodes are subtypes of Expression, then we should be
+            // able to fill the location occupied by the old node with
+            // code printed for the new node with no ill consequences.
+            reprints.push({
+                oldNode: oldNode,
+                newPath: newPath.copy()
+            });
+
+            return true;
+        }
+
+        // The nodes have different types, and at least one of the types
+        // is not a subtype of the Expression type, so we cannot safely
+        // assume the nodes are syntactically interchangeable.
+        return false;
+    }
+
+    return findChildReprints(newPath, oldPath, reprints);
+}
+
+// This object is reused in hasOpeningParen and hasClosingParen to avoid
+// having to allocate a temporary object.
+var reusablePos = { line: 1, column: 0 };
+
+function hasOpeningParen(oldPath) {
+    var oldNode = oldPath.getValue();
+    var loc = oldNode.loc;
+    var lines = loc && loc.lines;
+
+    if (lines) {
+        var pos = reusablePos;
+        pos.line = loc.start.line;
+        pos.column = loc.start.column;
+
+        while (lines.prevPos(pos)) {
+            var ch = lines.charAt(pos);
+
+            if (ch === "(") {
+                // If we found an opening parenthesis but it occurred before
+                // the start of the original subtree for this reprinting, then
+                // we must not return true for hasOpeningParen(oldPath).
+                return comparePos(oldPath.getRootValue().loc.start, pos) <= 0;
+            }
+
+            if (ch !== " ") {
+                return false;
+            }
+        }
+    }
+
+    return false;
+}
+
+function hasClosingParen(oldPath) {
+    var oldNode = oldPath.getValue();
+    var loc = oldNode.loc;
+    var lines = loc && loc.lines;
+
+    if (lines) {
+        var pos = reusablePos;
+        pos.line = loc.end.line;
+        pos.column = loc.end.column;
+
+        do {
+            var ch = lines.charAt(pos);
+
+            if (ch === ")") {
+                // If we found a closing parenthesis but it occurred after the
+                // end of the original subtree for this reprinting, then we
+                // must not return true for hasClosingParen(oldPath).
+                return comparePos(pos, oldPath.getRootValue().loc.end) <= 0;
+            }
+
+            if (ch !== " ") {
+                return false;
+            }
+
+        } while (lines.nextPos(pos));
+    }
+
+    return false;
+}
+
+function hasParens(oldPath) {
+    // This logic can technically be fooled if the node has parentheses
+    // but there are comments intervening between the parentheses and the
+    // node. In such cases the node will be harmlessly wrapped in an
+    // additional layer of parentheses.
+    return hasOpeningParen(oldPath) && hasClosingParen(oldPath);
+}
+
+function findChildReprints(newPath, oldPath, reprints) {
+    var newNode = newPath.getValue();
+    var oldNode = oldPath.getValue();
+
+    isObject.assert(newNode);
+    isObject.assert(oldNode);
+
+    if (newNode.original === null) {
+        // If newNode.original node was set to null, reprint the node.
+        return false;
+    }
+
+    // If this type of node cannot come lexically first in its enclosing
+    // statement (e.g. a function expression or object literal), and it
+    // seems to be doing so, then the only way we can ignore this problem
+    // and save ourselves from falling back to the pretty printer is if an
+    // opening parenthesis happens to precede the node.  For example,
+    // (function(){ ... }()); does not need to be reprinted, even though
+    // the FunctionExpression comes lexically first in the enclosing
+    // ExpressionStatement and fails the hasParens test, because the
+    // parent CallExpression passes the hasParens test. If we relied on
+    // the path.needsParens() && !hasParens(oldNode) check below, the
+    // absence of a closing parenthesis after the FunctionExpression would
+    // trigger pretty-printing unnecessarily.
+    if (!newPath.canBeFirstInStatement() &&
+        newPath.firstInStatement() &&
+        !hasOpeningParen(oldPath))
+        return false;
+
+    // If this node needs parentheses and will not be wrapped with
+    // parentheses when reprinted, then return false to skip reprinting
+    // and let it be printed generically.
+    if (newPath.needsParens(true) && !hasParens(oldPath)) {
+        return false;
+    }
+
+    for (var k in util.getUnionOfKeys(newNode, oldNode)) {
+        if (k === "loc")
+            continue;
+
+        newPath.stack.push(k, types.getFieldValue(newNode, k));
+        oldPath.stack.push(k, types.getFieldValue(oldNode, k));
+        var canReprint = findAnyReprints(newPath, oldPath, reprints);
+        newPath.stack.length -= 2;
+        oldPath.stack.length -= 2;
+
+        if (!canReprint) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+},{"./fast-path":143,"./lines":144,"./types":150,"./util":151,"assert":185}],149:[function(require,module,exports){
+var assert = require("assert");
+var sourceMap = require("source-map");
+var printComments = require("./comments").printComments;
+var linesModule = require("./lines");
+var fromString = linesModule.fromString;
+var concat = linesModule.concat;
+var normalizeOptions = require("./options").normalize;
+var getReprinter = require("./patcher").getReprinter;
+var types = require("./types");
+var namedTypes = types.namedTypes;
+var isString = types.builtInTypes.string;
+var isObject = types.builtInTypes.object;
+var FastPath = require("./fast-path");
+var util = require("./util");
+
+function PrintResult(code, sourceMap) {
+    assert.ok(this instanceof PrintResult);
+
+    isString.assert(code);
+    this.code = code;
+
+    if (sourceMap) {
+        isObject.assert(sourceMap);
+        this.map = sourceMap;
+    }
+}
+
+var PRp = PrintResult.prototype;
+var warnedAboutToString = false;
+
+PRp.toString = function() {
+    if (!warnedAboutToString) {
+        console.warn(
+            "Deprecation warning: recast.print now returns an object with " +
+            "a .code property. You appear to be treating the object as a " +
+            "string, which might still work but is strongly discouraged."
+        );
+
+        warnedAboutToString = true;
+    }
+
+    return this.code;
+};
+
+var emptyPrintResult = new PrintResult("");
+
+function Printer(originalOptions) {
+    assert.ok(this instanceof Printer);
+
+    var explicitTabWidth = originalOptions && originalOptions.tabWidth;
+    var options = normalizeOptions(originalOptions);
+    assert.notStrictEqual(options, originalOptions);
+
+    // It's common for client code to pass the same options into both
+    // recast.parse and recast.print, but the Printer doesn't need (and
+    // can be confused by) options.sourceFileName, so we null it out.
+    options.sourceFileName = null;
+
+    function printWithComments(path) {
+        assert.ok(path instanceof FastPath);
+        return printComments(path.getNode().comments, print(path), options);
+    }
+
+    function print(path, includeComments) {
+        if (includeComments)
+            return printWithComments(path);
+
+        assert.ok(path instanceof FastPath);
+
+        if (!explicitTabWidth) {
+            var oldTabWidth = options.tabWidth;
+            var loc = path.getNode().loc;
+            if (loc && loc.lines && loc.lines.guessTabWidth) {
+                options.tabWidth = loc.lines.guessTabWidth();
+                var lines = maybeReprint(path);
+                options.tabWidth = oldTabWidth;
+                return lines;
+            }
+        }
+
+        return maybeReprint(path);
+    }
+
+    function maybeReprint(path) {
+        var reprinter = getReprinter(path);
+        if (reprinter)
+            return maybeAddParens(path, reprinter(maybeReprint));
+        return printRootGenerically(path);
+    }
+
+    // Print the root node generically, but then resume reprinting its
+    // children non-generically.
+    function printRootGenerically(path) {
+        return genericPrint(path, options, printWithComments);
+    }
+
+    // Print the entire AST generically.
+    function printGenerically(path) {
+        return genericPrint(path, options, printGenerically);
+    }
+
+    this.print = function(ast) {
+        if (!ast) {
+            return emptyPrintResult;
+        }
+
+        var lines = print(FastPath.from(ast), true);
+
+        return new PrintResult(
+            lines.toString(options),
+            util.composeSourceMaps(
+                options.inputSourceMap,
+                lines.getSourceMap(
+                    options.sourceMapName,
+                    options.sourceRoot
+                )
+            )
+        );
+    };
+
+    this.printGenerically = function(ast) {
+        if (!ast) {
+            return emptyPrintResult;
+        }
+
+        var path = FastPath.from(ast);
+        var oldReuseWhitespace = options.reuseWhitespace;
+
+        // Do not reuse whitespace (or anything else, for that matter)
+        // when printing generically.
+        options.reuseWhitespace = false;
+        var pr = new PrintResult(printGenerically(path).toString(options));
+        options.reuseWhitespace = oldReuseWhitespace;
+        return pr;
+    };
+}
+
+exports.Printer = Printer;
+
+function maybeAddParens(path, lines) {
+    return path.needsParens() ? concat(["(", lines, ")"]) : lines;
+}
+
+function genericPrint(path, options, printPath) {
+    assert.ok(path instanceof FastPath);
+    return maybeAddParens(path, genericPrintNoParens(path, options, printPath));
+}
+
+function genericPrintNoParens(path, options, print) {
+    var n = path.getValue();
+
+    if (!n) {
+        return fromString("");
+    }
+
+    if (typeof n === "string") {
+        return fromString(n, options);
+    }
+
+    namedTypes.Node.assert(n);
+
+    switch (n.type) {
+    case "File":
+        return path.call(print, "program");
+
+    case "Program":
+        return maybeAddSemicolon(path.call(function(bodyPath) {
+            return printStatementSequence(bodyPath, options, print);
+        }, "body"));
+
+    case "EmptyStatement":
+        return fromString("");
+
+    case "ExpressionStatement":
+        return concat([path.call(print, "expression"), ";"]);
+
+    case "BinaryExpression":
+    case "LogicalExpression":
+    case "AssignmentExpression":
+        return fromString(" ").join([
+            path.call(print, "left"),
+            n.operator,
+            path.call(print, "right")
+        ]);
+
+    case "MemberExpression":
+        var parts = [path.call(print, "object")];
+
+        if (n.computed)
+            parts.push("[", path.call(print, "property"), "]");
+        else
+            parts.push(".", path.call(print, "property"));
+
+        return concat(parts);
+
+    case "Path":
+        return fromString(".").join(n.body);
+
+    case "Identifier":
+        return fromString(n.name, options);
+
+    case "SpreadElement":
+    case "SpreadElementPattern":
+    case "SpreadProperty":
+    case "SpreadPropertyPattern":
+        return concat(["...", path.call(print, "argument")]);
+
+    case "FunctionDeclaration":
+    case "FunctionExpression":
+        var parts = [];
+
+        if (n.async)
+            parts.push("async ");
+
+        parts.push("function");
+
+        if (n.generator)
+            parts.push("*");
+
+        if (n.id)
+            parts.push(" ", path.call(print, "id"));
+
+        parts.push(
+            "(",
+            printFunctionParams(path, options, print),
+            ") ",
+            path.call(print, "body")
+        );
+
+        return concat(parts);
+
+    case "ArrowFunctionExpression":
+        var parts = [];
+
+        if (n.async)
+            parts.push("async ");
+
+        if (n.params.length === 1) {
+            parts.push(path.call(print, "params", 0));
+        } else {
+            parts.push(
+                "(",
+                printFunctionParams(path, options, print),
+                ")"
+            );
+        }
+
+        parts.push(" => ", path.call(print, "body"));
+
+        return concat(parts);
+
+    case "MethodDefinition":
+        var parts = [];
+
+        if (n.static) {
+            parts.push("static ");
+        }
+
+        parts.push(printMethod(path, options, print));
+
+        return concat(parts);
+
+    case "YieldExpression":
+        var parts = ["yield"];
+
+        if (n.delegate)
+            parts.push("*");
+
+        if (n.argument)
+            parts.push(" ", path.call(print, "argument"));
+
+        return concat(parts);
+
+    case "AwaitExpression":
+        var parts = ["await"];
+
+        if (n.all)
+            parts.push("*");
+
+        if (n.argument)
+            parts.push(" ", path.call(print, "argument"));
+
+        return concat(parts);
+
+    case "ModuleDeclaration":
+        var parts = ["module", path.call(print, "id")];
+
+        if (n.source) {
+            assert.ok(!n.body);
+            parts.push("from", path.call(print, "source"));
+        } else {
+            parts.push(path.call(print, "body"));
+        }
+
+        return fromString(" ").join(parts);
+
+    case "ImportSpecifier":
+    case "ExportSpecifier":
+        var parts = [path.call(print, "id")];
+
+        if (n.name)
+            parts.push(" as ", path.call(print, "name"));
+
+        return concat(parts);
+
+    case "ExportBatchSpecifier":
+        return fromString("*");
+
+    case "ImportNamespaceSpecifier":
+        return concat(["* as ", path.call(print, "id")]);
+
+    case "ImportDefaultSpecifier":
+        return path.call(print, "id");
+
+    case "ExportDeclaration":
+        var parts = ["export"];
+
+        if (n["default"]) {
+            parts.push(" default");
+
+        } else if (n.specifiers &&
+                   n.specifiers.length > 0) {
+
+            if (n.specifiers.length === 1 &&
+                n.specifiers[0].type === "ExportBatchSpecifier") {
+                parts.push(" *");
+            } else {
+                parts.push(
+                    " { ",
+                    fromString(", ").join(path.map(print, "specifiers")),
+                    " }"
+                );
+            }
+
+            if (n.source)
+                parts.push(" from ", path.call(print, "source"));
+
+            parts.push(";");
+
+            return concat(parts);
+        }
+
+        if (n.declaration) {
+            if (!namedTypes.Node.check(n.declaration)) {
+                console.log(JSON.stringify(n, null, 2));
+            }
+            var decLines = path.call(print, "declaration");
+            parts.push(" ", decLines);
+            if (lastNonSpaceCharacter(decLines) !== ";") {
+                parts.push(";");
+            }
+        }
+
+        return concat(parts);
+
+    case "ImportDeclaration":
+        var parts = ["import "];
+
+        if (n.specifiers &&
+            n.specifiers.length > 0) {
+
+            var foundImportSpecifier = false;
+
+            path.each(function(specifierPath) {
+                var i = specifierPath.getName();
+                if (i > 0) {
+                    parts.push(", ");
+                }
+
+                var value = specifierPath.getValue();
+
+                if (namedTypes.ImportDefaultSpecifier.check(value) ||
+                    namedTypes.ImportNamespaceSpecifier.check(value)) {
+                    assert.strictEqual(foundImportSpecifier, false);
+                } else {
+                    namedTypes.ImportSpecifier.assert(value);
+                    if (!foundImportSpecifier) {
+                        foundImportSpecifier = true;
+                        parts.push("{");
+                    }
+                }
+
+                parts.push(print(specifierPath));
+            }, "specifiers");
+
+            if (foundImportSpecifier) {
+                parts.push("}");
+            }
+
+            parts.push(" from ");
+        }
+
+        parts.push(path.call(print, "source"), ";");
+
+        return concat(parts);
+
+    case "BlockStatement":
+        var naked = path.call(function(bodyPath) {
+            return printStatementSequence(bodyPath, options, print);
+        }, "body");
+
+        if (naked.isEmpty()) {
+            return fromString("{}");
+        }
+
+        return concat([
+            "{\n",
+            naked.indent(options.tabWidth),
+            "\n}"
+        ]);
+
+    case "ReturnStatement":
+        var parts = ["return"];
+
+        if (n.argument) {
+            var argLines = path.call(print, "argument");
+            if (argLines.length > 1 &&
+                namedTypes.XJSElement &&
+                namedTypes.XJSElement.check(n.argument)) {
+                parts.push(
+                    " (\n",
+                    argLines.indent(options.tabWidth),
+                    "\n)"
+                );
+            } else {
+                parts.push(" ", argLines);
+            }
+        }
+
+        parts.push(";");
+
+        return concat(parts);
+
+    case "CallExpression":
+        return concat([
+            path.call(print, "callee"),
+            printArgumentsList(path, options, print)
+        ]);
+
+    case "ObjectExpression":
+    case "ObjectPattern":
+        var allowBreak = false,
+            len = n.properties.length,
+            parts = [len > 0 ? "{\n" : "{"];
+
+        path.map(function(childPath) {
+            var i = childPath.getName();
+            var prop = childPath.getValue();
+            var lines = print(childPath).indent(options.tabWidth);
+
+            var multiLine = lines.length > 1;
+            if (multiLine && allowBreak) {
+                // Similar to the logic for BlockStatement.
+                parts.push("\n");
+            }
+
+            parts.push(lines);
+
+            if (i < len - 1) {
+                // Add an extra line break if the previous object property
+                // had a multi-line value.
+                parts.push(multiLine ? ",\n\n" : ",\n");
+                allowBreak = !multiLine;
+            }
+        }, "properties");
+
+        parts.push(len > 0 ? "\n}" : "}");
+
+        return concat(parts);
+
+    case "PropertyPattern":
+        return concat([
+            path.call(print, "key"),
+            ": ",
+            path.call(print, "pattern")
+        ]);
+
+    case "Property": // Non-standard AST node type.
+        if (n.method || n.kind === "get" || n.kind === "set") {
+            return printMethod(path, options, print);
+        }
+
+        if (n.shorthand) {
+            return path.call(print, "key");
+        }
+
+        return concat([
+            path.call(print, "key"),
+            ": ",
+            path.call(print, "value")
+        ]);
+
+    case "ArrayExpression":
+    case "ArrayPattern":
+        var elems = n.elements,
+            len = elems.length,
+            parts = ["["];
+
+        path.each(function(elemPath) {
+            var i = elemPath.getName();
+            var elem = elemPath.getValue();
+            if (!elem) {
+                // If the array expression ends with a hole, that hole
+                // will be ignored by the interpreter, but if it ends with
+                // two (or more) holes, we need to write out two (or more)
+                // commas so that the resulting code is interpreted with
+                // both (all) of the holes.
+                parts.push(",");
+            } else {
+                if (i > 0)
+                    parts.push(" ");
+                parts.push(print(elemPath));
+                if (i < len - 1)
+                    parts.push(",");
+            }
+        }, "elements");
+
+        parts.push("]");
+
+        return concat(parts);
+
+    case "SequenceExpression":
+        return fromString(", ").join(path.map(print, "expressions"));
+
+    case "ThisExpression":
+        return fromString("this");
+
+    case "Literal":
+        if (typeof n.value !== "string")
+            return fromString(n.value, options);
+
+        // intentionally fall through...
+
+    case "ModuleSpecifier":
+        // A ModuleSpecifier is a string-valued Literal.
+        return fromString(nodeStr(n, options), options);
+
+    case "UnaryExpression":
+        var parts = [n.operator];
+        if (/[a-z]$/.test(n.operator))
+            parts.push(" ");
+        parts.push(path.call(print, "argument"));
+        return concat(parts);
+
+    case "UpdateExpression":
+        var parts = [path.call(print, "argument"), n.operator];
+
+        if (n.prefix)
+            parts.reverse();
+
+        return concat(parts);
+
+    case "ConditionalExpression":
+        return concat([
+            "(", path.call(print, "test"),
+            " ? ", path.call(print, "consequent"),
+            " : ", path.call(print, "alternate"), ")"
+        ]);
+
+    case "NewExpression":
+        var parts = ["new ", path.call(print, "callee")];
+        var args = n.arguments;
+        if (args) {
+            parts.push(printArgumentsList(path, options, print));
+        }
+
+        return concat(parts);
+
+    case "VariableDeclaration":
+        var parts = [n.kind, " "];
+        var maxLen = 0;
+        var printed = path.map(function(childPath) {
+            var lines = print(childPath);
+            maxLen = Math.max(lines.length, maxLen);
+            return lines;
+        }, "declarations");
+
+        if (maxLen === 1) {
+            parts.push(fromString(", ").join(printed));
+        } else if (printed.length > 1 ) {
+            parts.push(
+                fromString(",\n").join(printed)
+                    .indentTail(n.kind.length + 1)
+            );
+        } else {
+            parts.push(printed[0]);
+        }
+
+        // We generally want to terminate all variable declarations with a
+        // semicolon, except when they are children of for loops.
+        var parentNode = path.getParentNode();
+        if (!namedTypes.ForStatement.check(parentNode) &&
+            !namedTypes.ForInStatement.check(parentNode) &&
+            !(namedTypes.ForOfStatement &&
+              namedTypes.ForOfStatement.check(parentNode))) {
+            parts.push(";");
+        }
+
+        return concat(parts);
+
+    case "VariableDeclarator":
+        return n.init ? fromString(" = ").join([
+            path.call(print, "id"),
+            path.call(print, "init")
+        ]) : path.call(print, "id");
+
+    case "WithStatement":
+        return concat([
+            "with (",
+            path.call(print, "object"),
+            ") ",
+            path.call(print, "body")
+        ]);
+
+    case "IfStatement":
+        var con = adjustClause(path.call(print, "consequent"), options),
+            parts = ["if (", path.call(print, "test"), ")", con];
+
+        if (n.alternate)
+            parts.push(
+                endsWithBrace(con) ? " else" : "\nelse",
+                adjustClause(path.call(print, "alternate"), options));
+
+        return concat(parts);
+
+    case "ForStatement":
+        // TODO Get the for (;;) case right.
+        var init = path.call(print, "init"),
+            sep = init.length > 1 ? ";\n" : "; ",
+            forParen = "for (",
+            indented = fromString(sep).join([
+                init,
+                path.call(print, "test"),
+                path.call(print, "update")
+            ]).indentTail(forParen.length),
+            head = concat([forParen, indented, ")"]),
+            clause = adjustClause(path.call(print, "body"), options),
+            parts = [head];
+
+        if (head.length > 1) {
+            parts.push("\n");
+            clause = clause.trimLeft();
+        }
+
+        parts.push(clause);
+
+        return concat(parts);
+
+    case "WhileStatement":
+        return concat([
+            "while (",
+            path.call(print, "test"),
+            ")",
+            adjustClause(path.call(print, "body"), options)
+        ]);
+
+    case "ForInStatement":
+        // Note: esprima can't actually parse "for each (".
+        return concat([
+            n.each ? "for each (" : "for (",
+            path.call(print, "left"),
+            " in ",
+            path.call(print, "right"),
+            ")",
+            adjustClause(path.call(print, "body"), options)
+        ]);
+
+    case "ForOfStatement":
+        return concat([
+            "for (",
+            path.call(print, "left"),
+            " of ",
+            path.call(print, "right"),
+            ")",
+            adjustClause(path.call(print, "body"), options)
+        ]);
+
+    case "DoWhileStatement":
+        var doBody = concat([
+            "do",
+            adjustClause(path.call(print, "body"), options)
+        ]), parts = [doBody];
+
+        if (endsWithBrace(doBody))
+            parts.push(" while");
+        else
+            parts.push("\nwhile");
+
+        parts.push(" (", path.call(print, "test"), ");");
+
+        return concat(parts);
+
+    case "BreakStatement":
+        var parts = ["break"];
+        if (n.label)
+            parts.push(" ", path.call(print, "label"));
+        parts.push(";");
+        return concat(parts);
+
+    case "ContinueStatement":
+        var parts = ["continue"];
+        if (n.label)
+            parts.push(" ", path.call(print, "label"));
+        parts.push(";");
+        return concat(parts);
+
+    case "LabeledStatement":
+        return concat([
+            path.call(print, "label"),
+            ":\n",
+            path.call(print, "body")
+        ]);
+
+    case "TryStatement":
+        var parts = [
+            "try ",
+            path.call(print, "block")
+        ];
+
+        path.each(function(handlerPath) {
+            parts.push(" ", print(handlerPath));
+        }, "handlers");
+
+        if (n.finalizer)
+            parts.push(" finally ", path.call(print, "finalizer"));
+
+        return concat(parts);
+
+    case "CatchClause":
+        var parts = ["catch (", path.call(print, "param")];
+
+        if (n.guard)
+            // Note: esprima does not recognize conditional catch clauses.
+            parts.push(" if ", path.call(print, "guard"));
+
+        parts.push(") ", path.call(print, "body"));
+
+        return concat(parts);
+
+    case "ThrowStatement":
+        return concat(["throw ", path.call(print, "argument"), ";"]);
+
+    case "SwitchStatement":
+        return concat([
+            "switch (",
+            path.call(print, "discriminant"),
+            ") {\n",
+            fromString("\n").join(path.map(print, "cases")),
+            "\n}"
+        ]);
+
+        // Note: ignoring n.lexical because it has no printing consequences.
+
+    case "SwitchCase":
+        var parts = [];
+
+        if (n.test)
+            parts.push("case ", path.call(print, "test"), ":");
+        else
+            parts.push("default:");
+
+        if (n.consequent.length > 0) {
+            parts.push("\n", path.call(function(consequentPath) {
+                return printStatementSequence(consequentPath, options, print);
+            }, "consequent").indent(options.tabWidth));
+        }
+
+        return concat(parts);
+
+    case "DebuggerStatement":
+        return fromString("debugger;");
+
+    // XJS extensions below.
+
+    case "XJSAttribute":
+        var parts = [path.call(print, "name")];
+        if (n.value)
+            parts.push("=", path.call(print, "value"));
+        return concat(parts);
+
+    case "XJSIdentifier":
+        return fromString(n.name, options);
+
+    case "XJSNamespacedName":
+        return fromString(":").join([
+            path.call(print, "namespace"),
+            path.call(print, "name")
+        ]);
+
+    case "XJSMemberExpression":
+        return fromString(".").join([
+            path.call(print, "object"),
+            path.call(print, "property")
+        ]);
+
+    case "XJSSpreadAttribute":
+        return concat(["{...", path.call(print, "argument"), "}"]);
+
+    case "XJSExpressionContainer":
+        return concat(["{", path.call(print, "expression"), "}"]);
+
+    case "XJSElement":
+        var openingLines = path.call(print, "openingElement");
+
+        if (n.openingElement.selfClosing) {
+            assert.ok(!n.closingElement);
+            return openingLines;
+        }
+
+        var childLines = concat(
+            path.map(function(childPath) {
+                var child = childPath.getValue();
+
+                if (namedTypes.Literal.check(child) &&
+                    typeof child.value === "string") {
+                    if (/\S/.test(child.value)) {
+                        return child.value.replace(/^\s+|\s+$/g, "");
+                    } else if (/\n/.test(child.value)) {
+                        return "\n";
+                    }
+                }
+
+                return print(childPath);
+            }, "children")
+        ).indentTail(options.tabWidth);
+
+        var closingLines = path.call(print, "closingElement");
+
+        return concat([
+            openingLines,
+            childLines,
+            closingLines
+        ]);
+
+    case "XJSOpeningElement":
+        var parts = ["<", path.call(print, "name")];
+        var attrParts = [];
+
+        path.each(function(attrPath) {
+            attrParts.push(" ", print(attrPath));
+        }, "attributes");
+
+        var attrLines = concat(attrParts);
+
+        var needLineWrap = (
+            attrLines.length > 1 ||
+            attrLines.getLineLength(1) > options.wrapColumn
+        );
+
+        if (needLineWrap) {
+            attrParts.forEach(function(part, i) {
+                if (part === " ") {
+                    assert.strictEqual(i % 2, 0);
+                    attrParts[i] = "\n";
+                }
+            });
+
+            attrLines = concat(attrParts).indentTail(options.tabWidth);
+        }
+
+        parts.push(attrLines, n.selfClosing ? " />" : ">");
+
+        return concat(parts);
+
+    case "XJSClosingElement":
+        return concat(["</", path.call(print, "name"), ">"]);
+
+    case "XJSText":
+        return fromString(n.value, options);
+
+    case "XJSEmptyExpression":
+        return fromString("");
+
+    case "TypeAnnotatedIdentifier":
+        return concat([
+            path.call(print, "annotation"),
+            " ",
+            path.call(print, "identifier")
+        ]);
+
+    case "ClassBody":
+        if (n.body.length === 0) {
+            return fromString("{}");
+        }
+
+        return concat([
+            "{\n",
+            path.call(function(bodyPath) {
+                return printStatementSequence(bodyPath, options, print);
+            }, "body").indent(options.tabWidth),
+            "\n}"
+        ]);
+
+    case "ClassPropertyDefinition":
+        var parts = ["static ", path.call(print, "definition")];
+        if (!namedTypes.MethodDefinition.check(n.definition))
+            parts.push(";");
+        return concat(parts);
+
+    case "ClassProperty":
+        return concat([path.call(print, "id"), ";"]);
+
+    case "ClassDeclaration":
+    case "ClassExpression":
+        var parts = ["class"];
+
+        if (n.id)
+            parts.push(" ", path.call(print, "id"));
+
+        if (n.superClass)
+            parts.push(" extends ", path.call(print, "superClass"));
+
+        parts.push(" ", path.call(print, "body"));
+
+        return concat(parts);
+
+    // These types are unprintable because they serve as abstract
+    // supertypes for other (printable) types.
+    case "Node":
+    case "Printable":
+    case "SourceLocation":
+    case "Position":
+    case "Statement":
+    case "Function":
+    case "Pattern":
+    case "Expression":
+    case "Declaration":
+    case "Specifier":
+    case "NamedSpecifier":
+    case "Block": // Block comment.
+    case "Line": // Line comment.
+        throw new Error("unprintable type: " + JSON.stringify(n.type));
+
+    // Unhandled types below. If encountered, nodes of these types should
+    // be either left alone or desugared into AST types that are fully
+    // supported by the pretty-printer.
+
+    case "ClassHeritage": // TODO
+    case "ComprehensionBlock": // TODO
+    case "ComprehensionExpression": // TODO
+    case "Glob": // TODO
+    case "TaggedTemplateExpression": // TODO
+    case "TemplateElement": // TODO
+    case "TemplateLiteral": // TODO
+    case "GeneratorExpression": // TODO
+    case "LetStatement": // TODO
+    case "LetExpression": // TODO
+    case "GraphExpression": // TODO
+    case "GraphIndexExpression": // TODO
+
+    // Type Annotations for Facebook Flow, typically stripped out or
+    // transformed away before printing.
+    case "AnyTypeAnnotation": // TODO
+    case "ArrayTypeAnnotation": // TODO
+    case "BooleanTypeAnnotation": // TODO
+    case "ClassImplements": // TODO
+    case "DeclareClass": // TODO
+    case "DeclareFunction": // TODO
+    case "DeclareModule": // TODO
+    case "DeclareVariable": // TODO
+    case "FunctionTypeAnnotation": // TODO
+    case "FunctionTypeParam": // TODO
+    case "GenericTypeAnnotation": // TODO
+    case "InterfaceDeclaration": // TODO
+    case "InterfaceExtends": // TODO
+    case "IntersectionTypeAnnotation": // TODO
+    case "MemberTypeAnnotation": // TODO
+    case "NullableTypeAnnotation": // TODO
+    case "NumberTypeAnnotation": // TODO
+    case "ObjectTypeAnnotation": // TODO
+    case "ObjectTypeCallProperty": // TODO
+    case "ObjectTypeIndexer": // TODO
+    case "ObjectTypeProperty": // TODO
+    case "QualifiedTypeIdentifier": // TODO
+    case "StringLiteralTypeAnnotation": // TODO
+    case "StringTypeAnnotation": // TODO
+    case "TupleTypeAnnotation": // TODO
+    case "Type": // TODO
+    case "TypeAlias": // TODO
+    case "TypeAnnotation": // TODO
+    case "TypeCastExpression": // TODO
+    case "TypeParameterDeclaration": // TODO
+    case "TypeParameterInstantiation": // TODO
+    case "TypeofTypeAnnotation": // TODO
+    case "UnionTypeAnnotation": // TODO
+    case "VoidTypeAnnotation": // TODO
+
+    // XML types that nobody cares about or needs to print.
+    case "XMLDefaultDeclaration":
+    case "XMLAnyName":
+    case "XMLQualifiedIdentifier":
+    case "XMLFunctionQualifiedIdentifier":
+    case "XMLAttributeSelector":
+    case "XMLFilterExpression":
+    case "XML":
+    case "XMLElement":
+    case "XMLList":
+    case "XMLEscape":
+    case "XMLText":
+    case "XMLStartTag":
+    case "XMLEndTag":
+    case "XMLPointTag":
+    case "XMLName":
+    case "XMLAttribute":
+    case "XMLCdata":
+    case "XMLComment":
+    case "XMLProcessingInstruction":
+    default:
+        debugger;
+        throw new Error("unknown type: " + JSON.stringify(n.type));
+    }
+
+    return p;
+}
+
+function printStatementSequence(path, options, print) {
+    var inClassBody =
+        namedTypes.ClassBody &&
+        namedTypes.ClassBody.check(path.getParentNode());
+
+    var filtered = [];
+    path.each(function(stmtPath) {
+        var i = stmtPath.getName();
+        var stmt = stmtPath.getValue();
+
+        // Just in case the AST has been modified to contain falsy
+        // "statements," it's safer simply to skip them.
+        if (!stmt) {
+            return;
+        }
+
+        // Skip printing EmptyStatement nodes to avoid leaving stray
+        // semicolons lying around.
+        if (stmt.type === "EmptyStatement") {
+            return;
+        }
+
+        if (!inClassBody) {
+            namedTypes.Statement.assert(stmt);
+        }
+
+        // We can't hang onto stmtPath outside of this function, because
+        // it's just a reference to a mutable FastPath object, so we have
+        // to go ahead and print it here.
+        filtered.push({
+            node: stmt,
+            printed: print(stmtPath)
+        });
+    });
+
+    var prevTrailingSpace = null;
+    var len = filtered.length;
+    var parts = [];
+
+    filtered.forEach(function(info, i) {
+        var printed = info.printed;
+        var stmt = info.node;
+        var needSemicolon = true;
+        var multiLine = printed.length > 1;
+        var notFirst = i > 0;
+        var notLast = i < len - 1;
+        var leadingSpace;
+        var trailingSpace;
+
+        if (inClassBody) {
+            if (namedTypes.MethodDefinition.check(stmt) ||
+                (namedTypes.ClassPropertyDefinition.check(stmt) &&
+                 namedTypes.MethodDefinition.check(stmt.definition))) {
+                needSemicolon = false;
+            }
+        }
+
+        if (needSemicolon) {
+            // Try to add a semicolon to anything that isn't a method in a
+            // class body.
+            printed = maybeAddSemicolon(printed);
+        }
+
+        var trueLoc = options.reuseWhitespace && getTrueLoc(stmt);
+        var lines = trueLoc && trueLoc.lines;
+
+        if (notFirst) {
+            if (lines) {
+                var beforeStart = lines.skipSpaces(trueLoc.start, true);
+                var beforeStartLine = beforeStart ? beforeStart.line : 1;
+                var leadingGap = trueLoc.start.line - beforeStartLine;
+                leadingSpace = Array(leadingGap + 1).join("\n");
+            } else {
+                leadingSpace = multiLine ? "\n\n" : "\n";
+            }
+        } else {
+            leadingSpace = "";
+        }
+
+        if (notLast) {
+            if (lines) {
+                var afterEnd = lines.skipSpaces(trueLoc.end);
+                var afterEndLine = afterEnd ? afterEnd.line : lines.length;
+                var trailingGap = afterEndLine - trueLoc.end.line;
+                trailingSpace = Array(trailingGap + 1).join("\n");
+            } else {
+                trailingSpace = multiLine ? "\n\n" : "\n";
+            }
+        } else {
+            trailingSpace = "";
+        }
+
+        parts.push(
+            maxSpace(prevTrailingSpace, leadingSpace),
+            printed
+        );
+
+        if (notLast) {
+            prevTrailingSpace = trailingSpace;
+        } else if (trailingSpace) {
+            parts.push(trailingSpace);
+        }
+    });
+
+    return concat(parts);
+}
+
+function getTrueLoc(node) {
+    // It's possible that node is newly-created (not parsed by Esprima),
+    // in which case it probably won't have a .loc property (or an
+    // .original property for that matter). That's fine; we'll just
+    // pretty-print it as usual.
+    if (!node.loc) {
+        return null;
+    }
+
+    if (!node.comments) {
+        // If the node has no comments, regard node.loc as true.
+        return node.loc;
+    }
+
+    var start = node.loc.start;
+    var end = node.loc.end;
+
+    // If the node has any comments, their locations might contribute to
+    // the true start/end positions of the node.
+    node.comments.forEach(function(comment) {
+        if (comment.loc) {
+            if (util.comparePos(comment.loc.start, start) < 0) {
+                start = comment.loc.start;
+            }
+
+            if (util.comparePos(end, comment.loc.end) < 0) {
+                end = comment.loc.end;
+            }
+        }
+    });
+
+    return {
+        lines: node.loc.lines,
+        start: start,
+        end: end
+    };
+}
+
+function maxSpace(s1, s2) {
+    if (!s1 && !s2) {
+        return fromString("");
+    }
+
+    if (!s1) {
+        return fromString(s2);
+    }
+
+    if (!s2) {
+        return fromString(s1);
+    }
+
+    var spaceLines1 = fromString(s1);
+    var spaceLines2 = fromString(s2);
+
+    if (spaceLines2.length > spaceLines1.length) {
+        return spaceLines2;
+    }
+
+    return spaceLines1;
+}
+
+function printMethod(path, options, print) {
+    var node = path.getNode();
+    var kind = node.kind;
+    var parts = [];
+
+    namedTypes.FunctionExpression.assert(node.value);
+
+    if (node.value.async) {
+        parts.push("async ");
+    }
+
+    if (!kind || kind === "init") {
+        if (node.value.generator) {
+            parts.push("*");
+        }
+    } else {
+        assert.ok(kind === "get" || kind === "set");
+        parts.push(kind, " ");
+    }
+
+    parts.push(
+        path.call(print, "key"),
+        "(",
+        path.call(function(valuePath) {
+            return printFunctionParams(valuePath, options, print);
+        }, "value"),
+        ") ",
+        path.call(print, "value", "body")
+    );
+
+    return concat(parts);
+}
+
+function printArgumentsList(path, options, print) {
+    var printed = path.map(print, "arguments");
+
+    var joined = fromString(", ").join(printed);
+    if (joined.getLineLength(1) > options.wrapColumn) {
+        joined = fromString(",\n").join(printed);
+        return concat(["(\n", joined.indent(options.tabWidth), "\n)"]);
+    }
+
+    return concat(["(", joined, ")"]);
+}
+
+function printFunctionParams(path, options, print) {
+    var fun = path.getValue();
+    namedTypes.Function.assert(fun);
+
+    var printed = path.map(print, "params");
+
+    if (fun.defaults) {
+        path.each(function(defExprPath) {
+            var i = defExprPath.getName();
+            var p = printed[i];
+            if (p && defExprPath.getValue()) {
+                printed[i] = concat([p, "=", print(defExprPath)]);
+            }
+        }, "defaults");
+    }
+
+    if (fun.rest) {
+        printed.push(concat(["...", path.call(print, "rest")]));
+    }
+
+    var joined = fromString(", ").join(printed);
+    if (joined.length > 1 ||
+        joined.getLineLength(1) > options.wrapColumn) {
+        joined = fromString(",\n").join(printed);
+        return concat(["\n", joined.indent(options.tabWidth)]);
+    }
+
+    return joined;
+}
+
+function adjustClause(clause, options) {
+    if (clause.length > 1)
+        return concat([" ", clause]);
+
+    return concat([
+        "\n",
+        maybeAddSemicolon(clause).indent(options.tabWidth)
+    ]);
+}
+
+function lastNonSpaceCharacter(lines) {
+    var pos = lines.lastPos();
+    do {
+        var ch = lines.charAt(pos);
+        if (/\S/.test(ch))
+            return ch;
+    } while (lines.prevPos(pos));
+}
+
+function endsWithBrace(lines) {
+    return lastNonSpaceCharacter(lines) === "}";
+}
+
+function swapQuotes(str) {
+    return str.replace(/['"]/g, function(m) {
+        return m === '"' ? '\'' : '"';
+    });
+}
+
+function nodeStr(n, options) {
+    namedTypes.Literal.assert(n);
+    isString.assert(n.value);
+    switch (options.quote) {
+    case "auto":
+        var double = JSON.stringify(n.value);
+        var single = swapQuotes(JSON.stringify(swapQuotes(n.value)));
+        return double.length > single.length ? single : double;
+    case "single":
+        return swapQuotes(JSON.stringify(swapQuotes(n.value)));
+    case "double":
+    default:
+        return JSON.stringify(n.value);
+    }
+}
+
+function maybeAddSemicolon(lines) {
+    var eoc = lastNonSpaceCharacter(lines);
+    if (!eoc || "\n};".indexOf(eoc) < 0)
+        return concat([lines, ";"]);
+    return lines;
+}
+
+},{"./comments":142,"./fast-path":143,"./lines":144,"./options":146,"./patcher":148,"./types":150,"./util":151,"assert":185,"source-map":161}],150:[function(require,module,exports){
+var types = require("ast-types");
+var def = types.Type.def;
+
+def("File")
+    .bases("Node")
+    .build("program")
+    .field("program", def("Program"));
+
+types.finalize();
+
+module.exports = types;
+
+},{"ast-types":109}],151:[function(require,module,exports){
+var assert = require("assert");
+var getFieldValue = require("./types").getFieldValue;
+var sourceMap = require("source-map");
+var SourceMapConsumer = sourceMap.SourceMapConsumer;
+var SourceMapGenerator = sourceMap.SourceMapGenerator;
+var hasOwn = Object.prototype.hasOwnProperty;
+
+function getUnionOfKeys() {
+    var result = {};
+    var argc = arguments.length;
+    for (var i = 0; i < argc; ++i) {
+        var keys = Object.keys(arguments[i]);
+        var keyCount = keys.length;
+        for (var j = 0; j < keyCount; ++j) {
+            result[keys[j]] = true;
+        }
+    }
+    return result;
+}
+exports.getUnionOfKeys = getUnionOfKeys;
+
+function comparePos(pos1, pos2) {
+    return (pos1.line - pos2.line) || (pos1.column - pos2.column);
+}
+exports.comparePos = comparePos;
+
+exports.composeSourceMaps = function(formerMap, latterMap) {
+    if (formerMap) {
+        if (!latterMap) {
+            return formerMap;
+        }
+    } else {
+        return latterMap || null;
+    }
+
+    var smcFormer = new SourceMapConsumer(formerMap);
+    var smcLatter = new SourceMapConsumer(latterMap);
+    var smg = new SourceMapGenerator({
+        file: latterMap.file,
+        sourceRoot: latterMap.sourceRoot
+    });
+
+    var sourcesToContents = {};
+
+    smcLatter.eachMapping(function(mapping) {
+        var origPos = smcFormer.originalPositionFor({
+            line: mapping.originalLine,
+            column: mapping.originalColumn
+        });
+
+        var sourceName = origPos.source;
+        if (sourceName === null) {
+            return;
+        }
+
+        smg.addMapping({
+            source: sourceName,
+            original: {
+                line: origPos.line,
+                column: origPos.column
+            },
+            generated: {
+                line: mapping.generatedLine,
+                column: mapping.generatedColumn
+            },
+            name: mapping.name
+        });
+
+        var sourceContent = smcFormer.sourceContentFor(sourceName);
+        if (sourceContent && !hasOwn.call(sourcesToContents, sourceName)) {
+            sourcesToContents[sourceName] = sourceContent;
+            smg.setSourceContent(sourceName, sourceContent);
+        }
+    });
+
+    return smg.toJSON();
+};
+
+},{"./types":150,"assert":185,"source-map":161}],152:[function(require,module,exports){
+(function (process){
+var types = require("./lib/types");
+var parse = require("./lib/parser").parse;
+var Printer = require("./lib/printer").Printer;
+
+function print(node, options) {
+    return new Printer(options).print(node);
+}
+
+function prettyPrint(node, options) {
+    return new Printer(options).printGenerically(node);
+}
+
+function run(transformer, options) {
+    return runFile(process.argv[2], transformer, options);
+}
+
+function runFile(path, transformer, options) {
+    require("fs").readFile(path, "utf-8", function(err, code) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+
+        runString(code, transformer, options);
+    });
+}
+
+function defaultWriteback(output) {
+    process.stdout.write(output);
+}
+
+function runString(code, transformer, options) {
+    var writeback = options && options.writeback || defaultWriteback;
+    transformer(parse(code, options), function(node) {
+        writeback(print(node, options).code);
+    });
+}
+
+Object.defineProperties(exports, {
+    /**
+     * Parse a string of code into an augmented syntax tree suitable for
+     * arbitrary modification and reprinting.
+     */
+    parse: {
+        enumerable: true,
+        value: parse
+    },
+
+    /**
+     * Traverse and potentially modify an abstract syntax tree using a
+     * convenient visitor syntax:
+     *
+     *   recast.visit(ast, {
+     *     names: [],
+     *     visitIdentifier: function(path) {
+     *       var node = path.value;
+     *       this.visitor.names.push(node.name);
+     *       this.traverse(path);
+     *     }
+     *   });
+     */
+    visit: {
+        enumerable: true,
+        value: types.visit
+    },
+
+    /**
+     * Reprint a modified syntax tree using as much of the original source
+     * code as possible.
+     */
+    print: {
+        enumerable: true,
+        value: print
+    },
+
+    /**
+     * Print without attempting to reuse any original source code.
+     */
+    prettyPrint: {
+        enumerable: false,
+        value: prettyPrint
+    },
+
+    /**
+     * Customized version of require("ast-types").
+     */
+    types: {
+        enumerable: false,
+        value: types
+    },
+
+    /**
+     * Convenient command-line interface (see e.g. example/add-braces).
+     */
+    run: {
+        enumerable: false,
+        value: run
+    }
+});
+
+}).call(this,require('_process'))
+},{"./lib/parser":147,"./lib/printer":149,"./lib/types":150,"_process":195,"fs":184}],153:[function(require,module,exports){
 (function (process){
 var Stream = require('stream')
 
@@ -50375,8 +51602,9 @@ function through (write, end, opts) {
 }
 
 
-}).call(this,require("UPikzY"))
-},{"UPikzY":179,"stream":197}],144:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"_process":195,"stream":211}],154:[function(require,module,exports){
+(function (global){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -50387,23 +51615,53 @@ function through (write, end, opts) {
  * the same directory.
  */
 
-!(function() {
+!(function(global) {
+  "use strict";
+
   var hasOwn = Object.prototype.hasOwnProperty;
   var undefined; // More compressible than void 0.
   var iteratorSymbol =
     typeof Symbol === "function" && Symbol.iterator || "@@iterator";
 
-  if (typeof regeneratorRuntime === "object") {
+  var inModule = typeof module === "object";
+  var runtime = global.regeneratorRuntime;
+  if (runtime) {
+    if (inModule) {
+      // If regeneratorRuntime is defined globally and we're in a module,
+      // make the exports object identical to regeneratorRuntime.
+      module.exports = runtime;
+    }
+    // Don't bother evaluating the rest of this file if the runtime was
+    // already defined globally.
     return;
   }
 
-  var runtime = regeneratorRuntime =
-    typeof exports === "undefined" ? {} : exports;
+  // Define the runtime globally (as expected by generated code) as either
+  // module.exports (if we're in a module) or a new, empty object.
+  runtime = global.regeneratorRuntime = inModule ? module.exports : {};
 
   function wrap(innerFn, outerFn, self, tryList) {
     return new Generator(innerFn, outerFn, self || null, tryList || []);
   }
   runtime.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
 
   var GenStateSuspendedStart = "suspendedStart";
   var GenStateSuspendedYield = "suspendedYield";
@@ -50449,17 +51707,17 @@ function through (write, end, opts) {
       var callThrow = step.bind(generator["throw"]);
 
       function step(arg) {
-        try {
-          var info = this(arg);
-          var value = info.value;
-        } catch (error) {
-          return reject(error);
+        var record = tryCatch(this, null, arg);
+        if (record.type === "throw") {
+          reject(record.arg);
+          return;
         }
 
+        var info = record.arg;
         if (info.done) {
-          resolve(value);
+          resolve(info.value);
         } else {
-          Promise.resolve(value).then(callNext, callThrow);
+          Promise.resolve(info.value).then(callNext, callThrow);
         }
       }
 
@@ -50486,26 +51744,30 @@ function through (write, end, opts) {
       while (true) {
         var delegate = context.delegate;
         if (delegate) {
-          try {
-            var info = delegate.iterator[method](arg);
+          var record = tryCatch(
+            delegate.iterator[method],
+            delegate.iterator,
+            arg
+          );
 
-            // Delegate generator ran and handled its own exceptions so
-            // regardless of what the method was, we continue as if it is
-            // "next" with an undefined arg.
-            method = "next";
-            arg = undefined;
-
-          } catch (uncaught) {
+          if (record.type === "throw") {
             context.delegate = null;
 
             // Like returning generator.throw(uncaught), but without the
             // overhead of an extra function call.
             method = "throw";
-            arg = uncaught;
+            arg = record.arg;
 
             continue;
           }
 
+          // Delegate generator ran and handled its own exceptions so
+          // regardless of what the method was, we continue as if it is
+          // "next" with an undefined arg.
+          method = "next";
+          arg = undefined;
+
+          var info = record.arg;
           if (info.done) {
             context[delegate.resultName] = info.value;
             context.next = delegate.nextLoc;
@@ -50551,9 +51813,8 @@ function through (write, end, opts) {
 
         state = GenStateExecuting;
 
-        try {
-          var value = innerFn.call(self, context);
-
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
           // If an exception is thrown from innerFn, we leave state ===
           // GenStateExecuting and loop back for another invocation.
           state = context.done
@@ -50561,11 +51822,11 @@ function through (write, end, opts) {
             : GenStateSuspendedYield;
 
           var info = {
-            value: value,
+            value: record.arg,
             done: context.done
           };
 
-          if (value === ContinueSentinel) {
+          if (record.arg === ContinueSentinel) {
             if (context.delegate && method === "next") {
               // Deliberately forget the last sent value so that we don't
               // accidentally pass it on to the delegate.
@@ -50575,13 +51836,13 @@ function through (write, end, opts) {
             return info;
           }
 
-        } catch (thrown) {
+        } else if (record.type === "throw") {
           state = GenStateCompleted;
 
           if (method === "next") {
-            context.dispatchException(thrown);
+            context.dispatchException(record.arg);
           } else {
-            arg = thrown;
+            arg = record.arg;
           }
         }
       }
@@ -50671,9 +51932,7 @@ function through (write, end, opts) {
       }
 
       if (!isNaN(iterable.length)) {
-        var i = -1;
-
-        function next() {
+        var i = -1, next = function next() {
           while (++i < iterable.length) {
             if (hasOwn.call(iterable, i)) {
               next.value = iterable[i];
@@ -50686,7 +51945,7 @@ function through (write, end, opts) {
           next.done = true;
 
           return next;
-        }
+        };
 
         return next.next = next;
       }
@@ -50863,9 +52122,16 @@ function through (write, end, opts) {
       return ContinueSentinel;
     }
   };
-})();
+})(
+  // Among the various tricks for obtaining a reference to the global
+  // object, this seems to be the most reliable technique that does not
+  // use indirect eval (which violates Content Security Policy).
+  typeof global === "object" ? global :
+  typeof window === "object" ? window : this
+);
 
-},{}],145:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],155:[function(require,module,exports){
 // Generated by `/scripts/character-class-escape-sets.js`. Do not edit.
 var regenerate = require('regenerate');
 
@@ -50971,7 +52237,7 @@ exports.UNICODE_IGNORE_CASE = {
 		.addRange(0x7B, 0x10FFFF)
 };
 
-},{"regenerate":147}],146:[function(require,module,exports){
+},{"regenerate":157}],156:[function(require,module,exports){
 module.exports={
 	"75": 8490,
 	"83": 383,
@@ -51167,9 +52433,9 @@ module.exports={
 	"71903": 71871
 }
 
-},{}],147:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 (function (global){
-/*! https://mths.be/regenerate v1.0.1 by @mathias | MIT license */
+/*! https://mths.be/regenerate v1.2.0 by @mathias | MIT license */
 ;(function(root) {
 
 	// Detect free variables `exports`.
@@ -51598,11 +52864,17 @@ module.exports={
 	};
 
 	var dataContains = function(data, codePoint) {
-		// Iterate over the data per `(start, end)` pair.
 		var index = 0;
-		var start;
-		var end;
 		var length = data.length;
+		// Exit early if `codePoint` is not within `data`’s overall range.
+		var start = data[index];
+		var end = data[length - 1];
+		if (length >= 2) {
+			if (codePoint < start || codePoint > end) {
+				return false;
+			}
+		}
+		// Iterate over the data per `(start, end)` pair.
 		while (index < length) {
 			start = data[index];
 			end = data[index + 1];
@@ -51791,6 +53063,7 @@ module.exports={
 	var splitAtBMP = function(data) {
 		// Iterate over the data per `(start, end)` pair.
 		var loneHighSurrogates = [];
+		var loneLowSurrogates = [];
 		var bmp = [];
 		var astral = [];
 		var index = 0;
@@ -51800,51 +53073,115 @@ module.exports={
 		while (index < length) {
 			start = data[index];
 			end = data[index + 1] - 1; // Note: the `- 1` makes `end` inclusive.
-			if (start <= 0xFFFF && end <= 0xFFFF) {
-				// Both `start` and `end` are within the BMP range.
-				if (start >= HIGH_SURROGATE_MIN && start <= HIGH_SURROGATE_MAX) {
-					// `start` lies in the high surrogates range.
-					if (end <= HIGH_SURROGATE_MAX) {
-						loneHighSurrogates.push(start, end + 1);
-					} else {
-						loneHighSurrogates.push(start, HIGH_SURROGATE_MAX + 1);
-						bmp.push(HIGH_SURROGATE_MAX + 1, end + 1);
-					}
-				} else if (end >= HIGH_SURROGATE_MIN && end <= HIGH_SURROGATE_MAX) {
-					bmp.push(start, HIGH_SURROGATE_MIN);
-					loneHighSurrogates.push(HIGH_SURROGATE_MIN, end + 1);
-				} else if (start < HIGH_SURROGATE_MIN && end > HIGH_SURROGATE_MAX) {
-					bmp.push(start, HIGH_SURROGATE_MIN, HIGH_SURROGATE_MAX + 1, end + 1);
-					loneHighSurrogates.push(HIGH_SURROGATE_MIN, HIGH_SURROGATE_MAX + 1);
-				} else {
+
+			if (start < HIGH_SURROGATE_MIN) {
+
+				// The range starts and ends before the high surrogate range.
+				// E.g. (0, 0x10).
+				if (end < HIGH_SURROGATE_MIN) {
 					bmp.push(start, end + 1);
 				}
-			}
-			else if (start <= 0xFFFF && end > 0xFFFF) {
-				// `start` is in the BMP range, but `end` lies within the astral range.
-				if (start >= HIGH_SURROGATE_MIN && start <= HIGH_SURROGATE_MAX) {
-					// `start` lies in the high surrogates range. Since `end` is astral,
-					// we can just add all high surrogates starting from `start` to
-					// `loneHighSurrogates`, any other BMP code points to `bmp`, and the
-					// remaining symbols to `astral`.
-					loneHighSurrogates.push(start, HIGH_SURROGATE_MAX + 1);
-					bmp.push(HIGH_SURROGATE_MAX + 1, 0xFFFF + 1);
-				} else if (start < HIGH_SURROGATE_MIN) {
-					bmp.push(start, HIGH_SURROGATE_MIN, HIGH_SURROGATE_MAX + 1, 0xFFFF + 1);
-					loneHighSurrogates.push(HIGH_SURROGATE_MIN, HIGH_SURROGATE_MAX + 1);
-				} else { // `start > HIGH_SURROGATE_MAX` holds true.
-					bmp.push(start, 0xFFFF + 1);
+
+				// The range starts before the high surrogate range and ends within it.
+				// E.g. (0, 0xD855).
+				if (end >= HIGH_SURROGATE_MIN && end <= HIGH_SURROGATE_MAX) {
+					bmp.push(start, HIGH_SURROGATE_MIN);
+					loneHighSurrogates.push(HIGH_SURROGATE_MIN, end + 1);
 				}
-				astral.push(0xFFFF + 1, end + 1);
-			}
-			else {
-				// Both `start` and `end` are in the astral range.
+
+				// The range starts before the high surrogate range and ends in the low
+				// surrogate range. E.g. (0, 0xDCFF).
+				if (end >= LOW_SURROGATE_MIN && end <= LOW_SURROGATE_MAX) {
+					bmp.push(start, HIGH_SURROGATE_MIN);
+					loneHighSurrogates.push(HIGH_SURROGATE_MIN, HIGH_SURROGATE_MAX + 1);
+					loneLowSurrogates.push(LOW_SURROGATE_MIN, end + 1);
+				}
+
+				// The range starts before the high surrogate range and ends after the
+				// low surrogate range. E.g. (0, 0x10FFFF).
+				if (end > LOW_SURROGATE_MAX) {
+					bmp.push(start, HIGH_SURROGATE_MIN);
+					loneHighSurrogates.push(HIGH_SURROGATE_MIN, HIGH_SURROGATE_MAX + 1);
+					loneLowSurrogates.push(LOW_SURROGATE_MIN, LOW_SURROGATE_MAX + 1);
+					if (end <= 0xFFFF) {
+						bmp.push(LOW_SURROGATE_MAX + 1, end + 1);
+					} else {
+						bmp.push(LOW_SURROGATE_MAX + 1, 0xFFFF + 1);
+						astral.push(0xFFFF + 1, end + 1);
+					}
+				}
+
+			} else if (start >= HIGH_SURROGATE_MIN && start <= HIGH_SURROGATE_MAX) {
+
+				// The range starts and ends in the high surrogate range.
+				// E.g. (0xD855, 0xD866).
+				if (end >= HIGH_SURROGATE_MIN && end <= HIGH_SURROGATE_MAX) {
+					loneHighSurrogates.push(start, end + 1);
+				}
+
+				// The range starts in the high surrogate range and ends in the low
+				// surrogate range. E.g. (0xD855, 0xDCFF).
+				if (end >= LOW_SURROGATE_MIN && end <= LOW_SURROGATE_MAX) {
+					loneHighSurrogates.push(start, HIGH_SURROGATE_MAX + 1);
+					loneLowSurrogates.push(LOW_SURROGATE_MIN, end + 1);
+				}
+
+				// The range starts in the high surrogate range and ends after the low
+				// surrogate range. E.g. (0xD855, 0x10FFFF).
+				if (end > LOW_SURROGATE_MAX) {
+					loneHighSurrogates.push(start, HIGH_SURROGATE_MAX + 1);
+					loneLowSurrogates.push(LOW_SURROGATE_MIN, LOW_SURROGATE_MAX + 1);
+					if (end <= 0xFFFF) {
+						bmp.push(LOW_SURROGATE_MAX + 1, end + 1);
+					} else {
+						bmp.push(LOW_SURROGATE_MAX + 1, 0xFFFF + 1);
+						astral.push(0xFFFF + 1, end + 1);
+					}
+				}
+
+			} else if (start >= LOW_SURROGATE_MIN && start <= LOW_SURROGATE_MAX) {
+
+				// The range starts and ends in the low surrogate range.
+				// E.g. (0xDCFF, 0xDDFF).
+				if (end >= LOW_SURROGATE_MIN && end <= LOW_SURROGATE_MAX) {
+					loneLowSurrogates.push(start, end + 1);
+				}
+
+				// The range starts in the low surrogate range and ends after the low
+				// surrogate range. E.g. (0xDCFF, 0x10FFFF).
+				if (end > LOW_SURROGATE_MAX) {
+					loneLowSurrogates.push(start, LOW_SURROGATE_MAX + 1);
+					if (end <= 0xFFFF) {
+						bmp.push(LOW_SURROGATE_MAX + 1, end + 1);
+					} else {
+						bmp.push(LOW_SURROGATE_MAX + 1, 0xFFFF + 1);
+						astral.push(0xFFFF + 1, end + 1);
+					}
+				}
+
+			} else if (start > LOW_SURROGATE_MAX && start <= 0xFFFF) {
+
+				// The range starts and ends after the low surrogate range.
+				// E.g. (0xFFAA, 0x10FFFF).
+				if (end <= 0xFFFF) {
+					bmp.push(start, end + 1);
+				} else {
+					bmp.push(start, 0xFFFF + 1);
+					astral.push(0xFFFF + 1, end + 1);
+				}
+
+			} else {
+
+				// The range starts and ends in the astral range.
 				astral.push(start, end + 1);
+
 			}
+
 			index += 2;
 		}
 		return {
 			'loneHighSurrogates': loneHighSurrogates,
+			'loneLowSurrogates': loneLowSurrogates,
 			'bmp': bmp,
 			'astral': astral
 		};
@@ -52058,22 +53395,25 @@ module.exports={
 		return result.join('|');
 	};
 
-	var createCharacterClassesFromData = function(data) {
+	var createCharacterClassesFromData = function(data, bmpOnly) {
 		var result = [];
 
 		var parts = splitAtBMP(data);
 		var loneHighSurrogates = parts.loneHighSurrogates;
+		var loneLowSurrogates = parts.loneLowSurrogates;
 		var bmp = parts.bmp;
 		var astral = parts.astral;
 		var hasAstral = !dataIsEmpty(parts.astral);
-		var hasLoneSurrogates = !dataIsEmpty(loneHighSurrogates);
+		var hasLoneHighSurrogates = !dataIsEmpty(loneHighSurrogates);
+		var hasLoneLowSurrogates = !dataIsEmpty(loneLowSurrogates);
 
 		var surrogateMappings = surrogateSet(astral);
 
-		// If we’re not dealing with any astral symbols, there’s no need to move
-		// individual code points that are high surrogates to the end of the regex.
-		if (!hasAstral && hasLoneSurrogates) {
+		if (bmpOnly) {
 			bmp = dataAddData(bmp, loneHighSurrogates);
+			hasLoneHighSurrogates = false;
+			bmp = dataAddData(bmp, loneLowSurrogates);
+			hasLoneLowSurrogates = false;
 		}
 
 		if (!dataIsEmpty(bmp)) {
@@ -52086,11 +53426,20 @@ module.exports={
 			// based on their surrogate pairs.
 			result.push(createSurrogateCharacterClasses(surrogateMappings));
 		}
-		if (hasAstral && hasLoneSurrogates) {
-			// The data set contains lone high surrogates; append these. Lone high
-			// surrogates must go at the end of the regex if astral symbols are to be
-			// matched as well.
-			result.push(createBMPCharacterClasses(loneHighSurrogates));
+		// https://gist.github.com/mathiasbynens/bbe7f870208abcfec860
+		if (hasLoneHighSurrogates) {
+			result.push(
+				createBMPCharacterClasses(loneHighSurrogates) +
+				// Make sure the high surrogates aren’t part of a surrogate pair.
+				'(?![\\uDC00-\\uDFFF])'
+			);
+		}
+		if (hasLoneLowSurrogates) {
+			result.push(
+				// Make sure the low surrogates aren’t part of a surrogate pair.
+				'(?:[^\\uD800-\\uDBFF]|^)' +
+				createBMPCharacterClasses(loneLowSurrogates)
+			);
 		}
 		return result.join('|');
 	};
@@ -52111,7 +53460,7 @@ module.exports={
 		return (new regenerate).add(value);
 	};
 
-	regenerate.version = '1.0.1';
+	regenerate.version = '1.2.0';
 
 	var proto = regenerate.prototype;
 	extend(proto, {
@@ -52205,8 +53554,11 @@ module.exports={
 			set.data = this.data.slice(0);
 			return set;
 		},
-		'toString': function() {
-			var result = createCharacterClassesFromData(this.data);
+		'toString': function(options) {
+			var result = createCharacterClassesFromData(
+				this.data,
+				options ? options.bmpOnly : false
+			);
 			// Use `\0` instead of `\x00` where possible.
 			return result.replace(regexNull, '\\0$1');
 		},
@@ -52231,7 +53583,7 @@ module.exports={
 			return regenerate;
 		});
 	}	else if (freeExports && !freeExports.nodeType) {
-		if (freeModule) { // in Node.js or RingoJS v0.8.0+
+		if (freeModule) { // in Node.js, io.js, or RingoJS v0.8.0+
 			freeModule.exports = regenerate;
 		} else { // in Narwhal or RingoJS v0.7.0-
 			freeExports.regenerate = regenerate;
@@ -52242,8 +53594,8 @@ module.exports={
 
 }(this));
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],148:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],158:[function(require,module,exports){
 (function (global){
 /*!
  * RegJSGen
@@ -52654,8 +54006,8 @@ module.exports={
   }
 }.call(this));
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],149:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],159:[function(require,module,exports){
 // regjsparser
 //
 // ==================================================================
@@ -52777,10 +54129,6 @@ module.exports={
 (function() {
 
   function parse(str, flags) {
-    var hasUnicodeFlag = (flags || "").indexOf("u") !== -1;
-    var pos = 0;
-    var closedCaptureCounter = 0;
-
     function addRaw(node) {
       node.raw = str.substring(node.range[0], node.range[1]);
       return node;
@@ -53092,8 +54440,11 @@ module.exports={
 
       if (type == 'normal') {
         // Keep track of the number of closed groups. This is required for
-        // parseDecimalEscape().
-        closedCaptureCounter++;
+        // parseDecimalEscape(). In case the string is parsed a second time the
+        // value already holds the total count and no incrementation is required.
+        if (firstIteration) {
+          closedCaptureCounter++;
+        }
       }
       return group;
     }
@@ -53295,6 +54646,10 @@ module.exports={
           // then the slash is ignored and the number is matched later
           // as normal characters.
 
+          // Recall the negative decision to decide if the input must be parsed
+          // a second time with the total normal-groups.
+          backrefDenied.push(refIdx);
+
           // Reset the position again, as maybe only parts of the previous
           // matched numbers are actual octal numbers. E.g. in '019' only
           // the '01' should be matched.
@@ -53364,7 +54719,7 @@ module.exports={
         return parseUnicodeSurrogatePairEscape(
           createEscaped('unicodeEscape', parseInt(res[1], 16), res[1], 2)
         );
-      } else if (hasUnicodeFlag && (res = matchReg(/^u\{([0-9a-fA-F]{1,})\}/))) {
+      } else if (hasUnicodeFlag && (res = matchReg(/^u\{([0-9a-fA-F]+)\}/))) {
         // RegExpUnicodeEscapeSequence (ES6 Unicode code point escape)
         return createEscaped('unicodeCodePointEscape', parseInt(res[1], 16), res[1], 4);
       } else {
@@ -53551,6 +54906,12 @@ module.exports={
       }
     }
 
+    var backrefDenied = [];
+    var closedCaptureCounter = 0;
+    var firstIteration = true;
+    var hasUnicodeFlag = (flags || "").indexOf("u") !== -1;
+    var pos = 0;
+
     // Convert the input to a string and treat the empty string special.
     str = String(str);
     if (str === '') {
@@ -53561,6 +54922,23 @@ module.exports={
 
     if (result.range[1] !== str.length) {
       throw SyntaxError('Could not parse entire input - got stuck: ' + str);
+    }
+
+    // The spec requires to interpret the `\2` in `/\2()()/` as backreference.
+    // As the parser collects the number of capture groups as the string is
+    // parsed it is impossible to make these decisions at the point the `\2` is
+    // handled. In case the local decision turns out to be wrongq after the
+    // parsing has finished, the input string is parsed a second time with the
+    // total count of capture groups set.
+    //
+    // SEE: https://github.com/jviereck/regjsparser/issues/70
+    for (var i = 0; i < backrefDenied.length; i++) {
+      if (backrefDenied[i] <= closedCaptureCounter) {
+        // Parse the input a second time.
+        pos = 0;
+        firstIteration = false;
+        return parseDisjunction();
+      }
     }
 
     return result;
@@ -53578,7 +54956,7 @@ module.exports={
 
 }());
 
-},{}],150:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 var generate = require('regjsgen').generate;
 var parse = require('regjsparser').parse;
 var regenerate = require('regenerate');
@@ -53770,7 +55148,7 @@ module.exports = function(pattern, flags) {
 	return generate(tree);
 };
 
-},{"./data/character-class-escape-sets.js":145,"./data/iu-mappings.json":146,"regenerate":147,"regjsgen":148,"regjsparser":149}],151:[function(require,module,exports){
+},{"./data/character-class-escape-sets.js":155,"./data/iu-mappings.json":156,"regenerate":157,"regjsgen":158,"regjsparser":159}],161:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -53780,7 +55158,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":156,"./source-map/source-map-generator":157,"./source-map/source-node":158}],152:[function(require,module,exports){
+},{"./source-map/source-map-consumer":167,"./source-map/source-map-generator":168,"./source-map/source-node":169}],162:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -53879,7 +55257,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":159,"amdefine":160}],153:[function(require,module,exports){
+},{"./util":170,"amdefine":171}],163:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -53948,7 +55326,7 @@ define(function (require, exports, module) {
 
   /**
    * Converts from a two-complement value to a value where the sign bit is
-   * is placed in the least significant bit.  For example, as decimals:
+   * placed in the least significant bit.  For example, as decimals:
    *   1 becomes 2 (10 binary), -1 becomes 3 (11 binary)
    *   2 becomes 4 (100 binary), -2 becomes 5 (101 binary)
    */
@@ -53960,7 +55338,7 @@ define(function (require, exports, module) {
 
   /**
    * Converts to a two-complement value from a value where the sign bit is
-   * is placed in the least significant bit.  For example, as decimals:
+   * placed in the least significant bit.  For example, as decimals:
    *   2 (10 binary) becomes 1, 3 (11 binary) becomes -1
    *   4 (100 binary) becomes 2, 5 (101 binary) becomes -2
    */
@@ -54023,7 +55401,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":154,"amdefine":160}],154:[function(require,module,exports){
+},{"./base64":164,"amdefine":171}],164:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -54067,7 +55445,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":160}],155:[function(require,module,exports){
+},{"amdefine":171}],165:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -54093,17 +55471,17 @@ define(function (require, exports, module) {
     //
     //   1. We find the exact element we are looking for.
     //
-    //   2. We did not find the exact element, but we can return the next
-    //      closest element that is less than that element.
+    //   2. We did not find the exact element, but we can return the index of
+    //      the next closest element that is less than that element.
     //
     //   3. We did not find the exact element, and there is no next-closest
     //      element which is less than the one we are searching for, so we
-    //      return null.
+    //      return -1.
     var mid = Math.floor((aHigh - aLow) / 2) + aLow;
     var cmp = aCompare(aNeedle, aHaystack[mid], true);
     if (cmp === 0) {
       // Found the element we are looking for.
-      return aHaystack[mid];
+      return mid;
     }
     else if (cmp > 0) {
       // aHaystack[mid] is greater than our needle.
@@ -54113,7 +55491,7 @@ define(function (require, exports, module) {
       }
       // We did not find an exact match, return the next closest one
       // (termination case 2).
-      return aHaystack[mid];
+      return mid;
     }
     else {
       // aHaystack[mid] is less than our needle.
@@ -54123,18 +55501,16 @@ define(function (require, exports, module) {
       }
       // The exact needle element was not found in this haystack. Determine if
       // we are in termination case (2) or (3) and return the appropriate thing.
-      return aLow < 0
-        ? null
-        : aHaystack[aLow];
+      return aLow < 0 ? -1 : aLow;
     }
   }
 
   /**
    * This is an implementation of binary search which will always try and return
-   * the next lowest value checked if there is no exact hit. This is because
-   * mappings between original and generated line/col pairs are single points,
-   * and there is an implicit region between each of them, so a miss just means
-   * that you aren't on the very start of a region.
+   * the index of next lowest value checked if there is no exact hit. This is
+   * because mappings between original and generated line/col pairs are single
+   * points, and there is an implicit region between each of them, so a miss
+   * just means that you aren't on the very start of a region.
    *
    * @param aNeedle The element you are looking for.
    * @param aHaystack The array that is being searched.
@@ -54143,14 +55519,103 @@ define(function (require, exports, module) {
    *     than, equal to, or greater than the element, respectively.
    */
   exports.search = function search(aNeedle, aHaystack, aCompare) {
-    return aHaystack.length > 0
-      ? recursiveSearch(-1, aHaystack.length, aNeedle, aHaystack, aCompare)
-      : null;
+    if (aHaystack.length === 0) {
+      return -1;
+    }
+    return recursiveSearch(-1, aHaystack.length, aNeedle, aHaystack, aCompare)
   };
 
 });
 
-},{"amdefine":160}],156:[function(require,module,exports){
+},{"amdefine":171}],166:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2014 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  var util = require('./util');
+
+  /**
+   * Determine whether mappingB is after mappingA with respect to generated
+   * position.
+   */
+  function generatedPositionAfter(mappingA, mappingB) {
+    // Optimized for most common case
+    var lineA = mappingA.generatedLine;
+    var lineB = mappingB.generatedLine;
+    var columnA = mappingA.generatedColumn;
+    var columnB = mappingB.generatedColumn;
+    return lineB > lineA || lineB == lineA && columnB >= columnA ||
+           util.compareByGeneratedPositions(mappingA, mappingB) <= 0;
+  }
+
+  /**
+   * A data structure to provide a sorted view of accumulated mappings in a
+   * performance conscious manner. It trades a neglibable overhead in general
+   * case for a large speedup in case of mappings being added in order.
+   */
+  function MappingList() {
+    this._array = [];
+    this._sorted = true;
+    // Serves as infimum
+    this._last = {generatedLine: -1, generatedColumn: 0};
+  }
+
+  /**
+   * Iterate through internal items. This method takes the same arguments that
+   * `Array.prototype.forEach` takes.
+   *
+   * NOTE: The order of the mappings is NOT guaranteed.
+   */
+  MappingList.prototype.unsortedForEach =
+    function MappingList_forEach(aCallback, aThisArg) {
+      this._array.forEach(aCallback, aThisArg);
+    };
+
+  /**
+   * Add the given source mapping.
+   *
+   * @param Object aMapping
+   */
+  MappingList.prototype.add = function MappingList_add(aMapping) {
+    var mapping;
+    if (generatedPositionAfter(this._last, aMapping)) {
+      this._last = aMapping;
+      this._array.push(aMapping);
+    } else {
+      this._sorted = false;
+      this._array.push(aMapping);
+    }
+  };
+
+  /**
+   * Returns the flat, sorted array of mappings. The mappings are sorted by
+   * generated position.
+   *
+   * WARNING: This method returns internal data without copying, for
+   * performance. The return value must NOT be mutated, and should be treated as
+   * an immutable borrow. If you want to take ownership, you must make your own
+   * copy.
+   */
+  MappingList.prototype.toArray = function MappingList_toArray() {
+    if (!this._sorted) {
+      this._array.sort(util.compareByGeneratedPositions);
+      this._sorted = true;
+    }
+    return this._array;
+  };
+
+  exports.MappingList = MappingList;
+
+});
+
+},{"./util":170,"amdefine":171}],167:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -54219,6 +55684,11 @@ define(function (require, exports, module) {
       throw new Error('Unsupported version: ' + version);
     }
 
+    // Some source maps produce relative source paths like "./foo.js" instead of
+    // "foo.js".  Normalize these first so that future comparisons will succeed.
+    // See bugzil.la/1090768.
+    sources = sources.map(util.normalize);
+
     // Pass `true` below to allow duplicate names and sources. While source maps
     // are intended to be compressed and deduplicated, the TypeScript compiler
     // sometimes generates source maps with duplicates in them. See Github issue
@@ -54250,9 +55720,8 @@ define(function (require, exports, module) {
                                                               smc.sourceRoot);
       smc.file = aSourceMap._file;
 
-      smc.__generatedMappings = aSourceMap._mappings.slice()
-        .sort(util.compareByGeneratedPositions);
-      smc.__originalMappings = aSourceMap._mappings.slice()
+      smc.__generatedMappings = aSourceMap._mappings.toArray().slice();
+      smc.__originalMappings = aSourceMap._mappings.toArray().slice()
         .sort(util.compareByOriginalPositions);
 
       return smc;
@@ -54444,6 +55913,33 @@ define(function (require, exports, module) {
     };
 
   /**
+   * Compute the last column for each generated mapping. The last column is
+   * inclusive.
+   */
+  SourceMapConsumer.prototype.computeColumnSpans =
+    function SourceMapConsumer_computeColumnSpans() {
+      for (var index = 0; index < this._generatedMappings.length; ++index) {
+        var mapping = this._generatedMappings[index];
+
+        // Mappings do not contain a field for the last generated columnt. We
+        // can come up with an optimistic estimate, however, by assuming that
+        // mappings are contiguous (i.e. given two consecutive mappings, the
+        // first mapping ends where the second one starts).
+        if (index + 1 < this._generatedMappings.length) {
+          var nextMapping = this._generatedMappings[index + 1];
+
+          if (mapping.generatedLine === nextMapping.generatedLine) {
+            mapping.lastGeneratedColumn = nextMapping.generatedColumn - 1;
+            continue;
+          }
+        }
+
+        // The last mapping for each line spans the entire line.
+        mapping.lastGeneratedColumn = Infinity;
+      }
+    };
+
+  /**
    * Returns the original source, line, and column information for the generated
    * source's line and column positions provided. The only argument is an object
    * with the following properties:
@@ -54465,23 +55961,27 @@ define(function (require, exports, module) {
         generatedColumn: util.getArg(aArgs, 'column')
       };
 
-      var mapping = this._findMapping(needle,
-                                      this._generatedMappings,
-                                      "generatedLine",
-                                      "generatedColumn",
-                                      util.compareByGeneratedPositions);
+      var index = this._findMapping(needle,
+                                    this._generatedMappings,
+                                    "generatedLine",
+                                    "generatedColumn",
+                                    util.compareByGeneratedPositions);
 
-      if (mapping && mapping.generatedLine === needle.generatedLine) {
-        var source = util.getArg(mapping, 'source', null);
-        if (source != null && this.sourceRoot != null) {
-          source = util.join(this.sourceRoot, source);
+      if (index >= 0) {
+        var mapping = this._generatedMappings[index];
+
+        if (mapping.generatedLine === needle.generatedLine) {
+          var source = util.getArg(mapping, 'source', null);
+          if (source != null && this.sourceRoot != null) {
+            source = util.join(this.sourceRoot, source);
+          }
+          return {
+            source: source,
+            line: util.getArg(mapping, 'originalLine', null),
+            column: util.getArg(mapping, 'originalColumn', null),
+            name: util.getArg(mapping, 'name', null)
+          };
         }
-        return {
-          source: source,
-          line: util.getArg(mapping, 'originalLine', null),
-          column: util.getArg(mapping, 'originalColumn', null),
-          name: util.getArg(mapping, 'name', null)
-        };
       }
 
       return {
@@ -54559,23 +56059,80 @@ define(function (require, exports, module) {
         needle.source = util.relative(this.sourceRoot, needle.source);
       }
 
-      var mapping = this._findMapping(needle,
-                                      this._originalMappings,
-                                      "originalLine",
-                                      "originalColumn",
-                                      util.compareByOriginalPositions);
+      var index = this._findMapping(needle,
+                                    this._originalMappings,
+                                    "originalLine",
+                                    "originalColumn",
+                                    util.compareByOriginalPositions);
 
-      if (mapping) {
+      if (index >= 0) {
+        var mapping = this._originalMappings[index];
+
         return {
           line: util.getArg(mapping, 'generatedLine', null),
-          column: util.getArg(mapping, 'generatedColumn', null)
+          column: util.getArg(mapping, 'generatedColumn', null),
+          lastColumn: util.getArg(mapping, 'lastGeneratedColumn', null)
         };
       }
 
       return {
         line: null,
-        column: null
+        column: null,
+        lastColumn: null
       };
+    };
+
+  /**
+   * Returns all generated line and column information for the original source
+   * and line provided. The only argument is an object with the following
+   * properties:
+   *
+   *   - source: The filename of the original source.
+   *   - line: The line number in the original source.
+   *
+   * and an array of objects is returned, each with the following properties:
+   *
+   *   - line: The line number in the generated source, or null.
+   *   - column: The column number in the generated source, or null.
+   */
+  SourceMapConsumer.prototype.allGeneratedPositionsFor =
+    function SourceMapConsumer_allGeneratedPositionsFor(aArgs) {
+      // When there is no exact match, SourceMapConsumer.prototype._findMapping
+      // returns the index of the closest mapping less than the needle. By
+      // setting needle.originalColumn to Infinity, we thus find the last
+      // mapping for the given line, provided such a mapping exists.
+      var needle = {
+        source: util.getArg(aArgs, 'source'),
+        originalLine: util.getArg(aArgs, 'line'),
+        originalColumn: Infinity
+      };
+
+      if (this.sourceRoot != null) {
+        needle.source = util.relative(this.sourceRoot, needle.source);
+      }
+
+      var mappings = [];
+
+      var index = this._findMapping(needle,
+                                    this._originalMappings,
+                                    "originalLine",
+                                    "originalColumn",
+                                    util.compareByOriginalPositions);
+      if (index >= 0) {
+        var mapping = this._originalMappings[index];
+
+        while (mapping && mapping.originalLine === needle.originalLine) {
+          mappings.push({
+            line: util.getArg(mapping, 'generatedLine', null),
+            column: util.getArg(mapping, 'generatedColumn', null),
+            lastColumn: util.getArg(mapping, 'lastGeneratedColumn', null)
+          });
+
+          mapping = this._originalMappings[--index];
+        }
+      }
+
+      return mappings.reverse();
     };
 
   SourceMapConsumer.GENERATED_ORDER = 1;
@@ -54635,7 +56192,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":152,"./base64-vlq":153,"./binary-search":155,"./util":159,"amdefine":160}],157:[function(require,module,exports){
+},{"./array-set":162,"./base64-vlq":163,"./binary-search":165,"./util":170,"amdefine":171}],168:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -54650,6 +56207,7 @@ define(function (require, exports, module) {
   var base64VLQ = require('./base64-vlq');
   var util = require('./util');
   var ArraySet = require('./array-set').ArraySet;
+  var MappingList = require('./mapping-list').MappingList;
 
   /**
    * An instance of the SourceMapGenerator represents a source map which is
@@ -54665,9 +56223,10 @@ define(function (require, exports, module) {
     }
     this._file = util.getArg(aArgs, 'file', null);
     this._sourceRoot = util.getArg(aArgs, 'sourceRoot', null);
+    this._skipValidation = util.getArg(aArgs, 'skipValidation', false);
     this._sources = new ArraySet();
     this._names = new ArraySet();
-    this._mappings = [];
+    this._mappings = new MappingList();
     this._sourcesContents = null;
   }
 
@@ -54737,7 +56296,9 @@ define(function (require, exports, module) {
       var source = util.getArg(aArgs, 'source', null);
       var name = util.getArg(aArgs, 'name', null);
 
-      this._validateMapping(generated, original, source, name);
+      if (!this._skipValidation) {
+        this._validateMapping(generated, original, source, name);
+      }
 
       if (source != null && !this._sources.has(source)) {
         this._sources.add(source);
@@ -54747,7 +56308,7 @@ define(function (require, exports, module) {
         this._names.add(name);
       }
 
-      this._mappings.push({
+      this._mappings.add({
         generatedLine: generated.line,
         generatedColumn: generated.column,
         originalLine: original != null && original.line,
@@ -54824,7 +56385,7 @@ define(function (require, exports, module) {
       var newNames = new ArraySet();
 
       // Find mappings for the "sourceFile"
-      this._mappings.forEach(function (mapping) {
+      this._mappings.unsortedForEach(function (mapping) {
         if (mapping.source === sourceFile && mapping.originalLine != null) {
           // Check if it can be mapped by the source map, then update the mapping.
           var original = aSourceMapConsumer.originalPositionFor({
@@ -54930,15 +56491,10 @@ define(function (require, exports, module) {
       var result = '';
       var mapping;
 
-      // The mappings must be guaranteed to be in sorted order before we start
-      // serializing them or else the generated line numbers (which are defined
-      // via the ';' separators) will be all messed up. Note: it might be more
-      // performant to maintain the sorting as we insert them, rather than as we
-      // serialize them, but the big O is the same either way.
-      this._mappings.sort(util.compareByGeneratedPositions);
+      var mappings = this._mappings.toArray();
 
-      for (var i = 0, len = this._mappings.length; i < len; i++) {
-        mapping = this._mappings[i];
+      for (var i = 0, len = mappings.length; i < len; i++) {
+        mapping = mappings[i];
 
         if (mapping.generatedLine !== previousGeneratedLine) {
           previousGeneratedColumn = 0;
@@ -54949,7 +56505,7 @@ define(function (require, exports, module) {
         }
         else {
           if (i > 0) {
-            if (!util.compareByGeneratedPositions(mapping, this._mappings[i - 1])) {
+            if (!util.compareByGeneratedPositions(mapping, mappings[i - 1])) {
               continue;
             }
             result += ',';
@@ -55038,7 +56594,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":152,"./base64-vlq":153,"./util":159,"amdefine":160}],158:[function(require,module,exports){
+},{"./array-set":162,"./base64-vlq":163,"./mapping-list":166,"./util":170,"amdefine":171}],169:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -55057,8 +56613,13 @@ define(function (require, exports, module) {
   // operating systems these days (capturing the result).
   var REGEX_NEWLINE = /(\r?\n)/;
 
-  // Matches a Windows-style newline, or any character.
-  var REGEX_CHARACTER = /\r\n|[\s\S]/g;
+  // Newline character code for charCodeAt() comparisons
+  var NEWLINE_CODE = 10;
+
+  // Private symbol for identifying `SourceNode`s when multiple versions of
+  // the source-map library are loaded. This MUST NOT CHANGE across
+  // versions!
+  var isSourceNode = "$$$isSourceNode$$$";
 
   /**
    * SourceNodes provide a way to abstract over interpolating/concatenating
@@ -55079,6 +56640,7 @@ define(function (require, exports, module) {
     this.column = aColumn == null ? null : aColumn;
     this.source = aSource == null ? null : aSource;
     this.name = aName == null ? null : aName;
+    this[isSourceNode] = true;
     if (aChunks != null) this.add(aChunks);
   }
 
@@ -55209,7 +56771,7 @@ define(function (require, exports, module) {
         this.add(chunk);
       }, this);
     }
-    else if (aChunk instanceof SourceNode || typeof aChunk === "string") {
+    else if (aChunk[isSourceNode] || typeof aChunk === "string") {
       if (aChunk) {
         this.children.push(aChunk);
       }
@@ -55234,7 +56796,7 @@ define(function (require, exports, module) {
         this.prepend(aChunk[i]);
       }
     }
-    else if (aChunk instanceof SourceNode || typeof aChunk === "string") {
+    else if (aChunk[isSourceNode] || typeof aChunk === "string") {
       this.children.unshift(aChunk);
     }
     else {
@@ -55256,7 +56818,7 @@ define(function (require, exports, module) {
     var chunk;
     for (var i = 0, len = this.children.length; i < len; i++) {
       chunk = this.children[i];
-      if (chunk instanceof SourceNode) {
+      if (chunk[isSourceNode]) {
         chunk.walk(aFn);
       }
       else {
@@ -55301,7 +56863,7 @@ define(function (require, exports, module) {
    */
   SourceNode.prototype.replaceRight = function SourceNode_replaceRight(aPattern, aReplacement) {
     var lastChild = this.children[this.children.length - 1];
-    if (lastChild instanceof SourceNode) {
+    if (lastChild[isSourceNode]) {
       lastChild.replaceRight(aPattern, aReplacement);
     }
     else if (typeof lastChild === 'string') {
@@ -55334,7 +56896,7 @@ define(function (require, exports, module) {
   SourceNode.prototype.walkSourceContents =
     function SourceNode_walkSourceContents(aFn) {
       for (var i = 0, len = this.children.length; i < len; i++) {
-        if (this.children[i] instanceof SourceNode) {
+        if (this.children[i][isSourceNode]) {
           this.children[i].walkSourceContents(aFn);
         }
       }
@@ -55410,12 +56972,12 @@ define(function (require, exports, module) {
         lastOriginalSource = null;
         sourceMappingActive = false;
       }
-      chunk.match(REGEX_CHARACTER).forEach(function (ch, idx, array) {
-        if (REGEX_NEWLINE.test(ch)) {
+      for (var idx = 0, length = chunk.length; idx < length; idx++) {
+        if (chunk.charCodeAt(idx) === NEWLINE_CODE) {
           generated.line++;
           generated.column = 0;
           // Mappings end at eol
-          if (idx + 1 === array.length) {
+          if (idx + 1 === length) {
             lastOriginalSource = null;
             sourceMappingActive = false;
           } else if (sourceMappingActive) {
@@ -55433,9 +56995,9 @@ define(function (require, exports, module) {
             });
           }
         } else {
-          generated.column += ch.length;
+          generated.column++;
         }
-      });
+      }
     });
     this.walkSourceContents(function (sourceFile, sourceContent) {
       map.setSourceContent(sourceFile, sourceContent);
@@ -55448,7 +57010,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":157,"./util":159,"amdefine":160}],159:[function(require,module,exports){
+},{"./source-map-generator":168,"./util":170,"amdefine":171}],170:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -55769,7 +57331,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":160}],160:[function(require,module,exports){
+},{"amdefine":171}],171:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
@@ -56071,10 +57633,10 @@ function amdefine(module, requireFn) {
 
 module.exports = amdefine;
 
-}).call(this,require("UPikzY"),"/../node_modules/6to5/node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"UPikzY":179,"path":178}],161:[function(require,module,exports){
-module.exports={"abstract-expression-call":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"PROPERTY"},"property":{"type":"MemberExpression","object":{"type":"Identifier","name":"Symbol"},"property":{"type":"Identifier","name":"referenceGet"},"computed":false},"computed":true},"arguments":[{"type":"Identifier","name":"OBJECT"}]},"property":{"type":"Identifier","name":"call"},"computed":false},"arguments":[{"type":"Identifier","name":"OBJECT"}]}}]},"abstract-expression-delete":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"PROPERTY"},"property":{"type":"MemberExpression","object":{"type":"Identifier","name":"Symbol"},"property":{"type":"Identifier","name":"referenceDelete"},"computed":false},"computed":true},"arguments":[{"type":"Identifier","name":"OBJECT"}]}}]},"abstract-expression-get":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"PROPERTY"},"property":{"type":"MemberExpression","object":{"type":"Identifier","name":"Symbol"},"property":{"type":"Identifier","name":"referenceGet"},"computed":false},"computed":true},"arguments":[{"type":"Identifier","name":"OBJECT"}]}}]},"abstract-expression-set":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"PROPERTY"},"property":{"type":"MemberExpression","object":{"type":"Identifier","name":"Symbol"},"property":{"type":"Identifier","name":"referenceSet"},"computed":false},"computed":true},"arguments":[{"type":"Identifier","name":"OBJECT"},{"type":"Identifier","name":"VALUE"}]}}]},"apply-constructor":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"Constructor"},{"type":"Identifier","name":"args"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"instance"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"create"},"computed":false},"arguments":[{"type":"MemberExpression","object":{"type":"Identifier","name":"Constructor"},"property":{"type":"Identifier","name":"prototype"},"computed":false}]}}],"kind":"var"},{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"result"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Constructor"},"property":{"type":"Identifier","name":"apply"},"computed":false},"arguments":[{"type":"Identifier","name":"instance"},{"type":"Identifier","name":"args"}]}}],"kind":"var"},{"type":"ReturnStatement","argument":{"type":"ConditionalExpression","test":{"type":"LogicalExpression","left":{"type":"BinaryExpression","left":{"type":"Identifier","name":"result"},"operator":"!=","right":{"type":"Literal","value":null}},"operator":"&&","right":{"type":"LogicalExpression","left":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"result"}},"operator":"==","right":{"type":"Literal","value":"object"}},"operator":"||","right":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"result"}},"operator":"==","right":{"type":"Literal","value":"function"}}}},"consequent":{"type":"Identifier","name":"result"},"alternate":{"type":"Identifier","name":"instance"}}}]},"expression":false}}]},"array-comprehension-container":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"FunctionExpression","id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"KEY"},"init":{"type":"ArrayExpression","elements":[]}}],"kind":"var"},{"type":"ReturnStatement","argument":{"type":"Identifier","name":"KEY"}}]},"expression":false},"arguments":[]}}]},"array-comprehension-for-each":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"ARRAY"},"property":{"type":"Identifier","name":"forEach"},"computed":false},"arguments":[{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"KEY"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[]},"expression":false}]}}]},"array-from":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Array"},"property":{"type":"Identifier","name":"from"},"computed":false},"arguments":[{"type":"Identifier","name":"VALUE"}]}}]},"array-push":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"KEY"},"property":{"type":"Identifier","name":"push"},"computed":false},"arguments":[{"type":"Identifier","name":"STATEMENT"}]}}]},"async-to-generator":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"fn"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"FunctionExpression","id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"gen"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"fn"},"property":{"type":"Identifier","name":"apply"},"computed":false},"arguments":[{"type":"ThisExpression"},{"type":"Identifier","name":"arguments"}]}}],"kind":"var"},{"type":"ReturnStatement","argument":{"type":"NewExpression","callee":{"type":"Identifier","name":"Promise"},"arguments":[{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"resolve"},{"type":"Identifier","name":"reject"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"FunctionDeclaration","id":{"type":"Identifier","name":"step"},"params":[{"type":"Identifier","name":"getNext"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"next"},"init":null}],"kind":"var"},{"type":"TryStatement","block":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"Identifier","name":"next"},"right":{"type":"CallExpression","callee":{"type":"Identifier","name":"getNext"},"arguments":[]}}}]},"handler":{"type":"CatchClause","param":{"type":"Identifier","name":"e"},"guard":null,"body":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"reject"},"arguments":[{"type":"Identifier","name":"e"}]}},{"type":"ReturnStatement","argument":null}]}},"guardedHandlers":[],"finalizer":null},{"type":"IfStatement","test":{"type":"MemberExpression","object":{"type":"Identifier","name":"next"},"property":{"type":"Identifier","name":"done"},"computed":false},"consequent":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"resolve"},"arguments":[{"type":"MemberExpression","object":{"type":"Identifier","name":"next"},"property":{"type":"Identifier","name":"value"},"computed":false}]}},{"type":"ReturnStatement","argument":null}]},"alternate":null},{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Promise"},"property":{"type":"Identifier","name":"resolve"},"computed":false},"arguments":[{"type":"MemberExpression","object":{"type":"Identifier","name":"next"},"property":{"type":"Identifier","name":"value"},"computed":false}]},"property":{"type":"Identifier","name":"then"},"computed":false},"arguments":[{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"v"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"step"},"arguments":[{"type":"FunctionExpression","id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"gen"},"property":{"type":"Identifier","name":"next"},"computed":false},"arguments":[{"type":"Identifier","name":"v"}]}}]},"expression":false}]}}]},"expression":false},{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"e"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"step"},"arguments":[{"type":"FunctionExpression","id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"gen"},"property":{"type":"Literal","value":"throw"},"computed":true},"arguments":[{"type":"Identifier","name":"e"}]}}]},"expression":false}]}}]},"expression":false}]}}]},"expression":false},{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"step"},"arguments":[{"type":"FunctionExpression","id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"gen"},"property":{"type":"Identifier","name":"next"},"computed":false},"arguments":[]}}]},"expression":false}]}}]},"expression":false}]}}]},"expression":false}}]},"expression":false}}]},"bind":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"MemberExpression","object":{"type":"MemberExpression","object":{"type":"Identifier","name":"Function"},"property":{"type":"Identifier","name":"prototype"},"computed":false},"property":{"type":"Identifier","name":"bind"},"computed":false}}]},"call":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"OBJECT"},"property":{"type":"Identifier","name":"call"},"computed":false},"arguments":[{"type":"Identifier","name":"CONTEXT"}]}}]},"class-super-constructor-call-loose":{"type":"Program","body":[{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"Identifier","name":"SUPER_NAME"},"operator":"!=","right":{"type":"Literal","value":null}},"consequent":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"SUPER_NAME"},"property":{"type":"Identifier","name":"apply"},"computed":false},"arguments":[{"type":"ThisExpression"},{"type":"Identifier","name":"arguments"}]}}]},"alternate":null}]},"class-super-constructor-call":{"type":"Program","body":[{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"getPrototypeOf"},"computed":false},"arguments":[{"type":"Identifier","name":"CLASS_NAME"}]},"operator":"!==","right":{"type":"Literal","value":null}},"consequent":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"getPrototypeOf"},"computed":false},"arguments":[{"type":"Identifier","name":"CLASS_NAME"}]},"property":{"type":"Identifier","name":"apply"},"computed":false},"arguments":[{"type":"ThisExpression"},{"type":"Identifier","name":"arguments"}]}}]},"alternate":null}]},"common-export-default-assign":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"module"},"property":{"type":"Identifier","name":"exports"},"computed":false},"right":{"type":"CallExpression","callee":{"type":"Identifier","name":"EXTENDS_HELPER"},"arguments":[{"type":"MemberExpression","object":{"type":"Identifier","name":"exports"},"property":{"type":"Literal","value":"default"},"computed":true},{"type":"Identifier","name":"exports"}]}}}]},"corejs-iterator":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"MemberExpression","object":{"type":"Identifier","name":"CORE_ID"},"property":{"type":"Identifier","name":"$for"},"computed":false},"property":{"type":"Identifier","name":"getIterator"},"computed":false},"arguments":[{"type":"Identifier","name":"VALUE"}]}}]},"default-parameter":{"type":"Program","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"VARIABLE_NAME"},"init":{"type":"ConditionalExpression","test":{"type":"BinaryExpression","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"ARGUMENTS"},"property":{"type":"Identifier","name":"ARGUMENT_KEY"},"computed":true},"operator":"===","right":{"type":"Identifier","name":"undefined"}},"consequent":{"type":"Identifier","name":"DEFAULT_VALUE"},"alternate":{"type":"MemberExpression","object":{"type":"Identifier","name":"ARGUMENTS"},"property":{"type":"Identifier","name":"ARGUMENT_KEY"},"computed":true}}}],"kind":"var"}]},"defaults":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"obj"},{"type":"Identifier","name":"defaults"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ForInStatement","left":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"key"},"init":null}],"kind":"var"},"right":{"type":"Identifier","name":"defaults"},"body":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"obj"},"property":{"type":"Identifier","name":"key"},"computed":true},"operator":"===","right":{"type":"Identifier","name":"undefined"}},"consequent":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"obj"},"property":{"type":"Identifier","name":"key"},"computed":true},"right":{"type":"MemberExpression","object":{"type":"Identifier","name":"defaults"},"property":{"type":"Identifier","name":"key"},"computed":true}}}]},"alternate":null}]}},{"type":"ReturnStatement","argument":{"type":"Identifier","name":"obj"}}]},"expression":false}}]},"define-property":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"obj"},{"type":"Identifier","name":"key"},{"type":"Identifier","name":"value"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"defineProperty"},"computed":false},"arguments":[{"type":"Identifier","name":"obj"},{"type":"Identifier","name":"key"},{"type":"ObjectExpression","properties":[{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"value"},"value":{"type":"Identifier","name":"value"},"kind":"init"},{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"enumerable"},"value":{"type":"Literal","value":true},"kind":"init"},{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"configurable"},"value":{"type":"Literal","value":true},"kind":"init"},{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"writable"},"value":{"type":"Literal","value":true},"kind":"init"}]}]}}]},"expression":false}}]},"exports-assign":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"exports"},"property":{"type":"Identifier","name":"KEY"},"computed":false},"right":{"type":"Identifier","name":"VALUE"}}}]},"exports-default-module-override":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"Identifier","name":"exports"},"right":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"module"},"property":{"type":"Identifier","name":"exports"},"computed":false},"right":{"type":"Identifier","name":"VALUE"}}}}]},"exports-default-module":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"module"},"property":{"type":"Identifier","name":"exports"},"computed":false},"right":{"type":"Identifier","name":"VALUE"}}}]},"extends":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"target"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ForStatement","init":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"i"},"init":{"type":"Literal","value":1}}],"kind":"var"},"test":{"type":"BinaryExpression","left":{"type":"Identifier","name":"i"},"operator":"<","right":{"type":"MemberExpression","object":{"type":"Identifier","name":"arguments"},"property":{"type":"Identifier","name":"length"},"computed":false}},"update":{"type":"UpdateExpression","operator":"++","prefix":false,"argument":{"type":"Identifier","name":"i"}},"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"source"},"init":{"type":"MemberExpression","object":{"type":"Identifier","name":"arguments"},"property":{"type":"Identifier","name":"i"},"computed":true}}],"kind":"var"},{"type":"ForInStatement","left":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"key"},"init":null}],"kind":"var"},"right":{"type":"Identifier","name":"source"},"body":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"target"},"property":{"type":"Identifier","name":"key"},"computed":true},"right":{"type":"MemberExpression","object":{"type":"Identifier","name":"source"},"property":{"type":"Identifier","name":"key"},"computed":true}}}]}}]}},{"type":"ReturnStatement","argument":{"type":"Identifier","name":"target"}}]},"expression":false}}]},"for-of-loose":{"type":"Program","body":[{"type":"ForStatement","init":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"LOOP_OBJECT"},"init":{"type":"Identifier","name":"OBJECT"}},{"type":"VariableDeclarator","id":{"type":"Identifier","name":"IS_ARRAY"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Array"},"property":{"type":"Identifier","name":"isArray"},"computed":false},"arguments":[{"type":"Identifier","name":"LOOP_OBJECT"}]}},{"type":"VariableDeclarator","id":{"type":"Identifier","name":"INDEX"},"init":{"type":"Literal","value":0}},{"type":"VariableDeclarator","id":{"type":"Identifier","name":"LOOP_OBJECT"},"init":{"type":"ConditionalExpression","test":{"type":"Identifier","name":"IS_ARRAY"},"consequent":{"type":"Identifier","name":"LOOP_OBJECT"},"alternate":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"LOOP_OBJECT"},"property":{"type":"MemberExpression","object":{"type":"Identifier","name":"Symbol"},"property":{"type":"Identifier","name":"iterator"},"computed":false},"computed":true},"arguments":[]}}}],"kind":"var"},"test":null,"update":null,"body":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"Identifier","name":"IS_ARRAY"},"consequent":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"Identifier","name":"INDEX"},"operator":">=","right":{"type":"MemberExpression","object":{"type":"Identifier","name":"LOOP_OBJECT"},"property":{"type":"Identifier","name":"length"},"computed":false}},"consequent":{"type":"BreakStatement","label":null},"alternate":null},{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"Identifier","name":"ID"},"right":{"type":"MemberExpression","object":{"type":"Identifier","name":"LOOP_OBJECT"},"property":{"type":"UpdateExpression","operator":"++","prefix":false,"argument":{"type":"Identifier","name":"INDEX"}},"computed":true}}}]},"alternate":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"Identifier","name":"INDEX"},"right":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"LOOP_OBJECT"},"property":{"type":"Identifier","name":"next"},"computed":false},"arguments":[]}}},{"type":"IfStatement","test":{"type":"MemberExpression","object":{"type":"Identifier","name":"INDEX"},"property":{"type":"Identifier","name":"done"},"computed":false},"consequent":{"type":"BreakStatement","label":null},"alternate":null},{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"Identifier","name":"ID"},"right":{"type":"MemberExpression","object":{"type":"Identifier","name":"INDEX"},"property":{"type":"Identifier","name":"value"},"computed":false}}}]}}]}}]},"for-of":{"type":"Program","body":[{"type":"ForStatement","init":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"ITERATOR_KEY"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"OBJECT"},"property":{"type":"MemberExpression","object":{"type":"Identifier","name":"Symbol"},"property":{"type":"Identifier","name":"iterator"},"computed":false},"computed":true},"arguments":[]}},{"type":"VariableDeclarator","id":{"type":"Identifier","name":"STEP_KEY"},"init":null}],"kind":"var"},"test":{"type":"UnaryExpression","operator":"!","prefix":true,"argument":{"type":"MemberExpression","object":{"type":"AssignmentExpression","operator":"=","left":{"type":"Identifier","name":"STEP_KEY"},"right":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"ITERATOR_KEY"},"property":{"type":"Identifier","name":"next"},"computed":false},"arguments":[]}},"property":{"type":"Identifier","name":"done"},"computed":false}},"update":null,"body":{"type":"BlockStatement","body":[]}}]},"get":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":{"type":"Identifier","name":"get"},"params":[{"type":"Identifier","name":"object"},{"type":"Identifier","name":"property"},{"type":"Identifier","name":"receiver"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"desc"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"getOwnPropertyDescriptor"},"computed":false},"arguments":[{"type":"Identifier","name":"object"},{"type":"Identifier","name":"property"}]}}],"kind":"var"},{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"Identifier","name":"desc"},"operator":"===","right":{"type":"Identifier","name":"undefined"}},"consequent":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"parent"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"getPrototypeOf"},"computed":false},"arguments":[{"type":"Identifier","name":"object"}]}}],"kind":"var"},{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"Identifier","name":"parent"},"operator":"===","right":{"type":"Literal","value":null}},"consequent":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"Identifier","name":"undefined"}}]},"alternate":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"Identifier","name":"get"},"arguments":[{"type":"Identifier","name":"parent"},{"type":"Identifier","name":"property"},{"type":"Identifier","name":"receiver"}]}}]}}]},"alternate":{"type":"IfStatement","test":{"type":"LogicalExpression","left":{"type":"BinaryExpression","left":{"type":"Literal","value":"value"},"operator":"in","right":{"type":"Identifier","name":"desc"}},"operator":"&&","right":{"type":"MemberExpression","object":{"type":"Identifier","name":"desc"},"property":{"type":"Identifier","name":"writable"},"computed":false}},"consequent":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"MemberExpression","object":{"type":"Identifier","name":"desc"},"property":{"type":"Identifier","name":"value"},"computed":false}}]},"alternate":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"getter"},"init":{"type":"MemberExpression","object":{"type":"Identifier","name":"desc"},"property":{"type":"Identifier","name":"get"},"computed":false}}],"kind":"var"},{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"Identifier","name":"getter"},"operator":"===","right":{"type":"Identifier","name":"undefined"}},"consequent":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"Identifier","name":"undefined"}}]},"alternate":null},{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"getter"},"property":{"type":"Identifier","name":"call"},"computed":false},"arguments":[{"type":"Identifier","name":"receiver"}]}}]}}}]},"expression":false}}]},"has-own":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"MemberExpression","object":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"prototype"},"computed":false},"property":{"type":"Identifier","name":"hasOwnProperty"},"computed":false}}]},"inherits":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"subClass"},{"type":"Identifier","name":"superClass"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"LogicalExpression","left":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"superClass"}},"operator":"!==","right":{"type":"Literal","value":"function"}},"operator":"&&","right":{"type":"BinaryExpression","left":{"type":"Identifier","name":"superClass"},"operator":"!==","right":{"type":"Literal","value":null}}},"consequent":{"type":"BlockStatement","body":[{"type":"ThrowStatement","argument":{"type":"NewExpression","callee":{"type":"Identifier","name":"TypeError"},"arguments":[{"type":"BinaryExpression","left":{"type":"Literal","value":"Super expression must either be null or a function, not "},"operator":"+","right":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"superClass"}}}]}}]},"alternate":null},{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"subClass"},"property":{"type":"Identifier","name":"prototype"},"computed":false},"right":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"create"},"computed":false},"arguments":[{"type":"LogicalExpression","left":{"type":"Identifier","name":"superClass"},"operator":"&&","right":{"type":"MemberExpression","object":{"type":"Identifier","name":"superClass"},"property":{"type":"Identifier","name":"prototype"},"computed":false}},{"type":"ObjectExpression","properties":[{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"constructor"},"value":{"type":"ObjectExpression","properties":[{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"value"},"value":{"type":"Identifier","name":"subClass"},"kind":"init"},{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"enumerable"},"value":{"type":"Literal","value":false},"kind":"init"},{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"writable"},"value":{"type":"Literal","value":true},"kind":"init"},{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"configurable"},"value":{"type":"Literal","value":true},"kind":"init"}]},"kind":"init"}]}]}}},{"type":"IfStatement","test":{"type":"Identifier","name":"superClass"},"consequent":{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"subClass"},"property":{"type":"Identifier","name":"__proto__"},"computed":false},"right":{"type":"Identifier","name":"superClass"}}},"alternate":null}]},"expression":false}}]},"interop-require-wildcard":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"obj"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"ConditionalExpression","test":{"type":"LogicalExpression","left":{"type":"Identifier","name":"obj"},"operator":"&&","right":{"type":"BinaryExpression","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"obj"},"property":{"type":"Identifier","name":"constructor"},"computed":false},"operator":"===","right":{"type":"Identifier","name":"Object"}}},"consequent":{"type":"Identifier","name":"obj"},"alternate":{"type":"ObjectExpression","properties":[{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"default"},"value":{"type":"Identifier","name":"obj"},"kind":"init"}]}}}]},"expression":false}}]},"interop-require":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"obj"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"LogicalExpression","left":{"type":"Identifier","name":"obj"},"operator":"&&","right":{"type":"LogicalExpression","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"obj"},"property":{"type":"Literal","value":"default"},"computed":true},"operator":"||","right":{"type":"Identifier","name":"obj"}}}}]},"expression":false}}]},"let-scoping-return":{"type":"Program","body":[{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"RETURN"}},"operator":"===","right":{"type":"Literal","value":"object"}},"consequent":{"type":"ReturnStatement","argument":{"type":"MemberExpression","object":{"type":"Identifier","name":"RETURN"},"property":{"type":"Identifier","name":"v"},"computed":false}},"alternate":null}]},"object-without-properties":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"obj"},{"type":"Identifier","name":"keys"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"target"},"init":{"type":"ObjectExpression","properties":[]}}],"kind":"var"},{"type":"ForInStatement","left":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"i"},"init":null}],"kind":"var"},"right":{"type":"Identifier","name":"obj"},"body":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"BinaryExpression","left":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"keys"},"property":{"type":"Identifier","name":"indexOf"},"computed":false},"arguments":[{"type":"Identifier","name":"i"}]},"operator":">=","right":{"type":"Literal","value":0}},"consequent":{"type":"ContinueStatement","label":null},"alternate":null},{"type":"IfStatement","test":{"type":"UnaryExpression","operator":"!","prefix":true,"argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"MemberExpression","object":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"prototype"},"computed":false},"property":{"type":"Identifier","name":"hasOwnProperty"},"computed":false},"property":{"type":"Identifier","name":"call"},"computed":false},"arguments":[{"type":"Identifier","name":"obj"},{"type":"Identifier","name":"i"}]}},"consequent":{"type":"ContinueStatement","label":null},"alternate":null},{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"target"},"property":{"type":"Identifier","name":"i"},"computed":true},"right":{"type":"MemberExpression","object":{"type":"Identifier","name":"obj"},"property":{"type":"Identifier","name":"i"},"computed":true}}}]}},{"type":"ReturnStatement","argument":{"type":"Identifier","name":"target"}}]},"expression":false}}]},"property-method-assignment-wrapper":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"FUNCTION_KEY"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"WRAPPER_KEY"},"init":{"type":"FunctionExpression","id":{"type":"Identifier","name":"FUNCTION_ID"},"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"FUNCTION_KEY"},"property":{"type":"Identifier","name":"apply"},"computed":false},"arguments":[{"type":"ThisExpression"},{"type":"Identifier","name":"arguments"}]}}]},"expression":false}}],"kind":"var"},{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"WRAPPER_KEY"},"property":{"type":"Identifier","name":"toString"},"computed":false},"right":{"type":"FunctionExpression","id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"FUNCTION_KEY"},"property":{"type":"Identifier","name":"toString"},"computed":false},"arguments":[]}}]},"expression":false}}},{"type":"ReturnStatement","argument":{"type":"Identifier","name":"WRAPPER_KEY"}}]},"expression":false},"arguments":[{"type":"Identifier","name":"FUNCTION"}]}}]},"prototype-identifier":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"MemberExpression","object":{"type":"Identifier","name":"CLASS_NAME"},"property":{"type":"Identifier","name":"prototype"},"computed":false}}]},"prototype-properties":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"child"},{"type":"Identifier","name":"staticProps"},{"type":"Identifier","name":"instanceProps"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"Identifier","name":"staticProps"},"consequent":{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"defineProperties"},"computed":false},"arguments":[{"type":"Identifier","name":"child"},{"type":"Identifier","name":"staticProps"}]}},"alternate":null},{"type":"IfStatement","test":{"type":"Identifier","name":"instanceProps"},"consequent":{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"defineProperties"},"computed":false},"arguments":[{"type":"MemberExpression","object":{"type":"Identifier","name":"child"},"property":{"type":"Identifier","name":"prototype"},"computed":false},{"type":"Identifier","name":"instanceProps"}]}},"alternate":null}]},"expression":false}}]},"require-assign-key":{"type":"Program","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"VARIABLE_NAME"},"init":{"type":"MemberExpression","object":{"type":"CallExpression","callee":{"type":"Identifier","name":"require"},"arguments":[{"type":"Identifier","name":"MODULE_NAME"}]},"property":{"type":"Identifier","name":"KEY"},"computed":false}}],"kind":"var"}]},"require":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"require"},"arguments":[{"type":"Identifier","name":"MODULE_NAME"}]}}]},"rest":{"type":"Program","body":[{"type":"ForStatement","init":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"LEN"},"init":{"type":"MemberExpression","object":{"type":"Identifier","name":"ARGUMENTS"},"property":{"type":"Identifier","name":"length"},"computed":false}},{"type":"VariableDeclarator","id":{"type":"Identifier","name":"ARRAY"},"init":{"type":"CallExpression","callee":{"type":"Identifier","name":"Array"},"arguments":[{"type":"Identifier","name":"ARRAY_LEN"}]}},{"type":"VariableDeclarator","id":{"type":"Identifier","name":"KEY"},"init":{"type":"Identifier","name":"START"}}],"kind":"var"},"test":{"type":"BinaryExpression","left":{"type":"Identifier","name":"KEY"},"operator":"<","right":{"type":"Identifier","name":"LEN"}},"update":{"type":"UpdateExpression","operator":"++","prefix":false,"argument":{"type":"Identifier","name":"KEY"}},"body":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"ARRAY"},"property":{"type":"Identifier","name":"ARRAY_KEY"},"computed":true},"right":{"type":"MemberExpression","object":{"type":"Identifier","name":"ARGUMENTS"},"property":{"type":"Identifier","name":"KEY"},"computed":true}}}]}}]},"self-global":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"ConditionalExpression","test":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"global"}},"operator":"===","right":{"type":"Literal","value":"undefined"}},"consequent":{"type":"Identifier","name":"self"},"alternate":{"type":"Identifier","name":"global"}}}]},"slice":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"MemberExpression","object":{"type":"MemberExpression","object":{"type":"Identifier","name":"Array"},"property":{"type":"Identifier","name":"prototype"},"computed":false},"property":{"type":"Identifier","name":"slice"},"computed":false}}]},"sliced-to-array":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"arr"},{"type":"Identifier","name":"i"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Array"},"property":{"type":"Identifier","name":"isArray"},"computed":false},"arguments":[{"type":"Identifier","name":"arr"}]},"consequent":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"Identifier","name":"arr"}}]},"alternate":{"type":"BlockStatement","body":[{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"_arr"},"init":{"type":"ArrayExpression","elements":[]}}],"kind":"var"},{"type":"ForStatement","init":{"type":"VariableDeclaration","declarations":[{"type":"VariableDeclarator","id":{"type":"Identifier","name":"_iterator"},"init":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"arr"},"property":{"type":"MemberExpression","object":{"type":"Identifier","name":"Symbol"},"property":{"type":"Identifier","name":"iterator"},"computed":false},"computed":true},"arguments":[]}},{"type":"VariableDeclarator","id":{"type":"Identifier","name":"_step"},"init":null}],"kind":"var"},"test":{"type":"UnaryExpression","operator":"!","prefix":true,"argument":{"type":"MemberExpression","object":{"type":"AssignmentExpression","operator":"=","left":{"type":"Identifier","name":"_step"},"right":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"_iterator"},"property":{"type":"Identifier","name":"next"},"computed":false},"arguments":[]}},"property":{"type":"Identifier","name":"done"},"computed":false}},"update":null,"body":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"_arr"},"property":{"type":"Identifier","name":"push"},"computed":false},"arguments":[{"type":"MemberExpression","object":{"type":"Identifier","name":"_step"},"property":{"type":"Identifier","name":"value"},"computed":false}]}},{"type":"IfStatement","test":{"type":"LogicalExpression","left":{"type":"Identifier","name":"i"},"operator":"&&","right":{"type":"BinaryExpression","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"_arr"},"property":{"type":"Identifier","name":"length"},"computed":false},"operator":"===","right":{"type":"Identifier","name":"i"}}},"consequent":{"type":"BreakStatement","label":null},"alternate":null}]}},{"type":"ReturnStatement","argument":{"type":"Identifier","name":"_arr"}}]}}]},"expression":false}}]},"system":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"System"},"property":{"type":"Identifier","name":"register"},"computed":false},"arguments":[{"type":"Identifier","name":"MODULE_NAME"},{"type":"Identifier","name":"MODULE_DEPENDENCIES"},{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"EXPORT_IDENTIFIER"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"ObjectExpression","properties":[{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"setters"},"value":{"type":"Identifier","name":"SETTERS"},"kind":"init"},{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"execute"},"value":{"type":"Identifier","name":"EXECUTE"},"kind":"init"}]}}]},"expression":false}]}}]},"tagged-template-literal-loose":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"strings"},{"type":"Identifier","name":"raw"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"AssignmentExpression","operator":"=","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"strings"},"property":{"type":"Identifier","name":"raw"},"computed":false},"right":{"type":"Identifier","name":"raw"}}},{"type":"ReturnStatement","argument":{"type":"Identifier","name":"strings"}}]},"expression":false}}]},"tagged-template-literal":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"strings"},{"type":"Identifier","name":"raw"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"freeze"},"computed":false},"arguments":[{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"defineProperties"},"computed":false},"arguments":[{"type":"Identifier","name":"strings"},{"type":"ObjectExpression","properties":[{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"raw"},"value":{"type":"ObjectExpression","properties":[{"type":"Property","method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","name":"value"},"value":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Object"},"property":{"type":"Identifier","name":"freeze"},"computed":false},"arguments":[{"type":"Identifier","name":"raw"}]},"kind":"init"}]},"kind":"init"}]}]}]}}]},"expression":false}}]},"test-exports":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"exports"}},"operator":"!==","right":{"type":"Literal","value":"undefined"}}}]},"test-module":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"module"}},"operator":"!==","right":{"type":"Literal","value":"undefined"}}}]},"to-array":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"arr"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"ConditionalExpression","test":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Array"},"property":{"type":"Identifier","name":"isArray"},"computed":false},"arguments":[{"type":"Identifier","name":"arr"}]},"consequent":{"type":"Identifier","name":"arr"},"alternate":{"type":"CallExpression","callee":{"type":"MemberExpression","object":{"type":"Identifier","name":"Array"},"property":{"type":"Identifier","name":"from"},"computed":false},"arguments":[{"type":"Identifier","name":"arr"}]}}}]},"expression":false}}]},"typeof":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"obj"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"ReturnStatement","argument":{"type":"ConditionalExpression","test":{"type":"LogicalExpression","left":{"type":"Identifier","name":"obj"},"operator":"&&","right":{"type":"BinaryExpression","left":{"type":"MemberExpression","object":{"type":"Identifier","name":"obj"},"property":{"type":"Identifier","name":"constructor"},"computed":false},"operator":"===","right":{"type":"Identifier","name":"Symbol"}}},"consequent":{"type":"Literal","value":"symbol"},"alternate":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"obj"}}}}]},"expression":false}}]},"umd-runner-body":{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"FunctionExpression","id":null,"params":[{"type":"Identifier","name":"factory"}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","body":[{"type":"IfStatement","test":{"type":"LogicalExpression","left":{"type":"BinaryExpression","left":{"type":"UnaryExpression","operator":"typeof","prefix":true,"argument":{"type":"Identifier","name":"define"}},"operator":"===","right":{"type":"Literal","value":"function"}},"operator":"&&","right":{"type":"MemberExpression","object":{"type":"Identifier","name":"define"},"property":{"type":"Identifier","name":"amd"},"computed":false}},"consequent":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"define"},"arguments":[{"type":"Identifier","name":"AMD_ARGUMENTS"},{"type":"Identifier","name":"factory"}]}}]},"alternate":{"type":"IfStatement","test":{"type":"Identifier","name":"COMMON_TEST"},"consequent":{"type":"BlockStatement","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"factory"},"arguments":[{"type":"Identifier","name":"COMMON_ARGUMENTS"}]}}]},"alternate":null}}]},"expression":false}}]}}
-},{}],162:[function(require,module,exports){
+}).call(this,require('_process'),"/node_modules/6to5/node_modules/source-map/node_modules/amdefine/amdefine.js")
+},{"_process":195,"path":194}],172:[function(require,module,exports){
+module.exports={"abstract-expression-call":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"PROPERTY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"referenceGet","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"call","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"abstract-expression-delete":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"PROPERTY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"referenceDelete","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"abstract-expression-get":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"PROPERTY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"referenceGet","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"abstract-expression-set":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"PROPERTY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"referenceSet","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VALUE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"apply-constructor":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Constructor","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"args","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"instance","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"create","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Constructor","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"result","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Constructor","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"apply","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"instance","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"args","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"ConditionalExpression","start":null,"end":null,"loc":null,"range":null,"test":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"result","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"!=","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":null,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"result","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"==","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"object","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"||","right":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"result","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"==","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"function","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"result","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"instance","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"array-comprehension-container":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"ArrayExpression","start":null,"end":null,"loc":null,"range":null,"elements":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"array-from":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Array","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"from","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VALUE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"array-push":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"push","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"STATEMENT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"async-to-generator":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"fn","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"gen","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"fn","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"apply","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"ThisExpression","start":null,"end":null,"loc":null,"range":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arguments","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"NewExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Promise","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"resolve","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"reject","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"FunctionDeclaration","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"step","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getNext","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"TryStatement","start":null,"end":null,"loc":null,"range":null,"block":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getNext","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"handler":{"type":"CatchClause","start":null,"end":null,"loc":null,"range":null,"param":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"e","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"guard":null,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"reject","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"e","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"guardedHandlers":[],"finalizer":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"done","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"resolve","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Promise","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"resolve","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"then","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"v","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"step","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"gen","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"v","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"e","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"step","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"gen","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"throw","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"e","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"step","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"gen","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"bind":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Function","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"bind","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"call":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"call","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"CONTEXT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"class-super-constructor-call-loose":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"SUPER_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"!=","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":null,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"SUPER_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"apply","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"ThisExpression","start":null,"end":null,"loc":null,"range":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arguments","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"class-super-constructor-call":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getPrototypeOf","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"CLASS_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"!==","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":null,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getPrototypeOf","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"CLASS_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"apply","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"ThisExpression","start":null,"end":null,"loc":null,"range":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arguments","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"common-export-default-assign":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"module","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"EXTENDS_HELPER","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"default","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"corejs-iterator":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"CORE_ID","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"$for","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getIterator","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VALUE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"default-parameter":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VARIABLE_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"ConditionalExpression","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARGUMENTS","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARGUMENT_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"undefined","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"DEFAULT_VALUE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARGUMENTS","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARGUMENT_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"defaults":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"defaults","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ForInStatement","start":null,"end":null,"loc":null,"range":null,"left":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"defaults","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"undefined","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"defaults","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"define-property":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"defineProperty","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"enumerable","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":true,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"configurable","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":true,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"writable","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":true,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"exports-assign":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VALUE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"exports-default-module-override":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"module","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VALUE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"exports-default-module":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"module","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VALUE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"extends":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"target","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ForStatement","start":null,"end":null,"loc":null,"range":null,"init":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":1,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"<","right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arguments","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"length","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"update":{"type":"UpdateExpression","start":null,"end":null,"loc":null,"range":null,"operator":"++","prefix":false,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"source","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arguments","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ForInStatement","start":null,"end":null,"loc":null,"range":null,"left":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"source","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"target","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"source","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"key","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"target","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"for-of-loose":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ForStatement","start":null,"end":null,"loc":null,"range":null,"init":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"IS_ARRAY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Array","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"isArray","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"INDEX","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":0,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"ConditionalExpression","start":null,"end":null,"loc":null,"range":null,"test":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"IS_ARRAY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"iterator","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"test":null,"update":null,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"IS_ARRAY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"INDEX","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":">=","right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"length","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BreakStatement","start":null,"end":null,"loc":null,"range":null,"label":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ID","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"UpdateExpression","start":null,"end":null,"loc":null,"range":null,"operator":"++","prefix":false,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"INDEX","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"INDEX","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LOOP_OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"INDEX","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"done","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BreakStatement","start":null,"end":null,"loc":null,"range":null,"label":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ID","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"INDEX","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"for-of":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ForStatement","start":null,"end":null,"loc":null,"range":null,"init":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ITERATOR_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"OBJECT","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"iterator","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"STEP_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"test":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"!","prefix":true,"argument":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"STEP_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ITERATOR_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"done","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"update":null,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"get":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"get","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"property","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"receiver","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"desc","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getOwnPropertyDescriptor","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"property","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"desc","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"undefined","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"parent","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getPrototypeOf","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"parent","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":null,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"undefined","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"get","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"parent","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"property","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"receiver","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"value","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"operator":"in","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"desc","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"desc","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"writable","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"desc","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getter","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"desc","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"get","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getter","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"undefined","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"undefined","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"getter","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"call","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"receiver","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"has-own":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"hasOwnProperty","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"inherits":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"subClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"!==","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"function","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"!==","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":null,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ThrowStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"NewExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"TypeError","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"Super expression must either be null or a function, not ","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"operator":"+","right":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"subClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"create","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"constructor","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"subClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"enumerable","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":false,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"writable","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":true,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"configurable","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":true,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"subClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"__proto__","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"superClass","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"interop-require-wildcard":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"ConditionalExpression","start":null,"end":null,"loc":null,"range":null,"test":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"constructor","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"default","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"interop-require":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"default","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"||","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"let-scoping-return":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"RETURN","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"object","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"RETURN","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"v","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"object-without-properties":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"keys","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"target","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ForInStatement","start":null,"end":null,"loc":null,"range":null,"left":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"keys","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"indexOf","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":">=","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":0,"raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"ContinueStatement","start":null,"end":null,"loc":null,"range":null,"label":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"!","prefix":true,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"hasOwnProperty","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"call","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"ContinueStatement","start":null,"end":null,"loc":null,"range":null,"label":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"target","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"target","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property-method-assignment-wrapper":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"FUNCTION_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"WRAPPER_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"FUNCTION_ID","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"FUNCTION_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"apply","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"ThisExpression","start":null,"end":null,"loc":null,"range":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arguments","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"WRAPPER_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"toString","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"FUNCTION_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"toString","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"WRAPPER_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"FUNCTION","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"prototype-identifier":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"CLASS_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"prototype-properties":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"child","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"staticProps","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"instanceProps","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"staticProps","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"defineProperties","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"child","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"staticProps","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"instanceProps","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"defineProperties","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"child","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"instanceProps","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"require-assign-key":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"VARIABLE_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"require","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"MODULE_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"require":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"require","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"MODULE_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"rest":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ForStatement","start":null,"end":null,"loc":null,"range":null,"init":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LEN","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARGUMENTS","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"length","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARRAY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Array","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARRAY_LEN","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"START","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"<","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"LEN","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"update":{"type":"UpdateExpression","start":null,"end":null,"loc":null,"range":null,"operator":"++","prefix":false,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARRAY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARRAY_KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"ARGUMENTS","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"KEY","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"self-global":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"ConditionalExpression","start":null,"end":null,"loc":null,"range":null,"test":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"global","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"undefined","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"self","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"global","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"slice":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Array","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"prototype","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"slice","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"sliced-to-array":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Array","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"isArray","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"ArrayExpression","start":null,"end":null,"loc":null,"range":null,"elements":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ForStatement","start":null,"end":null,"loc":null,"range":null,"init":{"type":"VariableDeclaration","start":null,"end":null,"loc":null,"range":null,"declarations":[{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_iterator","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"iterator","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":true,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"VariableDeclarator","start":null,"end":null,"loc":null,"range":null,"id":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_step","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"init":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"kind":"var","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"test":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"!","prefix":true,"argument":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_step","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_iterator","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"next","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"done","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"update":null,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"push","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_step","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"length","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"i","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BreakStatement","start":null,"end":null,"loc":null,"range":null,"label":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"_arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"system":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"System","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"register","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"MODULE_NAME","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"MODULE_DEPENDENCIES","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"EXPORT_IDENTIFIER","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"setters","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"SETTERS","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"execute","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"EXECUTE","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"tagged-template-literal-loose":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"strings","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"raw","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"AssignmentExpression","start":null,"end":null,"loc":null,"range":null,"operator":"=","left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"strings","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"raw","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"raw","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"strings","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"tagged-template-literal":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"strings","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"raw","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"freeze","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"defineProperties","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"strings","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"raw","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"ObjectExpression","start":null,"end":null,"loc":null,"range":null,"properties":[{"type":"Property","start":null,"end":null,"loc":null,"range":null,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"value","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"value":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Object","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"freeze","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"raw","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"kind":"init","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"test-exports":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"exports","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"!==","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"undefined","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"test-module":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"module","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"!==","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"undefined","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"to-array":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"ConditionalExpression","start":null,"end":null,"loc":null,"range":null,"test":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Array","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"isArray","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"alternate":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Array","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"from","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"arr","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"typeof":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ReturnStatement","start":null,"end":null,"loc":null,"range":null,"argument":{"type":"ConditionalExpression","start":null,"end":null,"loc":null,"range":null,"test":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"constructor","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"Symbol","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"symbol","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"alternate":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"obj","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"umd-runner-body":{"type":"Program","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"FunctionExpression","start":null,"end":null,"loc":null,"range":null,"id":null,"params":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"factory","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"defaults":[],"rest":null,"generator":false,"body":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"LogicalExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"BinaryExpression","start":null,"end":null,"loc":null,"range":null,"left":{"type":"UnaryExpression","start":null,"end":null,"loc":null,"range":null,"operator":"typeof","prefix":true,"argument":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"define","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"===","right":{"type":"Literal","start":null,"end":null,"loc":null,"range":null,"value":"function","raw":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"operator":"&&","right":{"type":"MemberExpression","start":null,"end":null,"loc":null,"range":null,"object":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"define","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"property":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"amd","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"computed":false,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"define","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"AMD_ARGUMENTS","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"factory","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":{"type":"IfStatement","start":null,"end":null,"loc":null,"range":null,"test":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"COMMON_TEST","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"consequent":{"type":"BlockStatement","start":null,"end":null,"loc":null,"range":null,"body":[{"type":"ExpressionStatement","start":null,"end":null,"loc":null,"range":null,"expression":{"type":"CallExpression","start":null,"end":null,"loc":null,"range":null,"callee":{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"factory","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"arguments":[{"type":"Identifier","start":null,"end":null,"loc":null,"range":null,"name":"COMMON_ARGUMENTS","_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"alternate":null,"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"expression":false,"_scopeInfo":null,"_declarations":null,"extendedRange":null,"tokens":null,"raw":null},"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}],"_declarations":null,"extendedRange":null,"_scopeInfo":null,"tokens":null,"raw":null}}
+},{}],173:[function(require,module,exports){
 /**
  * util-deps.js - The parser for dependencies
  * ref: tests/research/parse-dependencies/test.html
@@ -56245,7 +57807,7 @@ function parseDependencies(s, replace, includeAsync) {
       'typeof': 1,
       'void': 1
     }[r]
-    modName = includeAsync ? /^require\s*[.\w$]*\(\s*(['"]).+?\1\s*\)/.test(s2) : /^require\s*\(\s*(['"]).+?\1\s*\)/.test(s2)
+    modName = includeAsync ? /^require\s*[.\w$]*\(\s*(['"]).+?\1\s*[),]/.test(s2) : /^require\s*\(\s*(['"]).+?\1\s*[),]/.test(s2)
     if(modName) {
       last = index - 1
       r = includeAsync ?/^require\s*[.\w$]*\(\s*['"]/.exec(s2)[0] : /^require\s*\(\s*['"]/.exec(s2)[0]
@@ -56278,49 +57840,121 @@ function parseDependencies(s, replace, includeAsync) {
 }
 
 module.exports = parseDependencies
-},{}],163:[function(require,module,exports){
+},{}],174:[function(require,module,exports){
+"use strict";
 var window = require("global/window")
 var once = require("once")
+var parseHeaders = require("parse-headers")
 
-var messages = {
-    "0": "Internal XMLHttpRequest Error",
-    "4": "4xx Client Error",
-    "5": "5xx Server Error"
-}
 
 var XHR = window.XMLHttpRequest || noop
-var XDR = "withCredentials" in (new XHR()) ?
-        window.XMLHttpRequest : window.XDomainRequest
+var XDR = "withCredentials" in (new XHR()) ? XHR : window.XDomainRequest
 
 module.exports = createXHR
 
 function createXHR(options, callback) {
+    function readystatechange() {
+        if (xhr.readyState === 4) {
+            loadFunc()
+        }
+    }
+
+    function getBody() {
+        // Chrome with requestType=blob throws errors arround when even testing access to responseText
+        var body = undefined
+
+        if (xhr.response) {
+            body = xhr.response
+        } else if (xhr.responseType === "text" || !xhr.responseType) {
+            body = xhr.responseText || xhr.responseXML
+        }
+
+        if (isJson) {
+            try {
+                body = JSON.parse(body)
+            } catch (e) {}
+        }
+
+        return body
+    }
+    
+    var failureResponse = {
+                body: undefined,
+                headers: {},
+                statusCode: 0,
+                method: method,
+                url: uri,
+                rawRequest: xhr
+            }
+    
+    function errorFunc(evt) {
+        clearTimeout(timeoutTimer)
+        if(!(evt instanceof Error)){
+            evt = new Error("" + (evt || "unknown") )
+        }
+        evt.statusCode = 0
+        callback(evt, failureResponse)
+    }
+
+    // will load the data & process the response in a special response object
+    function loadFunc() {
+        clearTimeout(timeoutTimer)
+        
+        var status = (xhr.status === 1223 ? 204 : xhr.status)
+        var response = failureResponse
+        var err = null
+        
+        if (status !== 0){
+            response = {
+                body: getBody(),
+                statusCode: status,
+                method: method,
+                headers: {},
+                url: uri,
+                rawRequest: xhr
+            }
+            if(xhr.getAllResponseHeaders){ //remember xhr can in fact be XDR for CORS in IE
+                response.headers = parseHeaders(xhr.getAllResponseHeaders())
+            }
+        } else {
+            err = new Error("Internal XMLHttpRequest Error")
+        }
+        callback(err, response, response.body)
+        
+    }
+    
     if (typeof options === "string") {
         options = { uri: options }
     }
 
     options = options || {}
+    if(typeof callback === "undefined"){
+        throw new Error("callback argument missing")
+    }
     callback = once(callback)
 
     var xhr = options.xhr || null
 
-    if (!xhr && options.cors) {
-        xhr = new XDR()
-    } else if (!xhr) {
-        xhr = new XHR()
+    if (!xhr) {
+        if (options.cors || options.useXDR) {
+            xhr = new XDR()
+        }else{
+            xhr = new XHR()
+        }
     }
 
-    var uri = xhr.url = options.uri || options.url;
+    var key
+    var uri = xhr.url = options.uri || options.url
     var method = xhr.method = options.method || "GET"
     var body = options.body || options.data
     var headers = xhr.headers = options.headers || {}
     var sync = !!options.sync
     var isJson = false
-    var key
+    var timeoutTimer
 
     if ("json" in options) {
         isJson = true
-        headers["Accept"] = "application/json"
+        headers["Accept"] || (headers["Accept"] = "application/json") //Don't override existing accept header declared by user
         if (method !== "GET" && method !== "HEAD") {
             headers["Content-Type"] = "application/json"
             body = JSON.stringify(options.json)
@@ -56328,23 +57962,24 @@ function createXHR(options, callback) {
     }
 
     xhr.onreadystatechange = readystatechange
-    xhr.onload = load
-    xhr.onerror = error
+    xhr.onload = loadFunc
+    xhr.onerror = errorFunc
     // IE9 must have onprogress be set to a unique function.
     xhr.onprogress = function () {
         // IE must die
     }
-    // hate IE
-    xhr.ontimeout = noop
+    xhr.ontimeout = errorFunc
     xhr.open(method, uri, !sync)
-
-    if (options.cors && options.withCredentials !== false) {
-        xhr.withCredentials = true
-    }
-
+    //has to be after open
+    xhr.withCredentials = !!options.withCredentials
+    
     // Cannot set timeout with sync request
-    if (!sync) {
-        xhr.timeout = "timeout" in options ? options.timeout : 5000
+    // not setting timeout on the xhr object, because of old webkits etc. not handling that correctly
+    // both npm's request and jquery 1.x use this kind of timeout, so this is being consistent
+    if (!sync && options.timeout > 0 ) {
+        timeoutTimer = setTimeout(function(){
+            xhr.abort("timeout");
+        }, options.timeout+2 );
     }
 
     if (xhr.setRequestHeader) {
@@ -56353,6 +57988,8 @@ function createXHR(options, callback) {
                 xhr.setRequestHeader(key, headers[key])
             }
         }
+    } else if (options.headers) {
+        throw new Error("Headers cannot be set on an XDomainRequest object")
     }
 
     if ("responseType" in options) {
@@ -56369,66 +58006,26 @@ function createXHR(options, callback) {
 
     return xhr
 
-    function readystatechange() {
-        if (xhr.readyState === 4) {
-            load()
-        }
-    }
 
-    function load() {
-        var error = null
-        var status = xhr.statusCode = xhr.status
-        // Chrome with requestType=blob throws errors arround when even testing access to responseText
-        var body = null
-
-        if (xhr.response) {
-            body = xhr.body = xhr.response
-        } else if (xhr.responseType === 'text' || !xhr.responseType) {
-            body = xhr.body = xhr.responseText || xhr.responseXML
-        }
-
-        if (status === 1223) {
-            status = 204
-        }
-
-        if (status === 0 || (status >= 400 && status < 600)) {
-            var message = (typeof body === "string" ? body : false) ||
-                messages[String(status).charAt(0)]
-            error = new Error(message)
-            error.statusCode = status
-        }
-        
-        xhr.status = xhr.statusCode = status;
-
-        if (isJson) {
-            try {
-                body = xhr.body = JSON.parse(body)
-            } catch (e) {}
-        }
-
-        callback(error, xhr, body)
-    }
-
-    function error(evt) {
-        callback(evt, xhr)
-    }
 }
 
 
 function noop() {}
 
-},{"global/window":164,"once":165}],164:[function(require,module,exports){
+},{"global/window":175,"once":176,"parse-headers":180}],175:[function(require,module,exports){
 (function (global){
 if (typeof window !== "undefined") {
-    module.exports = window
+    module.exports = window;
 } else if (typeof global !== "undefined") {
-    module.exports = global
+    module.exports = global;
+} else if (typeof self !== "undefined"){
+    module.exports = self;
 } else {
-    module.exports = {}
+    module.exports = {};
 }
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],165:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],176:[function(require,module,exports){
 module.exports = once
 
 once.proto = once(function () {
@@ -56449,7 +58046,120 @@ function once (fn) {
   }
 }
 
-},{}],166:[function(require,module,exports){
+},{}],177:[function(require,module,exports){
+var isFunction = require('is-function')
+
+module.exports = forEach
+
+var toString = Object.prototype.toString
+var hasOwnProperty = Object.prototype.hasOwnProperty
+
+function forEach(list, iterator, context) {
+    if (!isFunction(iterator)) {
+        throw new TypeError('iterator must be a function')
+    }
+
+    if (arguments.length < 3) {
+        context = this
+    }
+    
+    if (toString.call(list) === '[object Array]')
+        forEachArray(list, iterator, context)
+    else if (typeof list === 'string')
+        forEachString(list, iterator, context)
+    else
+        forEachObject(list, iterator, context)
+}
+
+function forEachArray(array, iterator, context) {
+    for (var i = 0, len = array.length; i < len; i++) {
+        if (hasOwnProperty.call(array, i)) {
+            iterator.call(context, array[i], i, array)
+        }
+    }
+}
+
+function forEachString(string, iterator, context) {
+    for (var i = 0, len = string.length; i < len; i++) {
+        // no such thing as a sparse string.
+        iterator.call(context, string.charAt(i), i, string)
+    }
+}
+
+function forEachObject(object, iterator, context) {
+    for (var k in object) {
+        if (hasOwnProperty.call(object, k)) {
+            iterator.call(context, object[k], k, object)
+        }
+    }
+}
+
+},{"is-function":178}],178:[function(require,module,exports){
+module.exports = isFunction
+
+var toString = Object.prototype.toString
+
+function isFunction (fn) {
+  var string = toString.call(fn)
+  return string === '[object Function]' ||
+    (typeof fn === 'function' && string !== '[object RegExp]') ||
+    (typeof window !== 'undefined' &&
+     // IE8 and below
+     (fn === window.setTimeout ||
+      fn === window.alert ||
+      fn === window.confirm ||
+      fn === window.prompt))
+};
+
+},{}],179:[function(require,module,exports){
+
+exports = module.exports = trim;
+
+function trim(str){
+  return str.replace(/^\s*|\s*$/g, '');
+}
+
+exports.left = function(str){
+  return str.replace(/^\s*/, '');
+};
+
+exports.right = function(str){
+  return str.replace(/\s*$/, '');
+};
+
+},{}],180:[function(require,module,exports){
+var trim = require('trim')
+  , forEach = require('for-each')
+  , isArray = function(arg) {
+      return Object.prototype.toString.call(arg) === '[object Array]';
+    }
+
+module.exports = function (headers) {
+  if (!headers)
+    return {}
+
+  var result = {}
+
+  forEach(
+      trim(headers).split('\n')
+    , function (row) {
+        var index = row.indexOf(':')
+          , key = trim(row.slice(0, index)).toLowerCase()
+          , value = trim(row.slice(index + 1))
+
+        if (typeof(result[key]) === 'undefined') {
+          result[key] = value
+        } else if (isArray(result[key])) {
+          result[key].push(value)
+        } else {
+          result[key] = [ result[key], value ]
+        }
+      }
+  )
+
+  return result
+}
+},{"for-each":177,"trim":179}],181:[function(require,module,exports){
 "use strict";
 
 var debug = false;
@@ -56457,7 +58167,7 @@ module.exports = function () {
   debug && console.log.apply(console, arguments);
 };
 
-},{}],167:[function(require,module,exports){
+},{}],182:[function(require,module,exports){
 "use strict";
 
 var xhr = require("xhr");
@@ -56530,7 +58240,7 @@ function bootstrap() {
         throw new Error("canot get main module");
       }
       var pkg = JSON.parse(body);
-      mainScriptPath = pkg.main || "index.js";
+      mainScriptPath = pkg.browser || pkg.main || "index.js";
       mainScriptPath = url.resolve(packagePath, mainScriptPath);
       loadMainModule(mainScriptPath);
     });
@@ -56539,7 +58249,7 @@ function bootstrap() {
 
 bootstrap();
 
-},{"./module":168,"6to5/lib/6to5/transformation/transform":37,"url":198,"xhr":163}],168:[function(require,module,exports){
+},{"./module":183,"6to5/lib/6to5/transformation/transform":42,"url":213,"xhr":174}],183:[function(require,module,exports){
 "use strict";
 
 var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -56588,7 +58298,7 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
       if (childModule) {
         uri = childModule;
       } else {
-        uri = pkg.main || "index.js";
+        uri = pkg.browser || pkg.main || "index.js";
       }
       uri = "./node_modules/" + dep + "/" + uri;
       uri = url.resolve(searchPath, uri);
@@ -56940,9 +58650,9 @@ Module.loadPromises = {};
 
 module.exports = Module;
 
-},{"./log":166,"searequire":162,"url":198,"xhr":163}],169:[function(require,module,exports){
+},{"./log":181,"searequire":173,"url":213,"xhr":174}],184:[function(require,module,exports){
 
-},{}],170:[function(require,module,exports){
+},{}],185:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -57031,7 +58741,7 @@ function replacer(key, value) {
   if (util.isUndefined(value)) {
     return '' + value;
   }
-  if (util.isNumber(value) && (isNaN(value) || !isFinite(value))) {
+  if (util.isNumber(value) && !isFinite(value)) {
     return value.toString();
   }
   if (util.isFunction(value) || util.isRegExp(value)) {
@@ -57170,23 +58880,22 @@ function objEquiv(a, b) {
     return false;
   // an identical 'prototype' property.
   if (a.prototype !== b.prototype) return false;
-  //~~~I've managed to break Object.keys through screwy arguments passing.
-  //   Converting to array solves the problem.
-  if (isArguments(a)) {
-    if (!isArguments(b)) {
-      return false;
-    }
+  // if one is a primitive, the other must be same
+  if (util.isPrimitive(a) || util.isPrimitive(b)) {
+    return a === b;
+  }
+  var aIsArgs = isArguments(a),
+      bIsArgs = isArguments(b);
+  if ((aIsArgs && !bIsArgs) || (!aIsArgs && bIsArgs))
+    return false;
+  if (aIsArgs) {
     a = pSlice.call(a);
     b = pSlice.call(b);
     return _deepEqual(a, b);
   }
-  try {
-    var ka = objectKeys(a),
-        kb = objectKeys(b),
-        key, i;
-  } catch (e) {//happens when one is a string literal and the other isn't
-    return false;
-  }
+  var ka = objectKeys(a),
+      kb = objectKeys(b),
+      key, i;
   // having the same number of owned properties (keys incorporates
   // hasOwnProperty)
   if (ka.length != kb.length)
@@ -57304,604 +59013,9 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":172}],171:[function(require,module,exports){
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-},{}],172:[function(require,module,exports){
-(function (process,global){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = require('./support/isBuffer');
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = require('inherits');
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-}).call(this,require("UPikzY"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":171,"UPikzY":179,"inherits":177}],173:[function(require,module,exports){
+},{"util/":215}],186:[function(require,module,exports){
+arguments[4][184][0].apply(exports,arguments)
+},{"dup":184}],187:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -57911,14 +59025,18 @@ function hasOwnProperty(obj, prop) {
 
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
+var isArray = require('is-array')
 
 exports.Buffer = Buffer
-exports.SlowBuffer = Buffer
+exports.SlowBuffer = SlowBuffer
 exports.INSPECT_MAX_BYTES = 50
-Buffer.poolSize = 8192
+Buffer.poolSize = 8192 // not used by this implementation
+
+var kMaxLength = 0x3fffffff
+var rootParent = {}
 
 /**
- * If `TYPED_ARRAY_SUPPORT`:
+ * If `Buffer.TYPED_ARRAY_SUPPORT`:
  *   === true    Use Uint8Array implementation (fastest)
  *   === false   Use Object implementation (most compatible, even IE6)
  *
@@ -57936,15 +59054,15 @@ Buffer.poolSize = 8192
  *  - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
  *    incorrect length in some situations.
  *
- * We detect these buggy browsers and set `TYPED_ARRAY_SUPPORT` to `false` so they will
+ * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they will
  * get the Object implementation, which is slower but will work correctly.
  */
-var TYPED_ARRAY_SUPPORT = (function () {
+Buffer.TYPED_ARRAY_SUPPORT = (function () {
   try {
     var buf = new ArrayBuffer(0)
     var arr = new Uint8Array(buf)
     arr.foo = function () { return 42 }
-    return 42 === arr.foo() && // typed array instances can be augmented
+    return arr.foo() === 42 && // typed array instances can be augmented
         typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
         new Uint8Array(1).subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
   } catch (e) {
@@ -57964,66 +59082,102 @@ var TYPED_ARRAY_SUPPORT = (function () {
  * By augmenting the instances, we can avoid modifying the `Uint8Array`
  * prototype.
  */
-function Buffer (subject, encoding, noZero) {
-  if (!(this instanceof Buffer))
-    return new Buffer(subject, encoding, noZero)
+function Buffer (subject, encoding) {
+  var self = this
+  if (!(self instanceof Buffer)) return new Buffer(subject, encoding)
 
   var type = typeof subject
-
-  // Find the length
   var length
-  if (type === 'number')
-    length = subject > 0 ? subject >>> 0 : 0
-  else if (type === 'string') {
-    if (encoding === 'base64')
-      subject = base64clean(subject)
-    length = Buffer.byteLength(subject, encoding)
-  } else if (type === 'object' && subject !== null) { // assume object is array-like
-    if (subject.type === 'Buffer' && isArray(subject.data))
-      subject = subject.data
-    length = +subject.length > 0 ? Math.floor(+subject.length) : 0
-  } else
-    throw new Error('First argument needs to be a number, array or string.')
 
-  var buf
-  if (TYPED_ARRAY_SUPPORT) {
+  if (type === 'number') {
+    length = +subject
+  } else if (type === 'string') {
+    length = Buffer.byteLength(subject, encoding)
+  } else if (type === 'object' && subject !== null) {
+    // assume object is array-like
+    if (subject.type === 'Buffer' && isArray(subject.data)) subject = subject.data
+    length = +subject.length
+  } else {
+    throw new TypeError('must start with number, buffer, array or string')
+  }
+
+  if (length > kMaxLength) {
+    throw new RangeError('Attempt to allocate Buffer larger than maximum size: 0x' +
+      kMaxLength.toString(16) + ' bytes')
+  }
+
+  if (length < 0) length = 0
+  else length >>>= 0 // coerce to uint32
+
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
     // Preferred: Return an augmented `Uint8Array` instance for best performance
-    buf = Buffer._augment(new Uint8Array(length))
+    self = Buffer._augment(new Uint8Array(length)) // eslint-disable-line consistent-this
   } else {
     // Fallback: Return THIS instance of Buffer (created by `new`)
-    buf = this
-    buf.length = length
-    buf._isBuffer = true
+    self.length = length
+    self._isBuffer = true
   }
 
   var i
-  if (TYPED_ARRAY_SUPPORT && typeof subject.byteLength === 'number') {
+  if (Buffer.TYPED_ARRAY_SUPPORT && typeof subject.byteLength === 'number') {
     // Speed optimization -- use set if we're copying from a typed array
-    buf._set(subject)
+    self._set(subject)
   } else if (isArrayish(subject)) {
     // Treat array-ish objects as a byte array
     if (Buffer.isBuffer(subject)) {
-      for (i = 0; i < length; i++)
-        buf[i] = subject.readUInt8(i)
+      for (i = 0; i < length; i++) {
+        self[i] = subject.readUInt8(i)
+      }
     } else {
-      for (i = 0; i < length; i++)
-        buf[i] = ((subject[i] % 256) + 256) % 256
+      for (i = 0; i < length; i++) {
+        self[i] = ((subject[i] % 256) + 256) % 256
+      }
     }
   } else if (type === 'string') {
-    buf.write(subject, 0, encoding)
-  } else if (type === 'number' && !TYPED_ARRAY_SUPPORT && !noZero) {
+    self.write(subject, 0, encoding)
+  } else if (type === 'number' && !Buffer.TYPED_ARRAY_SUPPORT) {
     for (i = 0; i < length; i++) {
-      buf[i] = 0
+      self[i] = 0
     }
   }
 
+  if (length > 0 && length <= Buffer.poolSize) self.parent = rootParent
+
+  return self
+}
+
+function SlowBuffer (subject, encoding) {
+  if (!(this instanceof SlowBuffer)) return new SlowBuffer(subject, encoding)
+
+  var buf = new Buffer(subject, encoding)
+  delete buf.parent
   return buf
 }
 
-// STATIC METHODS
-// ==============
+Buffer.isBuffer = function isBuffer (b) {
+  return !!(b != null && b._isBuffer)
+}
 
-Buffer.isEncoding = function (encoding) {
+Buffer.compare = function compare (a, b) {
+  if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
+    throw new TypeError('Arguments must be Buffers')
+  }
+
+  if (a === b) return 0
+
+  var x = a.length
+  var y = b.length
+  for (var i = 0, len = Math.min(x, y); i < len && a[i] === b[i]; i++) {}
+  if (i !== len) {
+    x = a[i]
+    y = b[i]
+  }
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+}
+
+Buffer.isEncoding = function isEncoding (encoding) {
   switch (String(encoding).toLowerCase()) {
     case 'hex':
     case 'utf8':
@@ -58042,43 +59196,8 @@ Buffer.isEncoding = function (encoding) {
   }
 }
 
-Buffer.isBuffer = function (b) {
-  return !!(b != null && b._isBuffer)
-}
-
-Buffer.byteLength = function (str, encoding) {
-  var ret
-  str = str.toString()
-  switch (encoding || 'utf8') {
-    case 'hex':
-      ret = str.length / 2
-      break
-    case 'utf8':
-    case 'utf-8':
-      ret = utf8ToBytes(str).length
-      break
-    case 'ascii':
-    case 'binary':
-    case 'raw':
-      ret = str.length
-      break
-    case 'base64':
-      ret = base64ToBytes(str).length
-      break
-    case 'ucs2':
-    case 'ucs-2':
-    case 'utf16le':
-    case 'utf-16le':
-      ret = str.length * 2
-      break
-    default:
-      throw new Error('Unknown encoding')
-  }
-  return ret
-}
-
-Buffer.concat = function (list, totalLength) {
-  assert(isArray(list), 'Usage: Buffer.concat(list[, length])')
+Buffer.concat = function concat (list, totalLength) {
+  if (!isArray(list)) throw new TypeError('list argument must be an Array of Buffers.')
 
   if (list.length === 0) {
     return new Buffer(0)
@@ -58104,26 +59223,159 @@ Buffer.concat = function (list, totalLength) {
   return buf
 }
 
-Buffer.compare = function (a, b) {
-  assert(Buffer.isBuffer(a) && Buffer.isBuffer(b), 'Arguments must be Buffers')
-  var x = a.length
-  var y = b.length
-  for (var i = 0, len = Math.min(x, y); i < len && a[i] === b[i]; i++) {}
-  if (i !== len) {
-    x = a[i]
-    y = b[i]
+Buffer.byteLength = function byteLength (str, encoding) {
+  var ret
+  str = str + ''
+  switch (encoding || 'utf8') {
+    case 'ascii':
+    case 'binary':
+    case 'raw':
+      ret = str.length
+      break
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      ret = str.length * 2
+      break
+    case 'hex':
+      ret = str.length >>> 1
+      break
+    case 'utf8':
+    case 'utf-8':
+      ret = utf8ToBytes(str).length
+      break
+    case 'base64':
+      ret = base64ToBytes(str).length
+      break
+    default:
+      ret = str.length
   }
-  if (x < y) {
-    return -1
-  }
-  if (y < x) {
-    return 1
-  }
-  return 0
+  return ret
 }
 
-// BUFFER INSTANCE METHODS
-// =======================
+// pre-set for values that may exist in the future
+Buffer.prototype.length = undefined
+Buffer.prototype.parent = undefined
+
+// toString(encoding, start=0, end=buffer.length)
+Buffer.prototype.toString = function toString (encoding, start, end) {
+  var loweredCase = false
+
+  start = start >>> 0
+  end = end === undefined || end === Infinity ? this.length : end >>> 0
+
+  if (!encoding) encoding = 'utf8'
+  if (start < 0) start = 0
+  if (end > this.length) end = this.length
+  if (end <= start) return ''
+
+  while (true) {
+    switch (encoding) {
+      case 'hex':
+        return hexSlice(this, start, end)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Slice(this, start, end)
+
+      case 'ascii':
+        return asciiSlice(this, start, end)
+
+      case 'binary':
+        return binarySlice(this, start, end)
+
+      case 'base64':
+        return base64Slice(this, start, end)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return utf16leSlice(this, start, end)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = (encoding + '').toLowerCase()
+        loweredCase = true
+    }
+  }
+}
+
+Buffer.prototype.equals = function equals (b) {
+  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
+  if (this === b) return true
+  return Buffer.compare(this, b) === 0
+}
+
+Buffer.prototype.inspect = function inspect () {
+  var str = ''
+  var max = exports.INSPECT_MAX_BYTES
+  if (this.length > 0) {
+    str = this.toString('hex', 0, max).match(/.{2}/g).join(' ')
+    if (this.length > max) str += ' ... '
+  }
+  return '<Buffer ' + str + '>'
+}
+
+Buffer.prototype.compare = function compare (b) {
+  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
+  if (this === b) return 0
+  return Buffer.compare(this, b)
+}
+
+Buffer.prototype.indexOf = function indexOf (val, byteOffset) {
+  if (byteOffset > 0x7fffffff) byteOffset = 0x7fffffff
+  else if (byteOffset < -0x80000000) byteOffset = -0x80000000
+  byteOffset >>= 0
+
+  if (this.length === 0) return -1
+  if (byteOffset >= this.length) return -1
+
+  // Negative offsets start from the end of the buffer
+  if (byteOffset < 0) byteOffset = Math.max(this.length + byteOffset, 0)
+
+  if (typeof val === 'string') {
+    if (val.length === 0) return -1 // special case: looking for empty string always fails
+    return String.prototype.indexOf.call(this, val, byteOffset)
+  }
+  if (Buffer.isBuffer(val)) {
+    return arrayIndexOf(this, val, byteOffset)
+  }
+  if (typeof val === 'number') {
+    if (Buffer.TYPED_ARRAY_SUPPORT && Uint8Array.prototype.indexOf === 'function') {
+      return Uint8Array.prototype.indexOf.call(this, val, byteOffset)
+    }
+    return arrayIndexOf(this, [ val ], byteOffset)
+  }
+
+  function arrayIndexOf (arr, val, byteOffset) {
+    var foundIndex = -1
+    for (var i = 0; byteOffset + i < arr.length; i++) {
+      if (arr[byteOffset + i] === val[foundIndex === -1 ? 0 : i - foundIndex]) {
+        if (foundIndex === -1) foundIndex = i
+        if (i - foundIndex + 1 === val.length) return byteOffset + foundIndex
+      } else {
+        foundIndex = -1
+      }
+    }
+    return -1
+  }
+
+  throw new TypeError('val must be string, number or Buffer')
+}
+
+// `get` will be removed in Node 0.13+
+Buffer.prototype.get = function get (offset) {
+  console.log('.get() is deprecated. Access using array indexes instead.')
+  return this.readUInt8(offset)
+}
+
+// `set` will be removed in Node 0.13+
+Buffer.prototype.set = function set (v, offset) {
+  console.log('.set() is deprecated. Access using array indexes instead.')
+  return this.writeUInt8(v, offset)
+}
 
 function hexWrite (buf, string, offset, length) {
   offset = Number(offset) || 0
@@ -58139,21 +59391,21 @@ function hexWrite (buf, string, offset, length) {
 
   // must be an even number of digits
   var strLen = string.length
-  assert(strLen % 2 === 0, 'Invalid hex string')
+  if (strLen % 2 !== 0) throw new Error('Invalid hex string')
 
   if (length > strLen / 2) {
     length = strLen / 2
   }
   for (var i = 0; i < length; i++) {
-    var byte = parseInt(string.substr(i * 2, 2), 16)
-    assert(!isNaN(byte), 'Invalid hex string')
-    buf[offset + i] = byte
+    var parsed = parseInt(string.substr(i * 2, 2), 16)
+    if (isNaN(parsed)) throw new Error('Invalid hex string')
+    buf[offset + i] = parsed
   }
   return i
 }
 
 function utf8Write (buf, string, offset, length) {
-  var charsWritten = blitBuffer(utf8ToBytes(string), buf, offset, length)
+  var charsWritten = blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
   return charsWritten
 }
 
@@ -58172,11 +59424,11 @@ function base64Write (buf, string, offset, length) {
 }
 
 function utf16leWrite (buf, string, offset, length) {
-  var charsWritten = blitBuffer(utf16leToBytes(string), buf, offset, length)
+  var charsWritten = blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
   return charsWritten
 }
 
-Buffer.prototype.write = function (string, offset, length, encoding) {
+Buffer.prototype.write = function write (string, offset, length, encoding) {
   // Support both (string, offset, length, encoding)
   // and the legacy (string, encoding, offset, length)
   if (isFinite(offset)) {
@@ -58192,6 +59444,11 @@ Buffer.prototype.write = function (string, offset, length, encoding) {
   }
 
   offset = Number(offset) || 0
+
+  if (length < 0 || offset < 0 || offset > this.length) {
+    throw new RangeError('attempt to write outside buffer bounds')
+  }
+
   var remaining = this.length - offset
   if (!length) {
     length = remaining
@@ -58228,102 +59485,15 @@ Buffer.prototype.write = function (string, offset, length, encoding) {
       ret = utf16leWrite(this, string, offset, length)
       break
     default:
-      throw new Error('Unknown encoding')
+      throw new TypeError('Unknown encoding: ' + encoding)
   }
   return ret
 }
 
-Buffer.prototype.toString = function (encoding, start, end) {
-  var self = this
-
-  encoding = String(encoding || 'utf8').toLowerCase()
-  start = Number(start) || 0
-  end = (end === undefined) ? self.length : Number(end)
-
-  // Fastpath empty strings
-  if (end === start)
-    return ''
-
-  var ret
-  switch (encoding) {
-    case 'hex':
-      ret = hexSlice(self, start, end)
-      break
-    case 'utf8':
-    case 'utf-8':
-      ret = utf8Slice(self, start, end)
-      break
-    case 'ascii':
-      ret = asciiSlice(self, start, end)
-      break
-    case 'binary':
-      ret = binarySlice(self, start, end)
-      break
-    case 'base64':
-      ret = base64Slice(self, start, end)
-      break
-    case 'ucs2':
-    case 'ucs-2':
-    case 'utf16le':
-    case 'utf-16le':
-      ret = utf16leSlice(self, start, end)
-      break
-    default:
-      throw new Error('Unknown encoding')
-  }
-  return ret
-}
-
-Buffer.prototype.toJSON = function () {
+Buffer.prototype.toJSON = function toJSON () {
   return {
     type: 'Buffer',
     data: Array.prototype.slice.call(this._arr || this, 0)
-  }
-}
-
-Buffer.prototype.equals = function (b) {
-  assert(Buffer.isBuffer(b), 'Argument must be a Buffer')
-  return Buffer.compare(this, b) === 0
-}
-
-Buffer.prototype.compare = function (b) {
-  assert(Buffer.isBuffer(b), 'Argument must be a Buffer')
-  return Buffer.compare(this, b)
-}
-
-// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
-Buffer.prototype.copy = function (target, target_start, start, end) {
-  var source = this
-
-  if (!start) start = 0
-  if (!end && end !== 0) end = this.length
-  if (!target_start) target_start = 0
-
-  // Copy 0 bytes; we're done
-  if (end === start) return
-  if (target.length === 0 || source.length === 0) return
-
-  // Fatal error conditions
-  assert(end >= start, 'sourceEnd < sourceStart')
-  assert(target_start >= 0 && target_start < target.length,
-      'targetStart out of bounds')
-  assert(start >= 0 && start < source.length, 'sourceStart out of bounds')
-  assert(end >= 0 && end <= source.length, 'sourceEnd out of bounds')
-
-  // Are we oob?
-  if (end > this.length)
-    end = this.length
-  if (target.length - target_start < end - start)
-    end = target.length - target_start + start
-
-  var len = end - start
-
-  if (len < 100 || !TYPED_ARRAY_SUPPORT) {
-    for (var i = 0; i < len; i++) {
-      target[i + target_start] = this[i + start]
-    }
-  } else {
-    target._set(this.subarray(start, start + len), target_start)
   }
 }
 
@@ -58357,13 +59527,19 @@ function asciiSlice (buf, start, end) {
   end = Math.min(buf.length, end)
 
   for (var i = start; i < end; i++) {
-    ret += String.fromCharCode(buf[i])
+    ret += String.fromCharCode(buf[i] & 0x7F)
   }
   return ret
 }
 
 function binarySlice (buf, start, end) {
-  return asciiSlice(buf, start, end)
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; i++) {
+    ret += String.fromCharCode(buf[i])
+  }
+  return ret
 }
 
 function hexSlice (buf, start, end) {
@@ -58388,453 +59564,528 @@ function utf16leSlice (buf, start, end) {
   return res
 }
 
-Buffer.prototype.slice = function (start, end) {
+Buffer.prototype.slice = function slice (start, end) {
   var len = this.length
   start = ~~start
   end = end === undefined ? len : ~~end
 
   if (start < 0) {
-    start += len;
-    if (start < 0)
-      start = 0
+    start += len
+    if (start < 0) start = 0
   } else if (start > len) {
     start = len
   }
 
   if (end < 0) {
     end += len
-    if (end < 0)
-      end = 0
+    if (end < 0) end = 0
   } else if (end > len) {
     end = len
   }
 
-  if (end < start)
-    end = start
+  if (end < start) end = start
 
-  if (TYPED_ARRAY_SUPPORT) {
-    return Buffer._augment(this.subarray(start, end))
+  var newBuf
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    newBuf = Buffer._augment(this.subarray(start, end))
   } else {
     var sliceLen = end - start
-    var newBuf = new Buffer(sliceLen, undefined, true)
+    newBuf = new Buffer(sliceLen, undefined)
     for (var i = 0; i < sliceLen; i++) {
       newBuf[i] = this[i + start]
     }
-    return newBuf
   }
+
+  if (newBuf.length) newBuf.parent = this.parent || this
+
+  return newBuf
 }
 
-// `get` will be removed in Node 0.13+
-Buffer.prototype.get = function (offset) {
-  console.log('.get() is deprecated. Access using array indexes instead.')
-  return this.readUInt8(offset)
+/*
+ * Need to make sure that buffer isn't trying to write out of bounds.
+ */
+function checkOffset (offset, ext, length) {
+  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
+  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
 }
 
-// `set` will be removed in Node 0.13+
-Buffer.prototype.set = function (v, offset) {
-  console.log('.set() is deprecated. Access using array indexes instead.')
-  return this.writeUInt8(v, offset)
+Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
+  }
+
+  return val
 }
 
-Buffer.prototype.readUInt8 = function (offset, noAssert) {
+Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
   if (!noAssert) {
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset < this.length, 'Trying to read beyond buffer length')
+    checkOffset(offset, byteLength, this.length)
   }
 
-  if (offset >= this.length)
-    return
+  var val = this[offset + --byteLength]
+  var mul = 1
+  while (byteLength > 0 && (mul *= 0x100)) {
+    val += this[offset + --byteLength] * mul
+  }
 
+  return val
+}
+
+Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length)
   return this[offset]
 }
 
-function readUInt16 (buf, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 1 < buf.length, 'Trying to read beyond buffer length')
-  }
+Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return this[offset] | (this[offset + 1] << 8)
+}
 
-  var len = buf.length
-  if (offset >= len)
-    return
+Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return (this[offset] << 8) | this[offset + 1]
+}
 
-  var val
-  if (littleEndian) {
-    val = buf[offset]
-    if (offset + 1 < len)
-      val |= buf[offset + 1] << 8
-  } else {
-    val = buf[offset] << 8
-    if (offset + 1 < len)
-      val |= buf[offset + 1]
+Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return ((this[offset]) |
+      (this[offset + 1] << 8) |
+      (this[offset + 2] << 16)) +
+      (this[offset + 3] * 0x1000000)
+}
+
+Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] * 0x1000000) +
+    ((this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    this[offset + 3])
+}
+
+Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
   }
+  mul *= 0x80
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
   return val
 }
 
-Buffer.prototype.readUInt16LE = function (offset, noAssert) {
-  return readUInt16(this, offset, true, noAssert)
-}
+Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
 
-Buffer.prototype.readUInt16BE = function (offset, noAssert) {
-  return readUInt16(this, offset, false, noAssert)
-}
-
-function readUInt32 (buf, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 3 < buf.length, 'Trying to read beyond buffer length')
+  var i = byteLength
+  var mul = 1
+  var val = this[offset + --i]
+  while (i > 0 && (mul *= 0x100)) {
+    val += this[offset + --i] * mul
   }
+  mul *= 0x80
 
-  var len = buf.length
-  if (offset >= len)
-    return
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
 
-  var val
-  if (littleEndian) {
-    if (offset + 2 < len)
-      val = buf[offset + 2] << 16
-    if (offset + 1 < len)
-      val |= buf[offset + 1] << 8
-    val |= buf[offset]
-    if (offset + 3 < len)
-      val = val + (buf[offset + 3] << 24 >>> 0)
-  } else {
-    if (offset + 1 < len)
-      val = buf[offset + 1] << 16
-    if (offset + 2 < len)
-      val |= buf[offset + 2] << 8
-    if (offset + 3 < len)
-      val |= buf[offset + 3]
-    val = val + (buf[offset] << 24 >>> 0)
-  }
   return val
 }
 
-Buffer.prototype.readUInt32LE = function (offset, noAssert) {
-  return readUInt32(this, offset, true, noAssert)
+Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length)
+  if (!(this[offset] & 0x80)) return (this[offset])
+  return ((0xff - this[offset] + 1) * -1)
 }
 
-Buffer.prototype.readUInt32BE = function (offset, noAssert) {
-  return readUInt32(this, offset, false, noAssert)
+Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset] | (this[offset + 1] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
 }
 
-Buffer.prototype.readInt8 = function (offset, noAssert) {
-  if (!noAssert) {
-    assert(offset !== undefined && offset !== null,
-        'missing offset')
-    assert(offset < this.length, 'Trying to read beyond buffer length')
+Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset + 1] | (this[offset] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+}
+
+Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset]) |
+    (this[offset + 1] << 8) |
+    (this[offset + 2] << 16) |
+    (this[offset + 3] << 24)
+}
+
+Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] << 24) |
+    (this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    (this[offset + 3])
+}
+
+Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, true, 23, 4)
+}
+
+Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, false, 23, 4)
+}
+
+Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, true, 52, 8)
+}
+
+Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, false, 52, 8)
+}
+
+function checkInt (buf, value, offset, ext, max, min) {
+  if (!Buffer.isBuffer(buf)) throw new TypeError('buffer must be a Buffer instance')
+  if (value > max || value < min) throw new RangeError('value is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('index out of range')
+}
+
+Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
+
+  var mul = 1
+  var i = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) >>> 0 & 0xFF
   }
 
-  if (offset >= this.length)
-    return
-
-  var neg = this[offset] & 0x80
-  if (neg)
-    return (0xff - this[offset] + 1) * -1
-  else
-    return this[offset]
+  return offset + byteLength
 }
 
-function readInt16 (buf, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 1 < buf.length, 'Trying to read beyond buffer length')
+Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert) checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
+
+  var i = byteLength - 1
+  var mul = 1
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) >>> 0 & 0xFF
   }
 
-  var len = buf.length
-  if (offset >= len)
-    return
-
-  var val = readUInt16(buf, offset, littleEndian, true)
-  var neg = val & 0x8000
-  if (neg)
-    return (0xffff - val + 1) * -1
-  else
-    return val
+  return offset + byteLength
 }
 
-Buffer.prototype.readInt16LE = function (offset, noAssert) {
-  return readInt16(this, offset, true, noAssert)
-}
-
-Buffer.prototype.readInt16BE = function (offset, noAssert) {
-  return readInt16(this, offset, false, noAssert)
-}
-
-function readInt32 (buf, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 3 < buf.length, 'Trying to read beyond buffer length')
-  }
-
-  var len = buf.length
-  if (offset >= len)
-    return
-
-  var val = readUInt32(buf, offset, littleEndian, true)
-  var neg = val & 0x80000000
-  if (neg)
-    return (0xffffffff - val + 1) * -1
-  else
-    return val
-}
-
-Buffer.prototype.readInt32LE = function (offset, noAssert) {
-  return readInt32(this, offset, true, noAssert)
-}
-
-Buffer.prototype.readInt32BE = function (offset, noAssert) {
-  return readInt32(this, offset, false, noAssert)
-}
-
-function readFloat (buf, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset + 3 < buf.length, 'Trying to read beyond buffer length')
-  }
-
-  return ieee754.read(buf, offset, littleEndian, 23, 4)
-}
-
-Buffer.prototype.readFloatLE = function (offset, noAssert) {
-  return readFloat(this, offset, true, noAssert)
-}
-
-Buffer.prototype.readFloatBE = function (offset, noAssert) {
-  return readFloat(this, offset, false, noAssert)
-}
-
-function readDouble (buf, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset + 7 < buf.length, 'Trying to read beyond buffer length')
-  }
-
-  return ieee754.read(buf, offset, littleEndian, 52, 8)
-}
-
-Buffer.prototype.readDoubleLE = function (offset, noAssert) {
-  return readDouble(this, offset, true, noAssert)
-}
-
-Buffer.prototype.readDoubleBE = function (offset, noAssert) {
-  return readDouble(this, offset, false, noAssert)
-}
-
-Buffer.prototype.writeUInt8 = function (value, offset, noAssert) {
-  if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset < this.length, 'trying to write beyond buffer length')
-    verifuint(value, 0xff)
-  }
-
-  if (offset >= this.length) return
-
+Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
   this[offset] = value
   return offset + 1
 }
 
-function writeUInt16 (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 1 < buf.length, 'trying to write beyond buffer length')
-    verifuint(value, 0xffff)
+function objectWriteUInt16 (buf, value, offset, littleEndian) {
+  if (value < 0) value = 0xffff + value + 1
+  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; i++) {
+    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
+      (littleEndian ? i : 1 - i) * 8
   }
+}
 
-  var len = buf.length
-  if (offset >= len)
-    return
-
-  for (var i = 0, j = Math.min(len - offset, 2); i < j; i++) {
-    buf[offset + i] =
-        (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
-            (littleEndian ? i : 1 - i) * 8
+Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = value
+    this[offset + 1] = (value >>> 8)
+  } else {
+    objectWriteUInt16(this, value, offset, true)
   }
   return offset + 2
 }
 
-Buffer.prototype.writeUInt16LE = function (value, offset, noAssert) {
-  return writeUInt16(this, value, offset, true, noAssert)
-}
-
-Buffer.prototype.writeUInt16BE = function (value, offset, noAssert) {
-  return writeUInt16(this, value, offset, false, noAssert)
-}
-
-function writeUInt32 (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 3 < buf.length, 'trying to write beyond buffer length')
-    verifuint(value, 0xffffffff)
+Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 8)
+    this[offset + 1] = value
+  } else {
+    objectWriteUInt16(this, value, offset, false)
   }
+  return offset + 2
+}
 
-  var len = buf.length
-  if (offset >= len)
-    return
+function objectWriteUInt32 (buf, value, offset, littleEndian) {
+  if (value < 0) value = 0xffffffff + value + 1
+  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; i++) {
+    buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
+  }
+}
 
-  for (var i = 0, j = Math.min(len - offset, 4); i < j; i++) {
-    buf[offset + i] =
-        (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
+Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset + 3] = (value >>> 24)
+    this[offset + 2] = (value >>> 16)
+    this[offset + 1] = (value >>> 8)
+    this[offset] = value
+  } else {
+    objectWriteUInt32(this, value, offset, true)
   }
   return offset + 4
 }
 
-Buffer.prototype.writeUInt32LE = function (value, offset, noAssert) {
-  return writeUInt32(this, value, offset, true, noAssert)
+Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 24)
+    this[offset + 1] = (value >>> 16)
+    this[offset + 2] = (value >>> 8)
+    this[offset + 3] = value
+  } else {
+    objectWriteUInt32(this, value, offset, false)
+  }
+  return offset + 4
 }
 
-Buffer.prototype.writeUInt32BE = function (value, offset, noAssert) {
-  return writeUInt32(this, value, offset, false, noAssert)
-}
-
-Buffer.prototype.writeInt8 = function (value, offset, noAssert) {
+Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
   if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset < this.length, 'Trying to write beyond buffer length')
-    verifsint(value, 0x7f, -0x80)
+    checkInt(
+      this, value, offset, byteLength,
+      Math.pow(2, 8 * byteLength - 1) - 1,
+      -Math.pow(2, 8 * byteLength - 1)
+    )
   }
 
-  if (offset >= this.length)
-    return
+  var i = 0
+  var mul = 1
+  var sub = value < 0 ? 1 : 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
 
-  if (value >= 0)
-    this.writeUInt8(value, offset, noAssert)
-  else
-    this.writeUInt8(0xff + value + 1, offset, noAssert)
+  return offset + byteLength
+}
+
+Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) {
+    checkInt(
+      this, value, offset, byteLength,
+      Math.pow(2, 8 * byteLength - 1) - 1,
+      -Math.pow(2, 8 * byteLength - 1)
+    )
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  var sub = value < 0 ? 1 : 0
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
+  if (value < 0) value = 0xff + value + 1
+  this[offset] = value
   return offset + 1
 }
 
-function writeInt16 (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 1 < buf.length, 'Trying to write beyond buffer length')
-    verifsint(value, 0x7fff, -0x8000)
+Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = value
+    this[offset + 1] = (value >>> 8)
+  } else {
+    objectWriteUInt16(this, value, offset, true)
   }
-
-  var len = buf.length
-  if (offset >= len)
-    return
-
-  if (value >= 0)
-    writeUInt16(buf, value, offset, littleEndian, noAssert)
-  else
-    writeUInt16(buf, 0xffff + value + 1, offset, littleEndian, noAssert)
   return offset + 2
 }
 
-Buffer.prototype.writeInt16LE = function (value, offset, noAssert) {
-  return writeInt16(this, value, offset, true, noAssert)
-}
-
-Buffer.prototype.writeInt16BE = function (value, offset, noAssert) {
-  return writeInt16(this, value, offset, false, noAssert)
-}
-
-function writeInt32 (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 3 < buf.length, 'Trying to write beyond buffer length')
-    verifsint(value, 0x7fffffff, -0x80000000)
+Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 8)
+    this[offset + 1] = value
+  } else {
+    objectWriteUInt16(this, value, offset, false)
   }
+  return offset + 2
+}
 
-  var len = buf.length
-  if (offset >= len)
-    return
-
-  if (value >= 0)
-    writeUInt32(buf, value, offset, littleEndian, noAssert)
-  else
-    writeUInt32(buf, 0xffffffff + value + 1, offset, littleEndian, noAssert)
+Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = value
+    this[offset + 1] = (value >>> 8)
+    this[offset + 2] = (value >>> 16)
+    this[offset + 3] = (value >>> 24)
+  } else {
+    objectWriteUInt32(this, value, offset, true)
+  }
   return offset + 4
 }
 
-Buffer.prototype.writeInt32LE = function (value, offset, noAssert) {
-  return writeInt32(this, value, offset, true, noAssert)
+Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  if (value < 0) value = 0xffffffff + value + 1
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 24)
+    this[offset + 1] = (value >>> 16)
+    this[offset + 2] = (value >>> 8)
+    this[offset + 3] = value
+  } else {
+    objectWriteUInt32(this, value, offset, false)
+  }
+  return offset + 4
 }
 
-Buffer.prototype.writeInt32BE = function (value, offset, noAssert) {
-  return writeInt32(this, value, offset, false, noAssert)
+function checkIEEE754 (buf, value, offset, ext, max, min) {
+  if (value > max || value < min) throw new RangeError('value is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('index out of range')
+  if (offset < 0) throw new RangeError('index out of range')
 }
 
 function writeFloat (buf, value, offset, littleEndian, noAssert) {
   if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 3 < buf.length, 'Trying to write beyond buffer length')
-    verifIEEE754(value, 3.4028234663852886e+38, -3.4028234663852886e+38)
+    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
   }
-
-  var len = buf.length
-  if (offset >= len)
-    return
-
   ieee754.write(buf, value, offset, littleEndian, 23, 4)
   return offset + 4
 }
 
-Buffer.prototype.writeFloatLE = function (value, offset, noAssert) {
+Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
   return writeFloat(this, value, offset, true, noAssert)
 }
 
-Buffer.prototype.writeFloatBE = function (value, offset, noAssert) {
+Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
   return writeFloat(this, value, offset, false, noAssert)
 }
 
 function writeDouble (buf, value, offset, littleEndian, noAssert) {
   if (!noAssert) {
-    assert(value !== undefined && value !== null, 'missing value')
-    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
-    assert(offset !== undefined && offset !== null, 'missing offset')
-    assert(offset + 7 < buf.length,
-        'Trying to write beyond buffer length')
-    verifIEEE754(value, 1.7976931348623157E+308, -1.7976931348623157E+308)
+    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
   }
-
-  var len = buf.length
-  if (offset >= len)
-    return
-
   ieee754.write(buf, value, offset, littleEndian, 52, 8)
   return offset + 8
 }
 
-Buffer.prototype.writeDoubleLE = function (value, offset, noAssert) {
+Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
   return writeDouble(this, value, offset, true, noAssert)
 }
 
-Buffer.prototype.writeDoubleBE = function (value, offset, noAssert) {
+Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
   return writeDouble(this, value, offset, false, noAssert)
 }
 
+// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+Buffer.prototype.copy = function copy (target, target_start, start, end) {
+  var self = this // source
+
+  if (!start) start = 0
+  if (!end && end !== 0) end = this.length
+  if (target_start >= target.length) target_start = target.length
+  if (!target_start) target_start = 0
+  if (end > 0 && end < start) end = start
+
+  // Copy 0 bytes; we're done
+  if (end === start) return 0
+  if (target.length === 0 || self.length === 0) return 0
+
+  // Fatal error conditions
+  if (target_start < 0) {
+    throw new RangeError('targetStart out of bounds')
+  }
+  if (start < 0 || start >= self.length) throw new RangeError('sourceStart out of bounds')
+  if (end < 0) throw new RangeError('sourceEnd out of bounds')
+
+  // Are we oob?
+  if (end > this.length) end = this.length
+  if (target.length - target_start < end - start) {
+    end = target.length - target_start + start
+  }
+
+  var len = end - start
+
+  if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
+    for (var i = 0; i < len; i++) {
+      target[i + target_start] = this[i + start]
+    }
+  } else {
+    target._set(this.subarray(start, start + len), target_start)
+  }
+
+  return len
+}
+
 // fill(value, start=0, end=buffer.length)
-Buffer.prototype.fill = function (value, start, end) {
+Buffer.prototype.fill = function fill (value, start, end) {
   if (!value) value = 0
   if (!start) start = 0
   if (!end) end = this.length
 
-  assert(end >= start, 'end < start')
+  if (end < start) throw new RangeError('end < start')
 
   // Fill 0 bytes; we're done
   if (end === start) return
   if (this.length === 0) return
 
-  assert(start >= 0 && start < this.length, 'start out of bounds')
-  assert(end >= 0 && end <= this.length, 'end out of bounds')
+  if (start < 0 || start >= this.length) throw new RangeError('start out of bounds')
+  if (end < 0 || end > this.length) throw new RangeError('end out of bounds')
 
   var i
   if (typeof value === 'number') {
@@ -58852,26 +60103,13 @@ Buffer.prototype.fill = function (value, start, end) {
   return this
 }
 
-Buffer.prototype.inspect = function () {
-  var out = []
-  var len = this.length
-  for (var i = 0; i < len; i++) {
-    out[i] = toHex(this[i])
-    if (i === exports.INSPECT_MAX_BYTES) {
-      out[i + 1] = '...'
-      break
-    }
-  }
-  return '<Buffer ' + out.join(' ') + '>'
-}
-
 /**
  * Creates a new `ArrayBuffer` with the *copied* memory of the buffer instance.
  * Added in Node 0.12. Only available in browsers that support ArrayBuffer.
  */
-Buffer.prototype.toArrayBuffer = function () {
+Buffer.prototype.toArrayBuffer = function toArrayBuffer () {
   if (typeof Uint8Array !== 'undefined') {
-    if (TYPED_ARRAY_SUPPORT) {
+    if (Buffer.TYPED_ARRAY_SUPPORT) {
       return (new Buffer(this)).buffer
     } else {
       var buf = new Uint8Array(this.length)
@@ -58881,7 +60119,7 @@ Buffer.prototype.toArrayBuffer = function () {
       return buf.buffer
     }
   } else {
-    throw new Error('Buffer.toArrayBuffer not supported in this browser')
+    throw new TypeError('Buffer.toArrayBuffer not supported in this browser')
   }
 }
 
@@ -58893,7 +60131,8 @@ var BP = Buffer.prototype
 /**
  * Augment a Uint8Array *instance* (not the Uint8Array class!) with Buffer methods
  */
-Buffer._augment = function (arr) {
+Buffer._augment = function _augment (arr) {
+  arr.constructor = Buffer
   arr._isBuffer = true
 
   // save reference to original Uint8Array get/set methods before overwriting
@@ -58910,13 +60149,18 @@ Buffer._augment = function (arr) {
   arr.toJSON = BP.toJSON
   arr.equals = BP.equals
   arr.compare = BP.compare
+  arr.indexOf = BP.indexOf
   arr.copy = BP.copy
   arr.slice = BP.slice
+  arr.readUIntLE = BP.readUIntLE
+  arr.readUIntBE = BP.readUIntBE
   arr.readUInt8 = BP.readUInt8
   arr.readUInt16LE = BP.readUInt16LE
   arr.readUInt16BE = BP.readUInt16BE
   arr.readUInt32LE = BP.readUInt32LE
   arr.readUInt32BE = BP.readUInt32BE
+  arr.readIntLE = BP.readIntLE
+  arr.readIntBE = BP.readIntBE
   arr.readInt8 = BP.readInt8
   arr.readInt16LE = BP.readInt16LE
   arr.readInt16BE = BP.readInt16BE
@@ -58927,10 +60171,14 @@ Buffer._augment = function (arr) {
   arr.readDoubleLE = BP.readDoubleLE
   arr.readDoubleBE = BP.readDoubleBE
   arr.writeUInt8 = BP.writeUInt8
+  arr.writeUIntLE = BP.writeUIntLE
+  arr.writeUIntBE = BP.writeUIntBE
   arr.writeUInt16LE = BP.writeUInt16LE
   arr.writeUInt16BE = BP.writeUInt16BE
   arr.writeUInt32LE = BP.writeUInt32LE
   arr.writeUInt32BE = BP.writeUInt32BE
+  arr.writeIntLE = BP.writeIntLE
+  arr.writeIntBE = BP.writeIntBE
   arr.writeInt8 = BP.writeInt8
   arr.writeInt16LE = BP.writeInt16LE
   arr.writeInt16BE = BP.writeInt16BE
@@ -58947,11 +60195,13 @@ Buffer._augment = function (arr) {
   return arr
 }
 
-var INVALID_BASE64_RE = /[^+\/0-9A-z]/g
+var INVALID_BASE64_RE = /[^+\/0-9A-z\-]/g
 
 function base64clean (str) {
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
   str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  // Node converts strings with length < 2 to ''
+  if (str.length < 2) return ''
   // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
   while (str.length % 4 !== 0) {
     str = str + '='
@@ -58962,12 +60212,6 @@ function base64clean (str) {
 function stringtrim (str) {
   if (str.trim) return str.trim()
   return str.replace(/^\s+|\s+$/g, '')
-}
-
-function isArray (subject) {
-  return (Array.isArray || function (subject) {
-    return Object.prototype.toString.call(subject) === '[object Array]'
-  })(subject)
 }
 
 function isArrayish (subject) {
@@ -58981,22 +60225,85 @@ function toHex (n) {
   return n.toString(16)
 }
 
-function utf8ToBytes (str) {
-  var byteArray = []
-  for (var i = 0; i < str.length; i++) {
-    var b = str.charCodeAt(i)
-    if (b <= 0x7F) {
-      byteArray.push(b)
-    } else {
-      var start = i
-      if (b >= 0xD800 && b <= 0xDFFF) i++
-      var h = encodeURIComponent(str.slice(start, i+1)).substr(1).split('%')
-      for (var j = 0; j < h.length; j++) {
-        byteArray.push(parseInt(h[j], 16))
+function utf8ToBytes (string, units) {
+  units = units || Infinity
+  var codePoint
+  var length = string.length
+  var leadSurrogate = null
+  var bytes = []
+  var i = 0
+
+  for (; i < length; i++) {
+    codePoint = string.charCodeAt(i)
+
+    // is surrogate component
+    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+      // last char was a lead
+      if (leadSurrogate) {
+        // 2 leads in a row
+        if (codePoint < 0xDC00) {
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          leadSurrogate = codePoint
+          continue
+        } else {
+          // valid surrogate pair
+          codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+          leadSurrogate = null
+        }
+      } else {
+        // no lead yet
+
+        if (codePoint > 0xDBFF) {
+          // unexpected trail
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        } else if (i + 1 === length) {
+          // unpaired lead
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        } else {
+          // valid lead
+          leadSurrogate = codePoint
+          continue
+        }
       }
+    } else if (leadSurrogate) {
+      // valid bmp char, but last char was a lead
+      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+      leadSurrogate = null
+    }
+
+    // encode utf8
+    if (codePoint < 0x80) {
+      if ((units -= 1) < 0) break
+      bytes.push(codePoint)
+    } else if (codePoint < 0x800) {
+      if ((units -= 2) < 0) break
+      bytes.push(
+        codePoint >> 0x6 | 0xC0,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x10000) {
+      if ((units -= 3) < 0) break
+      bytes.push(
+        codePoint >> 0xC | 0xE0,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x200000) {
+      if ((units -= 4) < 0) break
+      bytes.push(
+        codePoint >> 0x12 | 0xF0,
+        codePoint >> 0xC & 0x3F | 0x80,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else {
+      throw new Error('Invalid code point')
     }
   }
-  return byteArray
+
+  return bytes
 }
 
 function asciiToBytes (str) {
@@ -59008,10 +60315,12 @@ function asciiToBytes (str) {
   return byteArray
 }
 
-function utf16leToBytes (str) {
+function utf16leToBytes (str, units) {
   var c, hi, lo
   var byteArray = []
   for (var i = 0; i < str.length; i++) {
+    if ((units -= 2) < 0) break
+
     c = str.charCodeAt(i)
     hi = c >> 8
     lo = c % 256
@@ -59023,13 +60332,12 @@ function utf16leToBytes (str) {
 }
 
 function base64ToBytes (str) {
-  return base64.toByteArray(str)
+  return base64.toByteArray(base64clean(str))
 }
 
 function blitBuffer (src, dst, offset, length) {
   for (var i = 0; i < length; i++) {
-    if ((i + offset >= dst.length) || (i >= src.length))
-      break
+    if ((i + offset >= dst.length) || (i >= src.length)) break
     dst[i + offset] = src[i]
   }
   return i
@@ -59043,36 +60351,7 @@ function decodeUtf8Char (str) {
   }
 }
 
-/*
- * We have to make sure that the value is a valid integer. This means that it
- * is non-negative. It has no fractional component and that it does not
- * exceed the maximum allowed value.
- */
-function verifuint (value, max) {
-  assert(typeof value === 'number', 'cannot write a non-number as a number')
-  assert(value >= 0, 'specified a negative value for writing an unsigned value')
-  assert(value <= max, 'value is larger than maximum value for type')
-  assert(Math.floor(value) === value, 'value has a fractional component')
-}
-
-function verifsint (value, max, min) {
-  assert(typeof value === 'number', 'cannot write a non-number as a number')
-  assert(value <= max, 'value larger than maximum allowed value')
-  assert(value >= min, 'value smaller than minimum allowed value')
-  assert(Math.floor(value) === value, 'value has a fractional component')
-}
-
-function verifIEEE754 (value, max, min) {
-  assert(typeof value === 'number', 'cannot write a non-number as a number')
-  assert(value <= max, 'value larger than maximum allowed value')
-  assert(value >= min, 'value smaller than minimum allowed value')
-}
-
-function assert (test, message) {
-  if (!test) throw new Error(message || 'Failed assertion')
-}
-
-},{"base64-js":174,"ieee754":175}],174:[function(require,module,exports){
+},{"base64-js":188,"ieee754":189,"is-array":190}],188:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -59087,12 +60366,16 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	var NUMBER = '0'.charCodeAt(0)
 	var LOWER  = 'a'.charCodeAt(0)
 	var UPPER  = 'A'.charCodeAt(0)
+	var PLUS_URL_SAFE = '-'.charCodeAt(0)
+	var SLASH_URL_SAFE = '_'.charCodeAt(0)
 
 	function decode (elt) {
 		var code = elt.charCodeAt(0)
-		if (code === PLUS)
+		if (code === PLUS ||
+		    code === PLUS_URL_SAFE)
 			return 62 // '+'
-		if (code === SLASH)
+		if (code === SLASH ||
+		    code === SLASH_URL_SAFE)
 			return 63 // '/'
 		if (code < NUMBER)
 			return -1 //no match
@@ -59194,7 +60477,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],175:[function(require,module,exports){
+},{}],189:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -59280,7 +60563,42 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],176:[function(require,module,exports){
+},{}],190:[function(require,module,exports){
+
+/**
+ * isArray
+ */
+
+var isArray = Array.isArray;
+
+/**
+ * toString
+ */
+
+var str = Object.prototype.toString;
+
+/**
+ * Whether or not the given `val`
+ * is an array.
+ *
+ * example:
+ *
+ *        isArray([]);
+ *        // > true
+ *        isArray(arguments);
+ *        // > false
+ *        isArray('');
+ *        // > false
+ *
+ * @param {mixed} val
+ * @return {bool}
+ */
+
+module.exports = isArray || function (val) {
+  return !! val && '[object Array]' == str.call(val);
+};
+
+},{}],191:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -59340,10 +60658,8 @@ EventEmitter.prototype.emit = function(type) {
       er = arguments[1];
       if (er instanceof Error) {
         throw er; // Unhandled 'error' event
-      } else {
-        throw TypeError('Uncaught, unspecified "error" event.');
       }
-      return false;
+      throw TypeError('Uncaught, unspecified "error" event.');
     }
   }
 
@@ -59585,7 +60901,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],177:[function(require,module,exports){
+},{}],192:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -59610,7 +60926,12 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],178:[function(require,module,exports){
+},{}],193:[function(require,module,exports){
+module.exports = Array.isArray || function (arr) {
+  return Object.prototype.toString.call(arr) == '[object Array]';
+};
+
+},{}],194:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -59837,51 +61158,45 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-}).call(this,require("UPikzY"))
-},{"UPikzY":179}],179:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"_process":195}],195:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
+var queue = [];
+var draining = false;
 
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
+function drainQueue() {
+    if (draining) {
+        return;
     }
-
-    if (canPost) {
-        var queue = [];
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
+    draining = true;
+    var currentQueue;
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        var i = -1;
+        while (++i < len) {
+            currentQueue[i]();
+        }
+        len = queue.length;
     }
-
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
+    draining = false;
+}
+process.nextTick = function (fun) {
+    queue.push(fun);
+    if (!draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
 
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -59895,15 +61210,16 @@ process.emit = noop;
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
-}
+};
 
 // TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
+process.umask = function() { return 0; };
 
-},{}],180:[function(require,module,exports){
+},{}],196:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.4 by @mathias */
 ;(function(root) {
@@ -60413,8 +61729,8 @@ process.chdir = function (dir) {
 
 }(this));
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],181:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],197:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -60500,7 +61816,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],182:[function(require,module,exports){
+},{}],198:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -60587,16 +61903,16 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],183:[function(require,module,exports){
+},{}],199:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":181,"./encode":182}],184:[function(require,module,exports){
+},{"./decode":197,"./encode":198}],200:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":185}],185:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":201}],201:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -60688,8 +62004,8 @@ function forEach (xs, f) {
   }
 }
 
-}).call(this,require("UPikzY"))
-},{"./_stream_readable":187,"./_stream_writable":189,"UPikzY":179,"core-util-is":190,"inherits":177}],186:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./_stream_readable":203,"./_stream_writable":205,"_process":195,"core-util-is":206,"inherits":192}],202:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -60737,7 +62053,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":188,"core-util-is":190,"inherits":177}],187:[function(require,module,exports){
+},{"./_stream_transform":204,"core-util-is":206,"inherits":192}],203:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -60790,15 +62106,29 @@ util.inherits = require('inherits');
 
 var StringDecoder;
 
+
+/*<replacement>*/
+var debug = require('util');
+if (debug && debug.debuglog) {
+  debug = debug.debuglog('stream');
+} else {
+  debug = function () {};
+}
+/*</replacement>*/
+
+
 util.inherits(Readable, Stream);
 
 function ReadableState(options, stream) {
+  var Duplex = require('./_stream_duplex');
+
   options = options || {};
 
   // the point at which it stops calling _read() to fill the buffer
   // Note: 0 is a valid value, means "don't call _read preemptively ever"
   var hwm = options.highWaterMark;
-  this.highWaterMark = (hwm || hwm === 0) ? hwm : 16 * 1024;
+  var defaultHwm = options.objectMode ? 16 : 16 * 1024;
+  this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHwm;
 
   // cast to ints.
   this.highWaterMark = ~~this.highWaterMark;
@@ -60807,19 +62137,13 @@ function ReadableState(options, stream) {
   this.length = 0;
   this.pipes = null;
   this.pipesCount = 0;
-  this.flowing = false;
+  this.flowing = null;
   this.ended = false;
   this.endEmitted = false;
   this.reading = false;
 
-  // In streams that never have any data, and do push(null) right away,
-  // the consumer can miss the 'end' event if they do some I/O before
-  // consuming the stream.  So, we don't emit('end') until some reading
-  // happens.
-  this.calledRead = false;
-
   // a flag to be able to tell if the onwrite cb is called immediately,
-  // or on a later tick.  We set this to true at first, becuase any
+  // or on a later tick.  We set this to true at first, because any
   // actions that shouldn't happen until "later" should generally also
   // not happen before the first write call.
   this.sync = true;
@@ -60834,6 +62158,9 @@ function ReadableState(options, stream) {
   // object stream flag. Used to make read(n) ignore n and to
   // make all the buffer merging and length checks go away
   this.objectMode = !!options.objectMode;
+
+  if (stream instanceof Duplex)
+    this.objectMode = this.objectMode || !!options.readableObjectMode;
 
   // Crypto is kind of old and crusty.  Historically, its default string
   // encoding is 'binary' so we have to make this configurable.
@@ -60861,6 +62188,8 @@ function ReadableState(options, stream) {
 }
 
 function Readable(options) {
+  var Duplex = require('./_stream_duplex');
+
   if (!(this instanceof Readable))
     return new Readable(options);
 
@@ -60879,7 +62208,7 @@ function Readable(options) {
 Readable.prototype.push = function(chunk, encoding) {
   var state = this._readableState;
 
-  if (typeof chunk === 'string' && !state.objectMode) {
+  if (util.isString(chunk) && !state.objectMode) {
     encoding = encoding || state.defaultEncoding;
     if (encoding !== state.encoding) {
       chunk = new Buffer(chunk, encoding);
@@ -60900,7 +62229,7 @@ function readableAddChunk(stream, state, chunk, encoding, addToFront) {
   var er = chunkInvalid(state, chunk);
   if (er) {
     stream.emit('error', er);
-  } else if (chunk === null || chunk === undefined) {
+  } else if (util.isNullOrUndefined(chunk)) {
     state.reading = false;
     if (!state.ended)
       onEofChunk(stream, state);
@@ -60915,17 +62244,24 @@ function readableAddChunk(stream, state, chunk, encoding, addToFront) {
       if (state.decoder && !addToFront && !encoding)
         chunk = state.decoder.write(chunk);
 
-      // update the buffer info.
-      state.length += state.objectMode ? 1 : chunk.length;
-      if (addToFront) {
-        state.buffer.unshift(chunk);
-      } else {
+      if (!addToFront)
         state.reading = false;
-        state.buffer.push(chunk);
-      }
 
-      if (state.needReadable)
-        emitReadable(stream);
+      // if we want the data now, just emit it.
+      if (state.flowing && state.length === 0 && !state.sync) {
+        stream.emit('data', chunk);
+        stream.read(0);
+      } else {
+        // update the buffer info.
+        state.length += state.objectMode ? 1 : chunk.length;
+        if (addToFront)
+          state.buffer.unshift(chunk);
+        else
+          state.buffer.push(chunk);
+
+        if (state.needReadable)
+          emitReadable(stream);
+      }
 
       maybeReadMore(stream, state);
     }
@@ -60958,6 +62294,7 @@ Readable.prototype.setEncoding = function(enc) {
     StringDecoder = require('string_decoder/').StringDecoder;
   this._readableState.decoder = new StringDecoder(enc);
   this._readableState.encoding = enc;
+  return this;
 };
 
 // Don't raise the hwm > 128MB
@@ -60981,7 +62318,7 @@ function howMuchToRead(n, state) {
   if (state.objectMode)
     return n === 0 ? 0 : 1;
 
-  if (isNaN(n) || n === null) {
+  if (isNaN(n) || util.isNull(n)) {
     // only flow one buffer at a time
     if (state.flowing && state.buffer.length)
       return state.buffer[0].length;
@@ -61013,11 +62350,11 @@ function howMuchToRead(n, state) {
 
 // you can override either this method, or the async _read(n) below.
 Readable.prototype.read = function(n) {
+  debug('read', n);
   var state = this._readableState;
-  state.calledRead = true;
   var nOrig = n;
 
-  if (typeof n !== 'number' || n > 0)
+  if (!util.isNumber(n) || n > 0)
     state.emittedReadable = false;
 
   // if we're doing read(0) to trigger a readable event, but we
@@ -61026,7 +62363,11 @@ Readable.prototype.read = function(n) {
   if (n === 0 &&
       state.needReadable &&
       (state.length >= state.highWaterMark || state.ended)) {
-    emitReadable(this);
+    debug('read: emitReadable', state.length, state.ended);
+    if (state.length === 0 && state.ended)
+      endReadable(this);
+    else
+      emitReadable(this);
     return null;
   }
 
@@ -61063,17 +62404,23 @@ Readable.prototype.read = function(n) {
 
   // if we need a readable event, then we need to do some reading.
   var doRead = state.needReadable;
+  debug('need readable', doRead);
 
   // if we currently have less than the highWaterMark, then also read some
-  if (state.length - n <= state.highWaterMark)
+  if (state.length === 0 || state.length - n < state.highWaterMark) {
     doRead = true;
+    debug('length less than watermark', doRead);
+  }
 
   // however, if we've ended, then there's no point, and if we're already
   // reading, then it's unnecessary.
-  if (state.ended || state.reading)
+  if (state.ended || state.reading) {
     doRead = false;
+    debug('reading or ended', doRead);
+  }
 
   if (doRead) {
+    debug('do read');
     state.reading = true;
     state.sync = true;
     // if the length is currently zero, then we *need* a readable event.
@@ -61084,9 +62431,8 @@ Readable.prototype.read = function(n) {
     state.sync = false;
   }
 
-  // If _read called its callback synchronously, then `reading`
-  // will be false, and we need to re-evaluate how much data we
-  // can return to the user.
+  // If _read pushed data synchronously, then `reading` will be false,
+  // and we need to re-evaluate how much data we can return to the user.
   if (doRead && !state.reading)
     n = howMuchToRead(nOrig, state);
 
@@ -61096,7 +62442,7 @@ Readable.prototype.read = function(n) {
   else
     ret = null;
 
-  if (ret === null) {
+  if (util.isNull(ret)) {
     state.needReadable = true;
     n = 0;
   }
@@ -61108,23 +62454,22 @@ Readable.prototype.read = function(n) {
   if (state.length === 0 && !state.ended)
     state.needReadable = true;
 
-  // If we happened to read() exactly the remaining amount in the
-  // buffer, and the EOF has been seen at this point, then make sure
-  // that we emit 'end' on the very next tick.
-  if (state.ended && !state.endEmitted && state.length === 0)
+  // If we tried to read() past the EOF, then emit end on the next tick.
+  if (nOrig !== n && state.ended && state.length === 0)
     endReadable(this);
+
+  if (!util.isNull(ret))
+    this.emit('data', ret);
 
   return ret;
 };
 
 function chunkInvalid(state, chunk) {
   var er = null;
-  if (!Buffer.isBuffer(chunk) &&
-      'string' !== typeof chunk &&
-      chunk !== null &&
-      chunk !== undefined &&
-      !state.objectMode &&
-      !er) {
+  if (!util.isBuffer(chunk) &&
+      !util.isString(chunk) &&
+      !util.isNullOrUndefined(chunk) &&
+      !state.objectMode) {
     er = new TypeError('Invalid non-string/buffer chunk');
   }
   return er;
@@ -61141,12 +62486,8 @@ function onEofChunk(stream, state) {
   }
   state.ended = true;
 
-  // if we've ended and we have some data left, then emit
-  // 'readable' now to make sure it gets picked up.
-  if (state.length > 0)
-    emitReadable(stream);
-  else
-    endReadable(stream);
+  // emit 'readable' now to make sure it gets picked up.
+  emitReadable(stream);
 }
 
 // Don't emit readable right away in sync mode, because this can trigger
@@ -61155,20 +62496,22 @@ function onEofChunk(stream, state) {
 function emitReadable(stream) {
   var state = stream._readableState;
   state.needReadable = false;
-  if (state.emittedReadable)
-    return;
-
-  state.emittedReadable = true;
-  if (state.sync)
-    process.nextTick(function() {
+  if (!state.emittedReadable) {
+    debug('emitReadable', state.flowing);
+    state.emittedReadable = true;
+    if (state.sync)
+      process.nextTick(function() {
+        emitReadable_(stream);
+      });
+    else
       emitReadable_(stream);
-    });
-  else
-    emitReadable_(stream);
+  }
 }
 
 function emitReadable_(stream) {
+  debug('emit readable');
   stream.emit('readable');
+  flow(stream);
 }
 
 
@@ -61191,6 +62534,7 @@ function maybeReadMore_(stream, state) {
   var len = state.length;
   while (!state.reading && !state.flowing && !state.ended &&
          state.length < state.highWaterMark) {
+    debug('maybeReadMore read 0');
     stream.read(0);
     if (len === state.length)
       // didn't get any data, stop spinning.
@@ -61225,6 +62569,7 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
       break;
   }
   state.pipesCount += 1;
+  debug('pipe count=%d opts=%j', state.pipesCount, pipeOpts);
 
   var doEnd = (!pipeOpts || pipeOpts.end !== false) &&
               dest !== process.stdout &&
@@ -61238,11 +62583,14 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
 
   dest.on('unpipe', onunpipe);
   function onunpipe(readable) {
-    if (readable !== src) return;
-    cleanup();
+    debug('onunpipe');
+    if (readable === src) {
+      cleanup();
+    }
   }
 
   function onend() {
+    debug('onend');
     dest.end();
   }
 
@@ -61254,6 +62602,7 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
   dest.on('drain', ondrain);
 
   function cleanup() {
+    debug('cleanup');
     // cleanup event handlers once the pipe is broken
     dest.removeListener('close', onclose);
     dest.removeListener('finish', onfinish);
@@ -61262,19 +62611,34 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
     dest.removeListener('unpipe', onunpipe);
     src.removeListener('end', onend);
     src.removeListener('end', cleanup);
+    src.removeListener('data', ondata);
 
     // if the reader is waiting for a drain event from this
     // specific writer, then it would cause it to never start
     // flowing again.
     // So, if this is awaiting a drain, then we just call it now.
     // If we don't know, then assume that we are waiting for one.
-    if (!dest._writableState || dest._writableState.needDrain)
+    if (state.awaitDrain &&
+        (!dest._writableState || dest._writableState.needDrain))
       ondrain();
+  }
+
+  src.on('data', ondata);
+  function ondata(chunk) {
+    debug('ondata');
+    var ret = dest.write(chunk);
+    if (false === ret) {
+      debug('false write response, pause',
+            src._readableState.awaitDrain);
+      src._readableState.awaitDrain++;
+      src.pause();
+    }
   }
 
   // if the dest has an error, then stop piping into it.
   // however, don't suppress the throwing behavior for this.
   function onerror(er) {
+    debug('onerror', er);
     unpipe();
     dest.removeListener('error', onerror);
     if (EE.listenerCount(dest, 'error') === 0)
@@ -61298,12 +62662,14 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
   }
   dest.once('close', onclose);
   function onfinish() {
+    debug('onfinish');
     dest.removeListener('close', onclose);
     unpipe();
   }
   dest.once('finish', onfinish);
 
   function unpipe() {
+    debug('unpipe');
     src.unpipe(dest);
   }
 
@@ -61312,16 +62678,8 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
 
   // start the flow if it hasn't been started already.
   if (!state.flowing) {
-    // the handler that waits for readable events after all
-    // the data gets sucked out in flow.
-    // This would be easier to follow with a .once() handler
-    // in flow(), but that is too slow.
-    this.on('readable', pipeOnReadable);
-
-    state.flowing = true;
-    process.nextTick(function() {
-      flow(src);
-    });
+    debug('pipe resume');
+    src.resume();
   }
 
   return dest;
@@ -61329,63 +62687,15 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
 
 function pipeOnDrain(src) {
   return function() {
-    var dest = this;
     var state = src._readableState;
-    state.awaitDrain--;
-    if (state.awaitDrain === 0)
+    debug('pipeOnDrain', state.awaitDrain);
+    if (state.awaitDrain)
+      state.awaitDrain--;
+    if (state.awaitDrain === 0 && EE.listenerCount(src, 'data')) {
+      state.flowing = true;
       flow(src);
-  };
-}
-
-function flow(src) {
-  var state = src._readableState;
-  var chunk;
-  state.awaitDrain = 0;
-
-  function write(dest, i, list) {
-    var written = dest.write(chunk);
-    if (false === written) {
-      state.awaitDrain++;
     }
-  }
-
-  while (state.pipesCount && null !== (chunk = src.read())) {
-
-    if (state.pipesCount === 1)
-      write(state.pipes, 0, null);
-    else
-      forEach(state.pipes, write);
-
-    src.emit('data', chunk);
-
-    // if anyone needs a drain, then we have to wait for that.
-    if (state.awaitDrain > 0)
-      return;
-  }
-
-  // if every destination was unpiped, either before entering this
-  // function, or in the while loop, then stop flowing.
-  //
-  // NB: This is a pretty rare edge case.
-  if (state.pipesCount === 0) {
-    state.flowing = false;
-
-    // if there were data event listeners added, then switch to old mode.
-    if (EE.listenerCount(src, 'data') > 0)
-      emitDataEvents(src);
-    return;
-  }
-
-  // at this point, no one needed a drain, so we just ran out of data
-  // on the next readable event, start it over again.
-  state.ranOut = true;
-}
-
-function pipeOnReadable() {
-  if (this._readableState.ranOut) {
-    this._readableState.ranOut = false;
-    flow(this);
-  }
+  };
 }
 
 
@@ -61408,7 +62718,6 @@ Readable.prototype.unpipe = function(dest) {
     // got a match.
     state.pipes = null;
     state.pipesCount = 0;
-    this.removeListener('readable', pipeOnReadable);
     state.flowing = false;
     if (dest)
       dest.emit('unpipe', this);
@@ -61423,7 +62732,6 @@ Readable.prototype.unpipe = function(dest) {
     var len = state.pipesCount;
     state.pipes = null;
     state.pipesCount = 0;
-    this.removeListener('readable', pipeOnReadable);
     state.flowing = false;
 
     for (var i = 0; i < len; i++)
@@ -61451,8 +62759,11 @@ Readable.prototype.unpipe = function(dest) {
 Readable.prototype.on = function(ev, fn) {
   var res = Stream.prototype.on.call(this, ev, fn);
 
-  if (ev === 'data' && !this._readableState.flowing)
-    emitDataEvents(this);
+  // If listening to data, and it has not explicitly been paused,
+  // then call resume to start the flow of data on the next tick.
+  if (ev === 'data' && false !== this._readableState.flowing) {
+    this.resume();
+  }
 
   if (ev === 'readable' && this.readable) {
     var state = this._readableState;
@@ -61461,7 +62772,11 @@ Readable.prototype.on = function(ev, fn) {
       state.emittedReadable = false;
       state.needReadable = true;
       if (!state.reading) {
-        this.read(0);
+        var self = this;
+        process.nextTick(function() {
+          debug('readable nexttick read 0');
+          self.read(0);
+        });
       } else if (state.length) {
         emitReadable(this, state);
       }
@@ -61475,63 +62790,54 @@ Readable.prototype.addListener = Readable.prototype.on;
 // pause() and resume() are remnants of the legacy readable stream API
 // If the user uses them, then switch into old mode.
 Readable.prototype.resume = function() {
-  emitDataEvents(this);
-  this.read(0);
-  this.emit('resume');
+  var state = this._readableState;
+  if (!state.flowing) {
+    debug('resume');
+    state.flowing = true;
+    if (!state.reading) {
+      debug('resume read 0');
+      this.read(0);
+    }
+    resume(this, state);
+  }
+  return this;
 };
+
+function resume(stream, state) {
+  if (!state.resumeScheduled) {
+    state.resumeScheduled = true;
+    process.nextTick(function() {
+      resume_(stream, state);
+    });
+  }
+}
+
+function resume_(stream, state) {
+  state.resumeScheduled = false;
+  stream.emit('resume');
+  flow(stream);
+  if (state.flowing && !state.reading)
+    stream.read(0);
+}
 
 Readable.prototype.pause = function() {
-  emitDataEvents(this, true);
-  this.emit('pause');
+  debug('call pause flowing=%j', this._readableState.flowing);
+  if (false !== this._readableState.flowing) {
+    debug('pause');
+    this._readableState.flowing = false;
+    this.emit('pause');
+  }
+  return this;
 };
 
-function emitDataEvents(stream, startPaused) {
+function flow(stream) {
   var state = stream._readableState;
-
+  debug('flow', state.flowing);
   if (state.flowing) {
-    // https://github.com/isaacs/readable-stream/issues/16
-    throw new Error('Cannot switch to old mode now.');
+    do {
+      var chunk = stream.read();
+    } while (null !== chunk && state.flowing);
   }
-
-  var paused = startPaused || false;
-  var readable = false;
-
-  // convert to an old-style stream.
-  stream.readable = true;
-  stream.pipe = Stream.prototype.pipe;
-  stream.on = stream.addListener = Stream.prototype.on;
-
-  stream.on('readable', function() {
-    readable = true;
-
-    var c;
-    while (!paused && (null !== (c = stream.read())))
-      stream.emit('data', c);
-
-    if (c === null) {
-      readable = false;
-      stream._readableState.needReadable = true;
-    }
-  });
-
-  stream.pause = function() {
-    paused = true;
-    this.emit('pause');
-  };
-
-  stream.resume = function() {
-    paused = false;
-    if (readable)
-      process.nextTick(function() {
-        stream.emit('readable');
-      });
-    else
-      this.read(0);
-    this.emit('resume');
-  };
-
-  // now make it start, just in case it hadn't already.
-  stream.emit('readable');
 }
 
 // wrap an old-style stream as the async data source.
@@ -61543,6 +62849,7 @@ Readable.prototype.wrap = function(stream) {
 
   var self = this;
   stream.on('end', function() {
+    debug('wrapped end');
     if (state.decoder && !state.ended) {
       var chunk = state.decoder.end();
       if (chunk && chunk.length)
@@ -61553,6 +62860,7 @@ Readable.prototype.wrap = function(stream) {
   });
 
   stream.on('data', function(chunk) {
+    debug('wrapped data');
     if (state.decoder)
       chunk = state.decoder.write(chunk);
     if (!chunk || !state.objectMode && !chunk.length)
@@ -61568,8 +62876,7 @@ Readable.prototype.wrap = function(stream) {
   // proxy all the other methods.
   // important when wrapping filters and duplexes.
   for (var i in stream) {
-    if (typeof stream[i] === 'function' &&
-        typeof this[i] === 'undefined') {
+    if (util.isFunction(stream[i]) && util.isUndefined(this[i])) {
       this[i] = function(method) { return function() {
         return stream[method].apply(stream, arguments);
       }}(i);
@@ -61585,6 +62892,7 @@ Readable.prototype.wrap = function(stream) {
   // when we try to consume some more bytes, simply unpause the
   // underlying stream.
   self._read = function(n) {
+    debug('wrapped _read', n);
     if (paused) {
       paused = false;
       stream.resume();
@@ -61673,7 +62981,7 @@ function endReadable(stream) {
   if (state.length > 0)
     throw new Error('endReadable called on non-empty stream');
 
-  if (!state.endEmitted && state.calledRead) {
+  if (!state.endEmitted) {
     state.ended = true;
     process.nextTick(function() {
       // Check that we didn't get one last unshift.
@@ -61699,8 +63007,8 @@ function indexOf (xs, x) {
   return -1;
 }
 
-}).call(this,require("UPikzY"))
-},{"UPikzY":179,"buffer":173,"core-util-is":190,"events":176,"inherits":177,"isarray":191,"stream":197,"string_decoder/":192}],188:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./_stream_duplex":201,"_process":195,"buffer":187,"core-util-is":206,"events":191,"inherits":192,"isarray":193,"stream":211,"string_decoder/":212,"util":186}],204:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -61800,7 +63108,7 @@ function afterTransform(stream, er, data) {
   ts.writechunk = null;
   ts.writecb = null;
 
-  if (data !== null && data !== undefined)
+  if (!util.isNullOrUndefined(data))
     stream.push(data);
 
   if (cb)
@@ -61820,7 +63128,7 @@ function Transform(options) {
 
   Duplex.call(this, options);
 
-  var ts = this._transformState = new TransformState(options, this);
+  this._transformState = new TransformState(options, this);
 
   // when the writable side finishes, then flush out anything remaining.
   var stream = this;
@@ -61833,8 +63141,8 @@ function Transform(options) {
   // sync guard flag.
   this._readableState.sync = false;
 
-  this.once('finish', function() {
-    if ('function' === typeof this._flush)
+  this.once('prefinish', function() {
+    if (util.isFunction(this._flush))
       this._flush(function(er) {
         done(stream, er);
       });
@@ -61882,7 +63190,7 @@ Transform.prototype._write = function(chunk, encoding, cb) {
 Transform.prototype._read = function(n) {
   var ts = this._transformState;
 
-  if (ts.writechunk !== null && ts.writecb && !ts.transforming) {
+  if (!util.isNull(ts.writechunk) && ts.writecb && !ts.transforming) {
     ts.transforming = true;
     this._transform(ts.writechunk, ts.writeencoding, ts.afterTransform);
   } else {
@@ -61900,7 +63208,6 @@ function done(stream, er) {
   // if there's nothing in the write buffer, then that means
   // that nothing more will ever be provided
   var ws = stream._writableState;
-  var rs = stream._readableState;
   var ts = stream._transformState;
 
   if (ws.length)
@@ -61912,7 +63219,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":185,"core-util-is":190,"inherits":177}],189:[function(require,module,exports){
+},{"./_stream_duplex":201,"core-util-is":206,"inherits":192}],205:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -61953,7 +63260,6 @@ var util = require('core-util-is');
 util.inherits = require('inherits');
 /*</replacement>*/
 
-
 var Stream = require('stream');
 
 util.inherits(Writable, Stream);
@@ -61965,17 +63271,23 @@ function WriteReq(chunk, encoding, cb) {
 }
 
 function WritableState(options, stream) {
+  var Duplex = require('./_stream_duplex');
+
   options = options || {};
 
   // the point at which write() starts returning false
   // Note: 0 is a valid value, means that we always return false if
   // the entire buffer is not flushed immediately on write()
   var hwm = options.highWaterMark;
-  this.highWaterMark = (hwm || hwm === 0) ? hwm : 16 * 1024;
+  var defaultHwm = options.objectMode ? 16 : 16 * 1024;
+  this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHwm;
 
   // object stream flag to indicate whether or not this stream
   // contains buffers or objects.
   this.objectMode = !!options.objectMode;
+
+  if (stream instanceof Duplex)
+    this.objectMode = this.objectMode || !!options.writableObjectMode;
 
   // cast to ints.
   this.highWaterMark = ~~this.highWaterMark;
@@ -62007,8 +63319,11 @@ function WritableState(options, stream) {
   // a flag to see when we're in the middle of a write.
   this.writing = false;
 
+  // when true all writes will be buffered until .uncork() call
+  this.corked = 0;
+
   // a flag to be able to tell if the onwrite cb is called immediately,
-  // or on a later tick.  We set this to true at first, becuase any
+  // or on a later tick.  We set this to true at first, because any
   // actions that shouldn't happen until "later" should generally also
   // not happen before the first write call.
   this.sync = true;
@@ -62030,6 +63345,14 @@ function WritableState(options, stream) {
   this.writelen = 0;
 
   this.buffer = [];
+
+  // number of pending user-supplied write callbacks
+  // this must be 0 before 'finish' can be emitted
+  this.pendingcb = 0;
+
+  // emit prefinish if the only thing we're waiting for is _write cbs
+  // This is relevant for synchronous Transform streams
+  this.prefinished = false;
 
   // True if the error was already emitted and should not be thrown again
   this.errorEmitted = false;
@@ -62073,10 +63396,9 @@ function writeAfterEnd(stream, state, cb) {
 // how many bytes or characters.
 function validChunk(stream, state, chunk, cb) {
   var valid = true;
-  if (!Buffer.isBuffer(chunk) &&
-      'string' !== typeof chunk &&
-      chunk !== null &&
-      chunk !== undefined &&
+  if (!util.isBuffer(chunk) &&
+      !util.isString(chunk) &&
+      !util.isNullOrUndefined(chunk) &&
       !state.objectMode) {
     var er = new TypeError('Invalid non-string/buffer chunk');
     stream.emit('error', er);
@@ -62092,31 +63414,54 @@ Writable.prototype.write = function(chunk, encoding, cb) {
   var state = this._writableState;
   var ret = false;
 
-  if (typeof encoding === 'function') {
+  if (util.isFunction(encoding)) {
     cb = encoding;
     encoding = null;
   }
 
-  if (Buffer.isBuffer(chunk))
+  if (util.isBuffer(chunk))
     encoding = 'buffer';
   else if (!encoding)
     encoding = state.defaultEncoding;
 
-  if (typeof cb !== 'function')
+  if (!util.isFunction(cb))
     cb = function() {};
 
   if (state.ended)
     writeAfterEnd(this, state, cb);
-  else if (validChunk(this, state, chunk, cb))
+  else if (validChunk(this, state, chunk, cb)) {
+    state.pendingcb++;
     ret = writeOrBuffer(this, state, chunk, encoding, cb);
+  }
 
   return ret;
+};
+
+Writable.prototype.cork = function() {
+  var state = this._writableState;
+
+  state.corked++;
+};
+
+Writable.prototype.uncork = function() {
+  var state = this._writableState;
+
+  if (state.corked) {
+    state.corked--;
+
+    if (!state.writing &&
+        !state.corked &&
+        !state.finished &&
+        !state.bufferProcessing &&
+        state.buffer.length)
+      clearBuffer(this, state);
+  }
 };
 
 function decodeChunk(state, chunk, encoding) {
   if (!state.objectMode &&
       state.decodeStrings !== false &&
-      typeof chunk === 'string') {
+      util.isString(chunk)) {
     chunk = new Buffer(chunk, encoding);
   }
   return chunk;
@@ -62127,7 +63472,7 @@ function decodeChunk(state, chunk, encoding) {
 // If we return false, then we need a drain event, so set that flag.
 function writeOrBuffer(stream, state, chunk, encoding, cb) {
   chunk = decodeChunk(state, chunk, encoding);
-  if (Buffer.isBuffer(chunk))
+  if (util.isBuffer(chunk))
     encoding = 'buffer';
   var len = state.objectMode ? 1 : chunk.length;
 
@@ -62138,30 +63483,36 @@ function writeOrBuffer(stream, state, chunk, encoding, cb) {
   if (!ret)
     state.needDrain = true;
 
-  if (state.writing)
+  if (state.writing || state.corked)
     state.buffer.push(new WriteReq(chunk, encoding, cb));
   else
-    doWrite(stream, state, len, chunk, encoding, cb);
+    doWrite(stream, state, false, len, chunk, encoding, cb);
 
   return ret;
 }
 
-function doWrite(stream, state, len, chunk, encoding, cb) {
+function doWrite(stream, state, writev, len, chunk, encoding, cb) {
   state.writelen = len;
   state.writecb = cb;
   state.writing = true;
   state.sync = true;
-  stream._write(chunk, encoding, state.onwrite);
+  if (writev)
+    stream._writev(chunk, state.onwrite);
+  else
+    stream._write(chunk, encoding, state.onwrite);
   state.sync = false;
 }
 
 function onwriteError(stream, state, sync, er, cb) {
   if (sync)
     process.nextTick(function() {
+      state.pendingcb--;
       cb(er);
     });
-  else
+  else {
+    state.pendingcb--;
     cb(er);
+  }
 
   stream._writableState.errorEmitted = true;
   stream.emit('error', er);
@@ -62187,8 +63538,12 @@ function onwrite(stream, er) {
     // Check if we're actually ready to finish, but don't emit yet
     var finished = needFinish(stream, state);
 
-    if (!finished && !state.bufferProcessing && state.buffer.length)
+    if (!finished &&
+        !state.corked &&
+        !state.bufferProcessing &&
+        state.buffer.length) {
       clearBuffer(stream, state);
+    }
 
     if (sync) {
       process.nextTick(function() {
@@ -62203,9 +63558,9 @@ function onwrite(stream, er) {
 function afterWrite(stream, state, finished, cb) {
   if (!finished)
     onwriteDrain(stream, state);
+  state.pendingcb--;
   cb();
-  if (finished)
-    finishMaybe(stream, state);
+  finishMaybe(stream, state);
 }
 
 // Must force callback to be called on nextTick, so that we don't
@@ -62223,50 +63578,81 @@ function onwriteDrain(stream, state) {
 function clearBuffer(stream, state) {
   state.bufferProcessing = true;
 
-  for (var c = 0; c < state.buffer.length; c++) {
-    var entry = state.buffer[c];
-    var chunk = entry.chunk;
-    var encoding = entry.encoding;
-    var cb = entry.callback;
-    var len = state.objectMode ? 1 : chunk.length;
+  if (stream._writev && state.buffer.length > 1) {
+    // Fast case, write everything using _writev()
+    var cbs = [];
+    for (var c = 0; c < state.buffer.length; c++)
+      cbs.push(state.buffer[c].callback);
 
-    doWrite(stream, state, len, chunk, encoding, cb);
+    // count the one we are adding, as well.
+    // TODO(isaacs) clean this up
+    state.pendingcb++;
+    doWrite(stream, state, true, state.length, state.buffer, '', function(err) {
+      for (var i = 0; i < cbs.length; i++) {
+        state.pendingcb--;
+        cbs[i](err);
+      }
+    });
 
-    // if we didn't call the onwrite immediately, then
-    // it means that we need to wait until it does.
-    // also, that means that the chunk and cb are currently
-    // being processed, so move the buffer counter past them.
-    if (state.writing) {
-      c++;
-      break;
+    // Clear buffer
+    state.buffer = [];
+  } else {
+    // Slow case, write chunks one-by-one
+    for (var c = 0; c < state.buffer.length; c++) {
+      var entry = state.buffer[c];
+      var chunk = entry.chunk;
+      var encoding = entry.encoding;
+      var cb = entry.callback;
+      var len = state.objectMode ? 1 : chunk.length;
+
+      doWrite(stream, state, false, len, chunk, encoding, cb);
+
+      // if we didn't call the onwrite immediately, then
+      // it means that we need to wait until it does.
+      // also, that means that the chunk and cb are currently
+      // being processed, so move the buffer counter past them.
+      if (state.writing) {
+        c++;
+        break;
+      }
     }
+
+    if (c < state.buffer.length)
+      state.buffer = state.buffer.slice(c);
+    else
+      state.buffer.length = 0;
   }
 
   state.bufferProcessing = false;
-  if (c < state.buffer.length)
-    state.buffer = state.buffer.slice(c);
-  else
-    state.buffer.length = 0;
 }
 
 Writable.prototype._write = function(chunk, encoding, cb) {
   cb(new Error('not implemented'));
+
 };
+
+Writable.prototype._writev = null;
 
 Writable.prototype.end = function(chunk, encoding, cb) {
   var state = this._writableState;
 
-  if (typeof chunk === 'function') {
+  if (util.isFunction(chunk)) {
     cb = chunk;
     chunk = null;
     encoding = null;
-  } else if (typeof encoding === 'function') {
+  } else if (util.isFunction(encoding)) {
     cb = encoding;
     encoding = null;
   }
 
-  if (typeof chunk !== 'undefined' && chunk !== null)
+  if (!util.isNullOrUndefined(chunk))
     this.write(chunk, encoding);
+
+  // .end() fully uncorks
+  if (state.corked) {
+    state.corked = 1;
+    this.uncork();
+  }
 
   // ignore unnecessary end() calls.
   if (!state.ending && !state.finished)
@@ -62281,11 +63667,22 @@ function needFinish(stream, state) {
           !state.writing);
 }
 
+function prefinish(stream, state) {
+  if (!state.prefinished) {
+    state.prefinished = true;
+    stream.emit('prefinish');
+  }
+}
+
 function finishMaybe(stream, state) {
   var need = needFinish(stream, state);
   if (need) {
-    state.finished = true;
-    stream.emit('finish');
+    if (state.pendingcb === 0) {
+      prefinish(stream, state);
+      state.finished = true;
+      stream.emit('finish');
+    } else
+      prefinish(stream, state);
   }
   return need;
 }
@@ -62302,8 +63699,8 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-}).call(this,require("UPikzY"))
-},{"./_stream_duplex":185,"UPikzY":179,"buffer":173,"core-util-is":190,"inherits":177,"stream":197}],190:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./_stream_duplex":201,"_process":195,"buffer":187,"core-util-is":206,"inherits":192,"stream":211}],206:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -62413,231 +63810,25 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":173}],191:[function(require,module,exports){
-module.exports = Array.isArray || function (arr) {
-  return Object.prototype.toString.call(arr) == '[object Array]';
-};
-
-},{}],192:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var Buffer = require('buffer').Buffer;
-
-var isBufferEncoding = Buffer.isEncoding
-  || function(encoding) {
-       switch (encoding && encoding.toLowerCase()) {
-         case 'hex': case 'utf8': case 'utf-8': case 'ascii': case 'binary': case 'base64': case 'ucs2': case 'ucs-2': case 'utf16le': case 'utf-16le': case 'raw': return true;
-         default: return false;
-       }
-     }
-
-
-function assertEncoding(encoding) {
-  if (encoding && !isBufferEncoding(encoding)) {
-    throw new Error('Unknown encoding: ' + encoding);
-  }
-}
-
-var StringDecoder = exports.StringDecoder = function(encoding) {
-  this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
-  assertEncoding(encoding);
-  switch (this.encoding) {
-    case 'utf8':
-      // CESU-8 represents each of Surrogate Pair by 3-bytes
-      this.surrogateSize = 3;
-      break;
-    case 'ucs2':
-    case 'utf16le':
-      // UTF-16 represents each of Surrogate Pair by 2-bytes
-      this.surrogateSize = 2;
-      this.detectIncompleteChar = utf16DetectIncompleteChar;
-      break;
-    case 'base64':
-      // Base-64 stores 3 bytes in 4 chars, and pads the remainder.
-      this.surrogateSize = 3;
-      this.detectIncompleteChar = base64DetectIncompleteChar;
-      break;
-    default:
-      this.write = passThroughWrite;
-      return;
-  }
-
-  this.charBuffer = new Buffer(6);
-  this.charReceived = 0;
-  this.charLength = 0;
-};
-
-
-StringDecoder.prototype.write = function(buffer) {
-  var charStr = '';
-  var offset = 0;
-
-  // if our last write ended with an incomplete multibyte character
-  while (this.charLength) {
-    // determine how many remaining bytes this buffer has to offer for this char
-    var i = (buffer.length >= this.charLength - this.charReceived) ?
-                this.charLength - this.charReceived :
-                buffer.length;
-
-    // add the new bytes to the char buffer
-    buffer.copy(this.charBuffer, this.charReceived, offset, i);
-    this.charReceived += (i - offset);
-    offset = i;
-
-    if (this.charReceived < this.charLength) {
-      // still not enough chars in this buffer? wait for more ...
-      return '';
-    }
-
-    // get the character that was split
-    charStr = this.charBuffer.slice(0, this.charLength).toString(this.encoding);
-
-    // lead surrogate (D800-DBFF) is also the incomplete character
-    var charCode = charStr.charCodeAt(charStr.length - 1);
-    if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-      this.charLength += this.surrogateSize;
-      charStr = '';
-      continue;
-    }
-    this.charReceived = this.charLength = 0;
-
-    // if there are no more bytes in this buffer, just emit our char
-    if (i == buffer.length) return charStr;
-
-    // otherwise cut off the characters end from the beginning of this buffer
-    buffer = buffer.slice(i, buffer.length);
-    break;
-  }
-
-  var lenIncomplete = this.detectIncompleteChar(buffer);
-
-  var end = buffer.length;
-  if (this.charLength) {
-    // buffer the incomplete character bytes we got
-    buffer.copy(this.charBuffer, 0, buffer.length - lenIncomplete, end);
-    this.charReceived = lenIncomplete;
-    end -= lenIncomplete;
-  }
-
-  charStr += buffer.toString(this.encoding, 0, end);
-
-  var end = charStr.length - 1;
-  var charCode = charStr.charCodeAt(end);
-  // lead surrogate (D800-DBFF) is also the incomplete character
-  if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-    var size = this.surrogateSize;
-    this.charLength += size;
-    this.charReceived += size;
-    this.charBuffer.copy(this.charBuffer, size, 0, size);
-    this.charBuffer.write(charStr.charAt(charStr.length - 1), this.encoding);
-    return charStr.substring(0, end);
-  }
-
-  // or just emit the charStr
-  return charStr;
-};
-
-StringDecoder.prototype.detectIncompleteChar = function(buffer) {
-  // determine how many bytes we have to check at the end of this buffer
-  var i = (buffer.length >= 3) ? 3 : buffer.length;
-
-  // Figure out if one of the last i bytes of our buffer announces an
-  // incomplete char.
-  for (; i > 0; i--) {
-    var c = buffer[buffer.length - i];
-
-    // See http://en.wikipedia.org/wiki/UTF-8#Description
-
-    // 110XXXXX
-    if (i == 1 && c >> 5 == 0x06) {
-      this.charLength = 2;
-      break;
-    }
-
-    // 1110XXXX
-    if (i <= 2 && c >> 4 == 0x0E) {
-      this.charLength = 3;
-      break;
-    }
-
-    // 11110XXX
-    if (i <= 3 && c >> 3 == 0x1E) {
-      this.charLength = 4;
-      break;
-    }
-  }
-
-  return i;
-};
-
-StringDecoder.prototype.end = function(buffer) {
-  var res = '';
-  if (buffer && buffer.length)
-    res = this.write(buffer);
-
-  if (this.charReceived) {
-    var cr = this.charReceived;
-    var buf = this.charBuffer;
-    var enc = this.encoding;
-    res += buf.slice(0, cr).toString(enc);
-  }
-
-  return res;
-};
-
-function passThroughWrite(buffer) {
-  return buffer.toString(this.encoding);
-}
-
-function utf16DetectIncompleteChar(buffer) {
-  var incomplete = this.charReceived = buffer.length % 2;
-  this.charLength = incomplete ? 2 : 0;
-  return incomplete;
-}
-
-function base64DetectIncompleteChar(buffer) {
-  var incomplete = this.charReceived = buffer.length % 3;
-  this.charLength = incomplete ? 3 : 0;
-  return incomplete;
-}
-
-},{"buffer":173}],193:[function(require,module,exports){
+},{"buffer":187}],207:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":186}],194:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":202}],208:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
+exports.Stream = require('stream');
 exports.Readable = exports;
 exports.Writable = require('./lib/_stream_writable.js');
 exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":185,"./lib/_stream_passthrough.js":186,"./lib/_stream_readable.js":187,"./lib/_stream_transform.js":188,"./lib/_stream_writable.js":189}],195:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":201,"./lib/_stream_passthrough.js":202,"./lib/_stream_readable.js":203,"./lib/_stream_transform.js":204,"./lib/_stream_writable.js":205,"stream":211}],209:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":188}],196:[function(require,module,exports){
+},{"./lib/_stream_transform.js":204}],210:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":189}],197:[function(require,module,exports){
+},{"./lib/_stream_writable.js":205}],211:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -62766,7 +63957,230 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":176,"inherits":177,"readable-stream/duplex.js":184,"readable-stream/passthrough.js":193,"readable-stream/readable.js":194,"readable-stream/transform.js":195,"readable-stream/writable.js":196}],198:[function(require,module,exports){
+},{"events":191,"inherits":192,"readable-stream/duplex.js":200,"readable-stream/passthrough.js":207,"readable-stream/readable.js":208,"readable-stream/transform.js":209,"readable-stream/writable.js":210}],212:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var Buffer = require('buffer').Buffer;
+
+var isBufferEncoding = Buffer.isEncoding
+  || function(encoding) {
+       switch (encoding && encoding.toLowerCase()) {
+         case 'hex': case 'utf8': case 'utf-8': case 'ascii': case 'binary': case 'base64': case 'ucs2': case 'ucs-2': case 'utf16le': case 'utf-16le': case 'raw': return true;
+         default: return false;
+       }
+     }
+
+
+function assertEncoding(encoding) {
+  if (encoding && !isBufferEncoding(encoding)) {
+    throw new Error('Unknown encoding: ' + encoding);
+  }
+}
+
+// StringDecoder provides an interface for efficiently splitting a series of
+// buffers into a series of JS strings without breaking apart multi-byte
+// characters. CESU-8 is handled as part of the UTF-8 encoding.
+//
+// @TODO Handling all encodings inside a single object makes it very difficult
+// to reason about this code, so it should be split up in the future.
+// @TODO There should be a utf8-strict encoding that rejects invalid UTF-8 code
+// points as used by CESU-8.
+var StringDecoder = exports.StringDecoder = function(encoding) {
+  this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
+  assertEncoding(encoding);
+  switch (this.encoding) {
+    case 'utf8':
+      // CESU-8 represents each of Surrogate Pair by 3-bytes
+      this.surrogateSize = 3;
+      break;
+    case 'ucs2':
+    case 'utf16le':
+      // UTF-16 represents each of Surrogate Pair by 2-bytes
+      this.surrogateSize = 2;
+      this.detectIncompleteChar = utf16DetectIncompleteChar;
+      break;
+    case 'base64':
+      // Base-64 stores 3 bytes in 4 chars, and pads the remainder.
+      this.surrogateSize = 3;
+      this.detectIncompleteChar = base64DetectIncompleteChar;
+      break;
+    default:
+      this.write = passThroughWrite;
+      return;
+  }
+
+  // Enough space to store all bytes of a single character. UTF-8 needs 4
+  // bytes, but CESU-8 may require up to 6 (3 bytes per surrogate).
+  this.charBuffer = new Buffer(6);
+  // Number of bytes received for the current incomplete multi-byte character.
+  this.charReceived = 0;
+  // Number of bytes expected for the current incomplete multi-byte character.
+  this.charLength = 0;
+};
+
+
+// write decodes the given buffer and returns it as JS string that is
+// guaranteed to not contain any partial multi-byte characters. Any partial
+// character found at the end of the buffer is buffered up, and will be
+// returned when calling write again with the remaining bytes.
+//
+// Note: Converting a Buffer containing an orphan surrogate to a String
+// currently works, but converting a String to a Buffer (via `new Buffer`, or
+// Buffer#write) will replace incomplete surrogates with the unicode
+// replacement character. See https://codereview.chromium.org/121173009/ .
+StringDecoder.prototype.write = function(buffer) {
+  var charStr = '';
+  // if our last write ended with an incomplete multibyte character
+  while (this.charLength) {
+    // determine how many remaining bytes this buffer has to offer for this char
+    var available = (buffer.length >= this.charLength - this.charReceived) ?
+        this.charLength - this.charReceived :
+        buffer.length;
+
+    // add the new bytes to the char buffer
+    buffer.copy(this.charBuffer, this.charReceived, 0, available);
+    this.charReceived += available;
+
+    if (this.charReceived < this.charLength) {
+      // still not enough chars in this buffer? wait for more ...
+      return '';
+    }
+
+    // remove bytes belonging to the current character from the buffer
+    buffer = buffer.slice(available, buffer.length);
+
+    // get the character that was split
+    charStr = this.charBuffer.slice(0, this.charLength).toString(this.encoding);
+
+    // CESU-8: lead surrogate (D800-DBFF) is also the incomplete character
+    var charCode = charStr.charCodeAt(charStr.length - 1);
+    if (charCode >= 0xD800 && charCode <= 0xDBFF) {
+      this.charLength += this.surrogateSize;
+      charStr = '';
+      continue;
+    }
+    this.charReceived = this.charLength = 0;
+
+    // if there are no more bytes in this buffer, just emit our char
+    if (buffer.length === 0) {
+      return charStr;
+    }
+    break;
+  }
+
+  // determine and set charLength / charReceived
+  this.detectIncompleteChar(buffer);
+
+  var end = buffer.length;
+  if (this.charLength) {
+    // buffer the incomplete character bytes we got
+    buffer.copy(this.charBuffer, 0, buffer.length - this.charReceived, end);
+    end -= this.charReceived;
+  }
+
+  charStr += buffer.toString(this.encoding, 0, end);
+
+  var end = charStr.length - 1;
+  var charCode = charStr.charCodeAt(end);
+  // CESU-8: lead surrogate (D800-DBFF) is also the incomplete character
+  if (charCode >= 0xD800 && charCode <= 0xDBFF) {
+    var size = this.surrogateSize;
+    this.charLength += size;
+    this.charReceived += size;
+    this.charBuffer.copy(this.charBuffer, size, 0, size);
+    buffer.copy(this.charBuffer, 0, 0, size);
+    return charStr.substring(0, end);
+  }
+
+  // or just emit the charStr
+  return charStr;
+};
+
+// detectIncompleteChar determines if there is an incomplete UTF-8 character at
+// the end of the given buffer. If so, it sets this.charLength to the byte
+// length that character, and sets this.charReceived to the number of bytes
+// that are available for this character.
+StringDecoder.prototype.detectIncompleteChar = function(buffer) {
+  // determine how many bytes we have to check at the end of this buffer
+  var i = (buffer.length >= 3) ? 3 : buffer.length;
+
+  // Figure out if one of the last i bytes of our buffer announces an
+  // incomplete char.
+  for (; i > 0; i--) {
+    var c = buffer[buffer.length - i];
+
+    // See http://en.wikipedia.org/wiki/UTF-8#Description
+
+    // 110XXXXX
+    if (i == 1 && c >> 5 == 0x06) {
+      this.charLength = 2;
+      break;
+    }
+
+    // 1110XXXX
+    if (i <= 2 && c >> 4 == 0x0E) {
+      this.charLength = 3;
+      break;
+    }
+
+    // 11110XXX
+    if (i <= 3 && c >> 3 == 0x1E) {
+      this.charLength = 4;
+      break;
+    }
+  }
+  this.charReceived = i;
+};
+
+StringDecoder.prototype.end = function(buffer) {
+  var res = '';
+  if (buffer && buffer.length)
+    res = this.write(buffer);
+
+  if (this.charReceived) {
+    var cr = this.charReceived;
+    var buf = this.charBuffer;
+    var enc = this.encoding;
+    res += buf.slice(0, cr).toString(enc);
+  }
+
+  return res;
+};
+
+function passThroughWrite(buffer) {
+  return buffer.toString(this.encoding);
+}
+
+function utf16DetectIncompleteChar(buffer) {
+  this.charReceived = buffer.length % 2;
+  this.charLength = this.charReceived ? 2 : 0;
+}
+
+function base64DetectIncompleteChar(buffer) {
+  this.charReceived = buffer.length % 3;
+  this.charLength = this.charReceived ? 3 : 0;
+}
+
+},{"buffer":187}],213:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -63475,8 +64889,601 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":180,"querystring":183}],199:[function(require,module,exports){
-module.exports=require(171)
-},{}],200:[function(require,module,exports){
-module.exports=require(172)
-},{"./support/isBuffer":199,"UPikzY":179,"inherits":177}]},{},[167])
+},{"punycode":196,"querystring":199}],214:[function(require,module,exports){
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],215:[function(require,module,exports){
+(function (process,global){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = require('inherits');
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":214,"_process":195,"inherits":192}]},{},[182]);

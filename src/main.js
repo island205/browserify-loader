@@ -66,7 +66,7 @@ function bootstrap() {
         throw new Error('canot get main module')
       }
       var pkg = JSON.parse(body)
-      mainScriptPath = pkg.main || 'index.js'
+      mainScriptPath = pkg.browser || pkg.main || 'index.js'
       mainScriptPath = url.resolve(packagePath, mainScriptPath)
       loadMainModule(mainScriptPath)
     })
