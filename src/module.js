@@ -41,7 +41,7 @@ function getPackageMainModuleUri(searchPath, dep, callback) {
       if (childModule) {
         uri = childModule
       } else {
-        uri = pkg.main || 'index.js'
+        uri = pkg.browser || pkg.main || 'index.js'
       }
       uri = `./node_modules/${dep}/${uri}`
       uri = url.resolve(searchPath, uri)
