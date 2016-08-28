@@ -12,7 +12,7 @@ A CommonJS Loader for browserify workflow [ES6 support].
 
 - follow [Modules/1.1.1](http://wiki.commonjs.org/wiki/Modules/1.1.1) like [Node](http://nodejs.org/)
 - get rid of wrapper code like `define()`
-- be compatible all `npm` package  and  all `bower` components witch support `CommonJS`. like `underscore`, `backbone`, `jQuery` and so on.
+- be compatible all `npm` package  and  all `bower` components which support `CommonJS`. like `underscore`, `backbone`, `jQuery` and so on.
 
 ## Getting start
 
